@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Talento y empleo — Xuanii</title>
+  <title>Empleo y Proyectos — Xuanii</title>
   <meta name="description" content="Encuentra editores de video, retocadores fotográficos, diseñadores y desarrolladores verificados con portafolio real, ID de seguridad y calificación por estrellas." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
@@ -27,25 +27,38 @@
     </div>
   </div>
 
-  <header class="navbar">
+  <!-- BARRA SUPERIOR LIMPIA — ZEN NAVBAR (STRIPE / APPLE) -->
+  <header class="navbar navbar-zen">
     <div class="container nav-inner">
-      <a href="index.html" class="brand" aria-label="Xuanii Inicio">
-        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
-        </svg>
-        <span class="brand-text">xuanii</span>
-      </a>
+      <div class="nav-left">
+        <button
+          type="button"
+          class="dock-trigger-btn"
+          id="dockToggleBtn"
+          aria-label="Abrir barra de navegación y herramientas"
+          aria-expanded="false"
+          aria-controls="appSidebarDock"
+        >
+          <span class="dock-burger-box" aria-hidden="true">
+            <span class="dock-line dock-line-top"></span>
+            <span class="dock-line dock-line-mid"></span>
+            <span class="dock-line dock-line-bot"></span>
+          </span>
+        </button>
 
-      <nav class="nav-links" aria-label="Navegación principal">
-        <a href="para-ti.html">Para ti</a>
-        <a href="perfiles.html" class="active">Talento y empleo</a>
-        <a href="cuenta.html?tab=communities">Comunidades</a>
-        <a href="productos.html">Productos</a>
-        <a href="novedades.html">Novedades</a>
-        <a href="contacto.html">Contacto</a>
-      </nav>
+        <div class="nav-vertical-divider" aria-hidden="true"></div>
+
+        <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+          <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          </svg>
+          <span class="brand-text">xuanii</span>
+        </a>
+      </div>
+
+      <div class="nav-center" aria-hidden="true"></div>
 
       <div class="nav-actions">
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
@@ -60,12 +73,124 @@
 
         <div class="user-inline" id="navUserChip" hidden>
           <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
-          <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
+          <a href="cuenta.html?tab=profile" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
       </div>
     </div>
   </header>
+
+  <!-- BARRA LATERAL IZQUIERDA (DOCK RETRÁCTIL OBSIDIANA) -->
+  <div class="dock-backdrop" id="appDockBackdrop" hidden>
+    <aside class="sidebar-dock" id="appSidebarDock" role="dialog" aria-modal="true" aria-label="Menú principal y navegación">
+      <div class="dock-head">
+        <div class="dock-brand-line">
+          <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          </svg>
+          <span class="dock-title">Espacio de Trabajo</span>
+        </div>
+        <button class="dock-close-btn" id="dockCloseBtn" type="button" aria-label="Cerrar panel">✕</button>
+      </div>
+
+      <div class="dock-cta-box">
+        <button class="btn btn-dock-publish" id="dockQuickPublishBtn" type="button">
+          <svg class="dock-icon-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span>Publicar Contenido</span>
+          <span class="dock-cta-badge mono">Foto / Video / Código</span>
+        </button>
+      </div>
+
+      <nav class="dock-nav" aria-label="Navegación principal">
+        <span class="dock-group-title mono">FEED & DESCUBRIMIENTO</span>
+        <a href="para-ti.html" class="dock-nav-item" id="dockNavParaTi">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="m10 15 5-3-5-3v6z"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Para ti</span>
+            <span class="dock-nav-sub">Fotos, videos y talento en vivo</span>
+          </div>
+        </a>
+
+        <a href="cuenta.html?tab=messages" class="dock-nav-item" id="dockNavMessages">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Mensajes Cifrados</span>
+            <span class="dock-nav-sub">AES-256-GCM extremo a extremo</span>
+          </div>
+          <span class="dock-pill-badge mono" id="dockUnreadBadge" hidden>0</span>
+        </a>
+
+        <span class="dock-group-title mono" style="margin-top: 16px;">ECOSISTEMA PROFESIONAL</span>
+
+        <div class="dock-nav-nested">
+          <a href="cuenta.html?tab=communities" class="dock-nav-item" id="dockNavCommunities">
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <div class="dock-nav-text">
+              <span class="dock-nav-label">Comunidades</span>
+              <span class="dock-nav-sub">Canales temáticos por oficio</span>
+            </div>
+          </a>
+          <button type="button" class="dock-subaction-btn" id="dockCreateCommBtn" title="Crear nueva comunidad">
+            + Crear Comunidad
+          </button>
+        </div>
+
+        <a href="perfiles.html" class="dock-nav-item active" id="dockNavEmployment">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Empleo y Proyectos</span>
+            <span class="dock-nav-sub">Especialistas & Reclutadores</span>
+          </div>
+        </a>
+
+        <a href="cuenta.html?tab=profile" class="dock-nav-item" id="dockNavProfile">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Mi Perfil y Portafolio</span>
+            <span class="dock-nav-sub">Reputación y muestras</span>
+          </div>
+        </a>
+
+        <button type="button" class="dock-nav-item" id="dockOpenPlansBtn" style="background: transparent; border: none; text-align: left; width: 100%; cursor: pointer;">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Planes y Membresías</span>
+            <span class="dock-nav-sub">Insignias PRO y PLUS</span>
+          </div>
+        </button>
+      </nav>
+
+      <div class="dock-foot">
+        <div class="dock-id-pill mono" id="dockInternalIdBadge">
+          ID: XN-00000000
+        </div>
+        <span class="dock-esc-hint mono">Presiona [Esc] para cerrar</span>
+      </div>
+    </aside>
+  </div>
 
   <main>
     <section class="page-hero">
@@ -85,28 +210,43 @@
 
     <section class="section-dark">
       <div class="container">
-        <div class="directory-toolbar" data-reveal>
-          <div class="topic-tabs" id="profileFilterTabs" role="tablist" aria-label="Filtrar especialistas">
-            <button type="button" class="topic-tab active" data-filter="all">Todos</button>
-            <button type="button" class="topic-tab" data-filter="available">Disponibles ahora</button>
-            <button type="button" class="topic-tab" data-filter="video">Edición de Video</button>
-            <button type="button" class="topic-tab" data-filter="photo">Edición de Foto</button>
-            <button type="button" class="topic-tab" data-filter="design">Diseño y UI</button>
-            <button type="button" class="topic-tab" data-filter="dev">Desarrollo</button>
-          </div>
-
-          <div class="directory-search-wrap">
-            <input
-              type="search"
-              id="profileSearchInput"
-              class="line-input"
-              placeholder="Buscar por nombre, @usuario, oficio o ID (XN-...)..."
-              aria-label="Buscar especialistas"
-            />
-          </div>
+        <!-- Selector de modo: Directorio general vs Panel espejo de contratación -->
+        <div class="employment-mode-switch" id="publicEmploymentModeSwitch" style="margin-bottom: 24px;">
+          <button type="button" class="emp-tab-btn active" data-emp-mode="specialists">
+            Directorio de Especialistas y Reputación
+          </button>
+          <button type="button" class="emp-tab-btn" data-emp-mode="recruiter">
+            Panel Espejo de Reclutamiento (Filtrar por Stack)
+          </button>
         </div>
 
-        <div id="profilesDirectoryList" class="profiles-open-list"></div>
+        <div id="specialistsDirectoryZone">
+          <div class="directory-toolbar" data-reveal>
+            <div class="topic-tabs" id="profileFilterTabs" role="tablist" aria-label="Filtrar especialistas">
+              <button type="button" class="topic-tab active" data-filter="all">Todos</button>
+              <button type="button" class="topic-tab" data-filter="available">Disponibles ahora</button>
+              <button type="button" class="topic-tab" data-filter="video">Edición de Video</button>
+              <button type="button" class="topic-tab" data-filter="photo">Edición de Foto</button>
+              <button type="button" class="topic-tab" data-filter="design">Diseño y UI</button>
+              <button type="button" class="topic-tab" data-filter="dev">Desarrollo</button>
+            </div>
+
+            <div class="directory-search-wrap">
+              <input
+                type="search"
+                id="profileSearchInput"
+                class="line-input"
+                placeholder="Buscar por nombre, @usuario, oficio o ID (XN-...)..."
+                aria-label="Buscar especialistas"
+              />
+            </div>
+          </div>
+
+          <div id="profilesDirectoryList" class="profiles-open-list"></div>
+        </div>
+
+        <!-- Panel Espejo para Reclutadores -->
+        <div id="publicRecruiterMirrorStage" style="display: none; padding-top: 10px;"></div>
       </div>
     </section>
   </main>
@@ -126,7 +266,7 @@
 
       <div class="footer-links">
         <a href="para-ti.html">Para ti</a>
-        <a href="perfiles.html">Talento y empleo</a>
+        <a href="perfiles.html">Empleo y Proyectos</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
         <a href="novedades.html">Novedades</a>
@@ -212,6 +352,74 @@
         <p id="lightboxCaption" class="lightbox-caption"></p>
         <div id="lightboxActions" class="inline-actions"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE MEMBRESÍAS E INSIGNIAS (PRO Y PLUS) -->
+  <div class="dock-backdrop" id="xuaniiMembershipModal" hidden>
+    <div class="membership-modal-dialog" role="dialog" aria-modal="true" aria-label="Planes y Membresías Xuanii">
+      <div class="dock-head">
+        <div>
+          <span class="mono" style="font-size: 0.72rem; color: var(--silver); letter-spacing: 0.1em;">ECOSISTEMA PREMIUM · XUANII</span>
+          <h2 style="font-size: 1.45rem; margin-top: 4px;">Planes y Membresías</h2>
+        </div>
+        <button class="dock-close-btn" id="closeMembershipModalBtn" type="button" aria-label="Cerrar modal">✕</button>
+      </div>
+
+      <p style="color: var(--silver); font-size: 0.9rem; margin-bottom: 20px;">
+        Destaca tus proyectos en el algoritmo 'Para ti', obtén tu insignia oficial y posiciónate en los primeros lugares de la lista de contratación de empleo.
+      </p>
+
+      <div class="tiers-pricing-grid">
+        <!-- PLUS TIER -->
+        <div class="tier-card" id="tierCardPlus">
+          <div class="dock-head" style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(56, 189, 248, 0.2);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-core badge-plus">PLUS</span>
+              <strong style="font-size: 1.05rem;">Membresía PLUS</strong>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 10px;">
+            Para especialistas y creadores que quieren mayor exposición y capacidad en la plataforma.
+          </p>
+          <ul class="tier-features-list">
+            <li>Insignia luminosa PLUS en comentarios, chats y perfil</li>
+            <li>Prioridad media en el feed algorítmico 'Para ti'</li>
+            <li>Baúl privado ampliado a 15 MB</li>
+            <li>Soporte de fragmentos de código fuente</li>
+          </ul>
+          <button type="button" class="btn btn-ghost btn-sm tier-action-btn" data-target-tier="plus" id="activateTierPlusBtn">
+            Activar Membresía PLUS
+          </button>
+        </div>
+
+        <!-- PRO TIER -->
+        <div class="tier-card tier-card-highlight" id="tierCardPro">
+          <div class="tier-badge-floating mono">RECOMENDADO</div>
+          <div class="dock-head" style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(255, 215, 0, 0.3);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-core badge-pro">PRO</span>
+              <strong style="font-size: 1.05rem; color: #fff6cc;">Membresía PRO</strong>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--silver); margin-bottom: 10px;">
+            Máxima reputación, prioridad absoluta en contratación y reproductor de videos incrustados.
+          </p>
+          <ul class="tier-features-list">
+            <li>Insignia dorada PRO de alto impacto en toda la plataforma</li>
+            <li>Prioridad máxima en el algoritmo 'Para ti'</li>
+            <li>Posición prioritaria en el Panel de Empleo y Reclutamiento</li>
+            <li>Soporte completo de videos incrustados (YouTube, Vimeo, MP4)</li>
+            <li>Baúl privado ampliado a 50 MB</li>
+            <li>Bonificación directa en la Puntuación de Reputación</li>
+          </ul>
+          <button type="button" class="btn btn-white btn-sm tier-action-btn" data-target-tier="pro" id="activateTierProBtn">
+            Activar Membresía PRO
+          </button>
+        </div>
+      </div>
+
+      <div id="tierFeedback" class="form-feedback" style="margin-top: 18px;" hidden></div>
     </div>
   </div>
 

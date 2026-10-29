@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Red profesional y espacio — Xuanii</title>
-  <meta name="description" content="Tu red profesional en Xuanii. Publica trabajos con fotos, recibe valoraciones con estrellas, participa en comunidades y conversa con cifrado extremo a extremo." />
+  <title>Perfil Profesional y Espacio de Trabajo — Xuanii</title>
+  <meta name="description" content="Tu perfil profesional y espacio de trabajo en Xuanii. Publica fotos, videos, código fuente, recibe valoraciones con estrellas, comunidades y mensajes cifrados extremo a extremo." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,25 +28,38 @@
     </div>
   </div>
 
-  <header class="navbar">
+  <!-- BARRA SUPERIOR LIMPIA — ZEN NAVBAR (STRIPE / APPLE) -->
+  <header class="navbar navbar-zen">
     <div class="container nav-inner">
-      <a href="index.html" class="brand" aria-label="Xuanii Inicio">
-        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
-        </svg>
-        <span class="brand-text">xuanii</span>
-      </a>
+      <div class="nav-left">
+        <button
+          type="button"
+          class="dock-trigger-btn"
+          id="dockToggleBtn"
+          aria-label="Abrir barra de navegación y herramientas"
+          aria-expanded="false"
+          aria-controls="appSidebarDock"
+        >
+          <span class="dock-burger-box" aria-hidden="true">
+            <span class="dock-line dock-line-top"></span>
+            <span class="dock-line dock-line-mid"></span>
+            <span class="dock-line dock-line-bot"></span>
+          </span>
+        </button>
 
-      <nav class="nav-links" aria-label="Navegación principal">
-        <a href="para-ti.html">Para ti</a>
-        <a href="perfiles.html">Talento y empleo</a>
-        <a href="cuenta.html?tab=communities">Comunidades</a>
-        <a href="productos.html">Productos</a>
-        <a href="novedades.html">Novedades</a>
-        <a href="contacto.html">Contacto</a>
-      </nav>
+        <div class="nav-vertical-divider" aria-hidden="true"></div>
+
+        <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+          <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          </svg>
+          <span class="brand-text">xuanii</span>
+        </a>
+      </div>
+
+      <div class="nav-center" aria-hidden="true"></div>
 
       <div class="nav-actions">
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
@@ -59,24 +72,150 @@
           <span>Entrar con Google</span>
         </button>
 
-        <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
-          <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link active"></a>
-          <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
+        <div class="nav-profile-chip" id="navUserChip" hidden>
+          <a href="cuenta.html?tab=profile" class="nav-profile-anchor" id="navProfileLink" title="Ir a mi Perfil Profesional">
+            <div class="nav-avatar-shell">
+              <img id="navUserAvatar" src="favicon.svg" alt="" class="nav-avatar-img" />
+              <span class="nav-presence-badge" id="navPresenceIndicator" title="Disponible"></span>
+            </div>
+            <div class="nav-profile-meta">
+              <span id="navUserName" class="nav-user-label">Perfil</span>
+              <span class="nav-role-sub mono">Perfil Profesional</span>
+            </div>
+          </a>
+          <button class="nav-logout-btn" id="navSignOutBtn" type="button" aria-label="Cerrar sesión" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
   </header>
+
+  <!-- BARRA LATERAL IZQUIERDA (DOCK RETRÁCTIL OBSIDIANA) -->
+  <div class="dock-backdrop" id="appDockBackdrop" hidden>
+    <aside class="sidebar-dock" id="appSidebarDock" role="dialog" aria-modal="true" aria-label="Menú principal y navegación">
+      <div class="dock-head">
+        <div class="dock-brand-line">
+          <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          </svg>
+          <span class="dock-title">Espacio de Trabajo</span>
+        </div>
+        <button class="dock-close-btn" id="dockCloseBtn" type="button" aria-label="Cerrar panel">✕</button>
+      </div>
+
+      <div class="dock-cta-box">
+        <button class="btn btn-dock-publish" id="dockQuickPublishBtn" type="button">
+          <svg class="dock-icon-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span>Publicar Contenido</span>
+          <span class="dock-cta-badge mono">Foto / Video / Código</span>
+        </button>
+      </div>
+
+      <nav class="dock-nav" aria-label="Navegación principal">
+        <span class="dock-group-title mono">FEED & DESCUBRIMIENTO</span>
+        <a href="para-ti.html" class="dock-nav-item" id="dockNavParaTi">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="m10 15 5-3-5-3v6z"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Para ti</span>
+            <span class="dock-nav-sub">Fotos, videos y talento en vivo</span>
+          </div>
+        </a>
+
+        <a href="cuenta.html?tab=messages" class="dock-nav-item" id="dockNavMessages">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Mensajes Cifrados</span>
+            <span class="dock-nav-sub">AES-256-GCM extremo a extremo</span>
+          </div>
+          <span class="dock-pill-badge mono" id="dockUnreadBadge" hidden>0</span>
+        </a>
+
+        <span class="dock-group-title mono" style="margin-top: 16px;">ECOSISTEMA PROFESIONAL</span>
+
+        <div class="dock-nav-nested">
+          <a href="cuenta.html?tab=communities" class="dock-nav-item" id="dockNavCommunities">
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <div class="dock-nav-text">
+              <span class="dock-nav-label">Comunidades</span>
+              <span class="dock-nav-sub">Canales temáticos por oficio</span>
+            </div>
+          </a>
+          <button type="button" class="dock-subaction-btn" id="dockCreateCommBtn" title="Crear nueva comunidad">
+            + Crear Comunidad
+          </button>
+        </div>
+
+        <a href="perfiles.html" class="dock-nav-item" id="dockNavEmployment">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Empleo y Proyectos</span>
+            <span class="dock-nav-sub">Especialistas & Reclutadores</span>
+          </div>
+        </a>
+
+        <a href="cuenta.html?tab=profile" class="dock-nav-item" id="dockNavProfile">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Mi Perfil y Portafolio</span>
+            <span class="dock-nav-sub">Reputación y muestras</span>
+          </div>
+        </a>
+
+        <button type="button" class="dock-nav-item" id="dockOpenPlansBtn" style="background: transparent; border: none; text-align: left; width: 100%; cursor: pointer;">
+          <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <div class="dock-nav-text">
+            <span class="dock-nav-label">Planes y Membresías</span>
+            <span class="dock-nav-sub">Insignias PRO y PLUS</span>
+          </div>
+        </button>
+      </nav>
+
+      <div class="dock-foot">
+        <div class="dock-id-pill mono" id="dockInternalIdBadge">
+          ID: XN-00000000
+        </div>
+        <span class="dock-esc-hint mono">Presiona [Esc] para cerrar</span>
+      </div>
+    </aside>
+  </div>
 
   <main>
     <div class="container">
       <!-- 0A. PUERTA CUANDO NO HA INICIADO SESIÓN CON GOOGLE -->
       <div id="accountAuthGate" class="studio-gate-wrap">
         <div class="auth-gate-open">
-          <span class="open-eyebrow mono" style="margin-bottom: 0;">RED PROFESIONAL · ACCESO CON GOOGLE</span>
+          <span class="open-eyebrow mono" style="margin-bottom: 0;">ESPACIO DE TRABAJO · ACCESO CON GOOGLE</span>
           <h2>Crea tu cuenta en un paso y conecta con especialistas.</h2>
           <p>
-            Inicia sesión con Google, elige tu nombre de usuario y accede a la red completa: publica muestras fotográficas de tus trabajos, recibe valoraciones con estrellas, únete a comunidades y conversa con cifrado extremo a extremo.
+            Inicia sesión con Google, elige tu nombre de usuario y accede al ecosistema completo: publica fotos y videos de tus trabajos, comparte código, recibe valoraciones con estrellas, únete a comunidades y conversa con cifrado extremo a extremo.
           </p>
           <div class="inline-actions" style="margin-top: 8px;">
             <button class="btn btn-white" id="accountSignInBtn" type="button">
@@ -139,14 +278,13 @@
               </select>
             </div>
 
-            <nav class="studio-nav" style="margin-top: 18px;" aria-label="Navegación de la red">
-              <span class="studio-nav-label mono">RED PROFESIONAL</span>
+            <nav class="studio-nav" style="margin-top: 18px;" aria-label="Navegación del espacio de trabajo">
+              <span class="studio-nav-label mono">FEED & DESCUBRIMIENTO</span>
               <button type="button" class="studio-nav-btn active" data-ws-tab="feed">
                 <span>Para ti</span>
               </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="network">
-                <span>Contactos y talento</span>
-                <span class="studio-badge mono" id="badgeRequestsCount">0</span>
+              <button type="button" class="studio-nav-btn" data-ws-tab="employment">
+                <span>Empleo y Proyectos</span>
               </button>
               <button type="button" class="studio-nav-btn" data-ws-tab="messages" id="wsMessagesTabBtn">
                 <span>Mensajes cifrados</span>
@@ -155,10 +293,17 @@
               <button type="button" class="studio-nav-btn" data-ws-tab="communities">
                 <span>Comunidades</span>
               </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="network">
+                <span>Conexiones y talento</span>
+                <span class="studio-badge mono" id="badgeRequestsCount">0</span>
+              </button>
 
               <span class="studio-nav-label mono">MI CUENTA</span>
               <button type="button" class="studio-nav-btn" data-ws-tab="profile">
                 <span>Mi perfil y portafolio</span>
+              </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="plans" id="wsPlansTabBtn">
+                <span>Planes y Membresías</span>
               </button>
               <button type="button" class="studio-nav-btn" data-ws-tab="files">
                 <span>Nube privada</span>
@@ -218,14 +363,16 @@
               </div>
             </div>
 
-            <!-- Publicador social con subida de fotos de trabajos -->
+            <!-- Publicador social con subida de fotos, videos y código -->
             <form id="feedComposerForm" class="feed-composer-open" novalidate>
               <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">LANZAR EN PARA TI Y EN TU PERFIL</span>
+                <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">PUBLICAR EN EL FEED Y PORTAFOLIO</span>
                 <select id="feedPostKind" class="studio-presence-select" style="width: auto; min-width: 230px;">
-                  <option value="portfolio">Foto / Muestra de trabajo</option>
-                  <option value="job">Oferta de empleo / Busco especialista</option>
-                  <option value="available">Me ofrezco para trabajar / Encargos</option>
+                  <option value="portfolio">Muestra visual (Foto / Captura)</option>
+                  <option value="video">Muestra de Video (YouTube / Vimeo / MP4)</option>
+                  <option value="code_snippet">Fragmento de Código Fuente</option>
+                  <option value="job">Oferta de empleo / Busco talento</option>
+                  <option value="available">Disponible para proyectos / Encargos</option>
                 </select>
               </div>
 
@@ -233,10 +380,48 @@
                 id="feedPostCaption"
                 class="line-textarea"
                 style="min-height: 76px;"
-                maxlength="2200"
-                placeholder="Comparte un trabajo terminado, sube fotografías o capturas de tu edición, o publica qué especialista estás buscando..."
+                maxlength="2800"
+                placeholder="Comparte un trabajo terminado, sube imágenes, videos de tu edición o código de tu software..."
                 required
               ></textarea>
+
+              <!-- Video URL input -->
+              <div id="feedVideoInputWrap" style="display: none; margin-top: 10px;">
+                <input
+                  type="url"
+                  id="feedVideoUrlInput"
+                  class="line-input"
+                  placeholder="Enlace de video: https://youtube.com/watch?v=... o https://vimeo.com/..."
+                />
+              </div>
+
+              <!-- Code Snippet input -->
+              <div id="feedCodeSnippetWrap" style="display: none; margin-top: 12px; gap: 8px; flex-direction: column;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <input
+                    type="text"
+                    id="feedCodeTitleInput"
+                    class="line-input"
+                    style="flex: 1;"
+                    placeholder="Título del snippet (ej: auth handler, custom shader, script ffmpeg)"
+                  />
+                  <select id="feedCodeLangSelect" class="studio-presence-select" style="width: auto;">
+                    <option value="javascript">JavaScript / TypeScript</option>
+                    <option value="python">Python</option>
+                    <option value="rust">Rust</option>
+                    <option value="css">CSS / Tailwind</option>
+                    <option value="html">HTML</option>
+                    <option value="sql">SQL</option>
+                    <option value="json">JSON</option>
+                  </select>
+                </div>
+                <textarea
+                  id="feedCodeSnippetArea"
+                  class="line-textarea mono"
+                  style="min-height: 110px; font-size: 0.82rem;"
+                  placeholder="// Pega tu código fuente aquí..."
+                ></textarea>
+              </div>
 
               <div id="feedPhotoPreviewWrap" class="composer-photo-preview" hidden>
                 <img id="feedPhotoPreviewImg" alt="Vista previa" />
@@ -247,7 +432,13 @@
                 <div class="inline-actions">
                   <input type="file" id="feedPhotoInput" accept="image/*" hidden />
                   <button type="button" class="btn btn-ghost btn-sm" id="feedAttachPhotoBtn">
-                    Subir foto de trabajo
+                    Adjuntar foto o imagen
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="feedToggleVideoBtn">
+                    Video URL
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="feedToggleCodeBtn">
+                    Código
                   </button>
                   <span id="feedComposerFeedback" class="mono" style="font-size: 0.76rem; color: var(--silver);"></span>
                 </div>
@@ -264,6 +455,17 @@
             </div>
 
             <div id="socialFeedStream" class="feed-stream"></div>
+          </section>
+
+          <!-- 1B. EMPLEO Y PROYECTOS (MÓDULO INTELIGENTE CONDICIONAL CON PANEL ESPEJO) -->
+          <section id="wsPanel-employment" class="workspace-panel" hidden>
+            <div class="studio-top-bar" style="margin-bottom: 24px;">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">EMPLEO Y PROYECTOS · REPUTACIÓN Y TALENTO</span>
+                <h2>Ecosistema Laboral</h2>
+              </div>
+            </div>
+            <div id="employmentSmartContainer"></div>
           </section>
 
           <!-- 2. CONTACTOS DE CONFIANZA (AMIGOS) Y BUSCADOR POR ID / OFICIO -->
@@ -297,7 +499,7 @@
 
             <!-- Explorador de todos los miembros dentro de la app -->
             <div>
-              <span class="open-eyebrow mono" style="margin-bottom: 10px;">DIRECTORIO DE LA RED</span>
+              <span class="open-eyebrow mono" style="margin-bottom: 10px;">DIRECTORIO DE ESPECIALISTAS</span>
               <div id="networkExploreList" class="profiles-open-list"></div>
             </div>
           </section>
@@ -463,6 +665,19 @@
                   </div>
                 </div>
 
+                <!-- Puntuación de reputación profesional -->
+                <div class="arch-col" id="profileReputationCol">
+                  <span class="col-index mono">PUNTUACIÓN DE REPUTACIÓN</span>
+                  <div style="display: flex; align-items: baseline; gap: 8px; margin: 8px 0;">
+                    <span id="profileRepScoreNum" style="font-size: 2.2rem; font-weight: 800; color: var(--white); line-height: 1;">--</span>
+                    <span class="mono" style="font-size: 0.8rem; color: var(--muted);">/ 100 PTS</span>
+                  </div>
+                  <span id="profileRepBadgeLabel" class="rep-badge-tag mono">Calculando reputación...</span>
+                  <p style="font-size: 0.8rem; color: var(--muted); margin-top: 8px;">
+                    Se calcula mediante estrellas verificadas de clientes, entregables de portafolio, repositorio GitHub conectado y membresía.
+                  </p>
+                </div>
+
                 <!-- Subir foto directa al registro/portafolio del perfil -->
                 <div class="arch-col">
                   <span class="col-index mono">SUBIR FOTO A MI PORTAFOLIO</span>
@@ -523,6 +738,15 @@
                 <div class="field-line">
                   <label for="profileBio" class="mono">DE QUÉ TRATA TU TRABAJO Y QUÉ OFRECES</label>
                   <textarea id="profileBio" class="line-textarea" maxlength="700" placeholder="Explica en detalle qué tipo de trabajos realizas, tu experiencia, tiempos de entrega o qué tipo de empleo buscas..."></textarea>
+                </div>
+
+                <div class="field-line">
+                  <label for="profileGitHubUser" class="mono">USUARIO DE GITHUB (PARA DESARROLLADORES Y REPOSITORIOS)</label>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="profileGitHubUser" class="line-input mono" maxlength="40" placeholder="ej. torvalds o mi-usuario" />
+                    <button type="button" class="btn btn-ghost btn-sm" id="verifyGitHubBtn">Verificar</button>
+                  </div>
+                  <span id="profileGitHubFeedback" class="mono" style="font-size: 0.74rem; color: var(--silver); margin-top: 5px; display: block;"></span>
                 </div>
 
                 <div class="open-rows">
@@ -695,7 +919,7 @@
             <div id="adminModerationPanel" class="section-soft-divider" hidden>
               <span class="open-eyebrow mono">ADMINISTRACIÓN OFICIAL · BANEO POR ID INTERNO</span>
               <p class="open-row-sub" style="margin-bottom: 20px;">
-                Introduce el ID interno (<code>XN-...</code>) de cualquier cuenta para suspenderla de toda la red en tiempo real o restaurar su acceso.
+                Introduce el ID interno (<code>XN-...</code>) de cualquier cuenta para suspenderla de la plataforma en tiempo real o restaurar su acceso.
               </p>
 
               <form id="adminBanByIdForm" class="open-form" style="max-width: 660px; gap: 18px;" novalidate>
@@ -736,7 +960,7 @@
 
       <div class="footer-links">
         <a href="para-ti.html">Para ti</a>
-        <a href="perfiles.html">Talento y empleo</a>
+        <a href="perfiles.html">Empleo y Proyectos</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
         <a href="novedades.html">Novedades</a>
@@ -754,7 +978,7 @@
       </div>
       <h3 id="onboardTitle">Elige tu usuario y oficio digital</h3>
       <p class="modal-desc">
-        Tu cuenta de Google ya está protegida con cifrado en la nube. Completa estos datos para activar tu perfil profesional en la red.
+        Tu cuenta de Google ya está protegida con cifrado en la nube. Completa estos datos para activar tu perfil profesional y portafolio.
       </p>
 
       <form id="onboardingForm" class="open-form" style="gap: 20px;" novalidate>
@@ -873,6 +1097,74 @@
         <p id="lightboxCaption" class="lightbox-caption"></p>
         <div id="lightboxActions" class="inline-actions"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE MEMBRESÍAS E INSIGNIAS (PRO Y PLUS) -->
+  <div class="dock-backdrop" id="xuaniiMembershipModal" hidden>
+    <div class="membership-modal-dialog" role="dialog" aria-modal="true" aria-label="Planes y Membresías Xuanii">
+      <div class="dock-head">
+        <div>
+          <span class="mono" style="font-size: 0.72rem; color: var(--silver); letter-spacing: 0.1em;">ECOSISTEMA PREMIUM · XUANII</span>
+          <h2 style="font-size: 1.45rem; margin-top: 4px;">Planes y Membresías</h2>
+        </div>
+        <button class="dock-close-btn" id="closeMembershipModalBtn" type="button" aria-label="Cerrar modal">✕</button>
+      </div>
+
+      <p style="color: var(--silver); font-size: 0.9rem; margin-bottom: 20px;">
+        Destaca tus proyectos en el algoritmo 'Para ti', obtén tu insignia oficial y posiciónate en los primeros lugares de la lista de contratación de empleo.
+      </p>
+
+      <div class="tiers-pricing-grid">
+        <!-- PLUS TIER -->
+        <div class="tier-card" id="tierCardPlus">
+          <div class="dock-head" style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(56, 189, 248, 0.2);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-core badge-plus">PLUS</span>
+              <strong style="font-size: 1.05rem;">Membresía PLUS</strong>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 10px;">
+            Para especialistas y creadores que quieren mayor exposición y capacidad en la plataforma.
+          </p>
+          <ul class="tier-features-list">
+            <li>Insignia luminosa PLUS en comentarios, chats y perfil</li>
+            <li>Prioridad media en el feed algorítmico 'Para ti'</li>
+            <li>Baúl privado ampliado a 15 MB</li>
+            <li>Soporte de fragmentos de código fuente</li>
+          </ul>
+          <button type="button" class="btn btn-ghost btn-sm tier-action-btn" data-target-tier="plus" id="activateTierPlusBtn">
+            Activar Membresía PLUS
+          </button>
+        </div>
+
+        <!-- PRO TIER -->
+        <div class="tier-card tier-card-highlight" id="tierCardPro">
+          <div class="tier-badge-floating mono">RECOMENDADO</div>
+          <div class="dock-head" style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(255, 215, 0, 0.3);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-core badge-pro">PRO</span>
+              <strong style="font-size: 1.05rem; color: #fff6cc;">Membresía PRO</strong>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--silver); margin-bottom: 10px;">
+            Máxima reputación, prioridad absoluta en contratación y reproductor de videos incrustados.
+          </p>
+          <ul class="tier-features-list">
+            <li>Insignia dorada PRO de alto impacto en toda la plataforma</li>
+            <li>Prioridad máxima en el algoritmo 'Para ti'</li>
+            <li>Posición prioritaria en el Panel de Empleo y Reclutamiento</li>
+            <li>Soporte completo de videos incrustados (YouTube, Vimeo, MP4)</li>
+            <li>Baúl privado ampliado a 50 MB</li>
+            <li>Bonificación directa en la Puntuación de Reputación</li>
+          </ul>
+          <button type="button" class="btn btn-white btn-sm tier-action-btn" data-target-tier="pro" id="activateTierProBtn">
+            Activar Membresía PRO
+          </button>
+        </div>
+      </div>
+
+      <div id="tierFeedback" class="form-feedback" style="margin-top: 18px;" hidden></div>
     </div>
   </div>
 

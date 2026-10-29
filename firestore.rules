@@ -73,13 +73,27 @@ service cloud.firestore {
       }
     }
 
-    // Perfiles profesionales públicos con ID interno verificable
+    // Validación segura de cambio de membresía
+    function isValidMembershipTierUpdate(currentData, incomingData) {
+      let sameTier = incomingData.membershipTier == currentData.membershipTier;
+      let settingCreator = incomingData.membershipTier == 'creator';
+      let tierAllowed = incomingData.membershipTier in ['standard', 'plus', 'pro'];
+      return sameTier || (isAdmin() && settingCreator) || (!settingCreator && tierAllowed);
+    }
+
+    // Perfiles profesionales públicos con ID interno verificable y membresía
     match /profiles/{userId} {
       allow read: if true;
-      allow create, update: if (isNotBanned() && request.auth.uid == userId
-                                && request.resource.data.displayName is string
-                                && request.resource.data.displayName.size() <= 80)
-                            || isAdmin();
+      allow create: if (isNotBanned() && request.auth.uid == userId
+                        && request.resource.data.displayName is string
+                        && request.resource.data.displayName.size() <= 80
+                        && (!('membershipTier' in request.resource.data) || request.resource.data.membershipTier == 'standard' || isAdmin()))
+                    || isAdmin();
+      allow update: if (isNotBanned() && request.auth.uid == userId
+                        && request.resource.data.displayName is string
+                        && request.resource.data.displayName.size() <= 80
+                        && (!('membershipTier' in request.resource.data) || isValidMembershipTierUpdate(resource.data, request.resource.data)))
+                    || isAdmin();
       allow delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
     }
 
@@ -100,13 +114,15 @@ service cloud.firestore {
                     && (resource.data.reviewerUid == request.auth.uid || isAdmin());
     }
 
-    // Publicaciones sociales ("Para ti") y registro fotográfico de portafolio en perfiles
+    // Publicaciones sociales ("Para ti") con fotos, videos, código y portafolio
     match /posts/{postId} {
       allow read: if true;
       allow create: if isNotBanned()
                     && request.resource.data.authorUid == request.auth.uid
                     && request.resource.data.caption is string
-                    && request.resource.data.caption.size() <= 3000;
+                    && request.resource.data.caption.size() <= 4000
+                    && (!('mediaType' in request.resource.data) || request.resource.data.mediaType in ['none', 'photo', 'video', 'video_embed', 'video_native', 'code'])
+                    && (!('videoUrl' in request.resource.data) || request.resource.data.videoUrl.size() <= 600);
       allow update: if isNotBanned()
                     && (resource.data.authorUid == request.auth.uid
                         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])

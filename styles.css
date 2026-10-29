@@ -2639,3 +2639,929 @@ main {
     padding: 24px 20px 48px;
   }
 }
+
+/* =========================================================
+   BARRA SUPERIOR MINIMALISTA Y PRECISA (STRIPE / APPLE)
+   ========================================================= */
+.navbar-zen {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  height: 64px;
+  background: rgba(5, 5, 7, 0.84);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.3s var(--ease-apple);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-vertical-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Microinteracción de Botón de Dock / Menú estilo Apple */
+.dock-trigger-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--white);
+  padding: 0;
+  transition:
+    background-color 0.22s var(--ease-apple),
+    border-color 0.22s var(--ease-apple),
+    transform 0.25s var(--ease-spring);
+}
+
+.dock-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: scale(1.04);
+}
+
+.dock-trigger-btn:active {
+  transform: scale(0.94);
+}
+
+.dock-burger-box {
+  width: 16px;
+  height: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dock-line {
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  background-color: var(--white);
+  border-radius: 1px;
+  transition: transform 0.28s var(--ease-apple), opacity 0.2s ease;
+}
+
+.dock-trigger-btn[aria-expanded="true"] .dock-line-top {
+  transform: translateY(5.25px) rotate(45deg);
+}
+
+.dock-trigger-btn[aria-expanded="true"] .dock-line-mid {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.dock-trigger-btn[aria-expanded="true"] .dock-line-bot {
+  transform: translateY(-5.25px) rotate(-45deg);
+}
+
+.nav-center {
+  flex: 1;
+}
+
+/* Ficha de Perfil Profesional en Navbar */
+.nav-profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  transition: border-color 0.25s var(--ease-apple), background-color 0.25s var(--ease-apple);
+}
+
+.nav-profile-chip:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-profile-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--white);
+}
+
+.nav-avatar-shell {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.nav-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-presence-badge {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #050507;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.nav-profile-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.nav-user-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--white);
+}
+
+.nav-role-sub {
+  font-size: 0.66rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+.nav-logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s var(--ease-apple), background 0.2s var(--ease-apple);
+}
+
+.nav-logout-btn:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================================
+   DOCK RETRÁCTIL IZQUIERDO OBSIDIANA (APPLE / LINEAR STYLE)
+   ========================================================= */
+.dock-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 2, 4, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 120;
+  display: flex;
+  justify-content: flex-start;
+  transition: opacity 0.3s var(--ease-apple);
+}
+
+.sidebar-dock {
+  width: min(350px, 88vw);
+  height: 100vh;
+  background: #07080c;
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 20px 0 60px rgba(0, 0, 0, 0.8), inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px 28px;
+  overflow-y: auto;
+  animation: appleDockSlideIn 0.36s var(--ease-apple) both;
+}
+
+@keyframes appleDockSlideIn {
+  from {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 20px;
+}
+
+.dock-brand-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dock-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--white);
+}
+
+.dock-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--silver);
+  font-size: 1.15rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.dock-close-btn:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Botón Destacado: Publicar Contenido */
+.dock-cta-box {
+  margin-bottom: 24px;
+}
+
+.btn-dock-publish {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #ececf0 100%);
+  color: #050507;
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.12);
+  transition: transform 0.22s var(--ease-spring), box-shadow 0.22s ease;
+}
+
+.btn-dock-publish:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.22);
+}
+
+.dock-icon-action {
+  width: 18px;
+  height: 18px;
+}
+
+.dock-cta-badge {
+  font-size: 0.65rem;
+  background: #050507;
+  color: #ffffff;
+  padding: 3px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+/* Enlaces de Navegación del Dock */
+.dock-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.dock-group-title {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  padding: 8px 8px 4px;
+}
+
+.dock-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--silver-bright);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.2s var(--ease-apple),
+    color 0.2s var(--ease-apple),
+    border-color 0.2s var(--ease-apple);
+}
+
+.dock-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--white);
+}
+
+.dock-nav-item.active {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+}
+
+.dock-icon {
+  width: 19px;
+  height: 19px;
+  color: var(--silver);
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.dock-nav-item:hover .dock-icon,
+.dock-nav-item.active .dock-icon {
+  color: var(--white);
+}
+
+.dock-nav-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dock-nav-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dock-nav-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botón secundario "+ Crear Comunidad" */
+.dock-nav-nested {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dock-subaction-btn {
+  align-self: flex-start;
+  margin-left: 42px;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: var(--silver);
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.dock-subaction-btn:hover {
+  color: var(--white);
+  border-color: var(--white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dock-pill-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+/* Pie del Dock */
+.dock-foot {
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dock-id-pill {
+  font-size: 0.74rem;
+  color: var(--silver);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dock-esc-hint {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+/* =========================================================
+   SISTEMA DE INSIGNIAS JERÁRQUICAS: CREADOR, PRO Y PLUS
+   ========================================================= */
+.badge-core {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  line-height: 1;
+  text-transform: uppercase;
+  vertical-align: middle;
+  flex-shrink: 0;
+  user-select: none;
+  border-radius: 4px;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease;
+}
+
+.badge-core:hover {
+  transform: translateY(-0.5px);
+}
+
+/* Insignia PRO */
+.badge-pro,
+.tier-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #fff6cc;
+  padding: 3.5px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 215, 0, 0.65);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.22) 0%,
+    rgba(184, 134, 11, 0.12) 100%
+  );
+  box-shadow:
+    0 2px 12px rgba(255, 215, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.badge-pro svg,
+.tier-pro svg {
+  width: 8.5px;
+  height: 8.5px;
+  color: #ffd700;
+}
+
+/* Insignia PLUS */
+.badge-plus,
+.tier-plus {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.60rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #e0f2fe;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  background: linear-gradient(
+    135deg,
+    rgba(56, 189, 248, 0.18) 0%,
+    rgba(2, 132, 199, 0.08) 100%
+  );
+  box-shadow:
+    0 2px 10px rgba(56, 189, 248, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.badge-plus svg,
+.tier-plus svg {
+  width: 8px;
+  height: 8px;
+  color: #38bdf8;
+}
+
+.badge-sm {
+  font-size: 0.55rem !important;
+  padding: 2px 5px !important;
+  gap: 3.5px !important;
+  letter-spacing: 0.08em !important;
+}
+
+.badge-sm svg {
+  width: 7.5px !important;
+  height: 7.5px !important;
+}
+
+.pro-avatar-ring {
+  border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 0 0 0 2px #050507, 0 0 12px rgba(255, 215, 0, 0.35) !important;
+}
+
+.plus-avatar-ring {
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 0 0 2px #050507, 0 0 10px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* =========================================================
+   SOPORTE MULTIMEDIA: VIDEOS RESPONSIVOS Y FACADE OSCURA
+   ========================================================= */
+.video-responsive-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #030305;
+  border: 1px solid var(--line-dark);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.youtube-facade-dark {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.youtube-facade-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(1px);
+  transition: background-color 0.25s ease;
+}
+
+.youtube-facade-dark:hover::before {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.video-play-trigger-btn {
+  position: relative;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #050507;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  transition: transform 0.24s var(--ease-spring), background-color 0.2s ease;
+}
+
+.youtube-facade-dark:hover .video-play-trigger-btn {
+  transform: scale(1.12);
+  background: #ffffff;
+}
+
+.embedded-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.xuanii-dark-video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000000;
+  border: 1px solid var(--line-dark);
+}
+
+/* =========================================================
+   VENTANA DE CÓDIGO FUENTE (CODE SNIPPETS MACOS OSCURO)
+   ========================================================= */
+.xuanii-code-window {
+  background: #08090d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 12px 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.code-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.code-window-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code-window-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.code-window-dots .dot:nth-child(1) { background: #ff5f56; }
+.code-window-dots .dot:nth-child(2) { background: #ffbd2e; }
+.code-window-dots .dot:nth-child(3) { background: #27c93f; }
+
+.code-title {
+  font-size: 0.72rem;
+  color: var(--silver);
+  margin-left: 8px;
+}
+
+.code-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-tag {
+  font-size: 0.66rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.copy-code-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--white);
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.copy-code-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.code-pre {
+  margin: 0;
+  padding: 14px 16px;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #e4e4e7;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* =========================================================
+   MÓDULO DE EMPLEO INTELIGENTE Y PANEL ESPEJO RECLUTADOR
+   ========================================================= */
+.employment-mode-switch {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-dark);
+  padding: 3px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.emp-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--silver);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.emp-tab-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+}
+
+.recruiter-mirror-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recruiter-header-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.recruiter-search-bar {
+  min-width: 280px;
+  flex: 1;
+  max-width: 440px;
+}
+
+.candidates-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.candidate-mirror-card {
+  background: #090a0f;
+  border: 1px solid var(--line-dark);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.25s var(--ease-apple), transform 0.25s var(--ease-spring);
+}
+
+.candidate-mirror-card:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+
+.candidate-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.candidate-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line-dark);
+}
+
+.candidate-role {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--silver);
+  margin-top: 2px;
+}
+
+.candidate-id {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.candidate-score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.candidate-score-box .score-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+}
+
+.candidate-score-box .score-lbl {
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+.candidate-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rep-badge-tag {
+  font-size: 0.72rem;
+  color: var(--silver-bright);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.gh-verified-tag {
+  font-size: 0.72rem;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.candidate-skills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.candidate-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-dark);
+}
+
+/* Modal de Membresías y Planes */
+.membership-modal-dialog {
+  width: min(680px, 92vw);
+  background: #090a0f;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85);
+  position: relative;
+}
+
+.tiers-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.tier-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tier-card-highlight {
+  border-color: rgba(255, 215, 0, 0.45);
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.06) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.tier-badge-floating {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  background: #ffd700;
+  color: #050507;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+}
+
+.tier-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--silver-bright);
+}
+
+.tier-features-list li::before {
+  content: "✓ ";
+  color: var(--white);
+  font-weight: 700;
+}
+

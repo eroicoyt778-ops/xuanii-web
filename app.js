@@ -202,12 +202,968 @@ const createCreatorBadgeEl = (small = false) => {
   return badge;
 };
 
-const mountCreatorBadgeSlot = (slotEl, isCreator, small = false) => {
+// Generador universal de insignias vectoriales jerárquicas (CREADOR, PRO, PLUS)
+const renderMembershipBadge = (tier = "standard", small = false) => {
+  if (tier === "creator") {
+    return createCreatorBadgeEl(small);
+  }
+
+  const badge = document.createElement("span");
+  const sizeClass = small ? "badge-sm" : "";
+
+  if (tier === "pro") {
+    badge.className = `badge-core badge-pro ${sizeClass}`.trim();
+    badge.title = "Membresía PRO · Especialista Verificado";
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 16 16");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", "M8 1.5L14 8L8 14.5L2 8L8 1.5Z");
+    svg.appendChild(path);
+
+    const txt = document.createElement("span");
+    txt.textContent = "PRO";
+
+    badge.appendChild(svg);
+    badge.appendChild(txt);
+    return badge;
+  }
+
+  if (tier === "plus") {
+    badge.className = `badge-core badge-plus ${sizeClass}`.trim();
+    badge.title = "Membresía PLUS · Miembro Destacado";
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 16 16");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2.2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("aria-hidden", "true");
+    const l1 = document.createElementNS(svgNS, "line");
+    l1.setAttribute("x1", "8");
+    l1.setAttribute("y1", "3");
+    l1.setAttribute("x2", "8");
+    l1.setAttribute("y2", "13");
+    const l2 = document.createElementNS(svgNS, "line");
+    l2.setAttribute("x1", "3");
+    l2.setAttribute("y1", "8");
+    l2.setAttribute("x2", "13");
+    l2.setAttribute("y2", "8");
+    svg.appendChild(l1);
+    svg.appendChild(l2);
+
+    const txt = document.createElement("span");
+    txt.textContent = "PLUS";
+
+    badge.appendChild(svg);
+    badge.appendChild(txt);
+    return badge;
+  }
+
+  const empty = document.createElement("span");
+  empty.className = "tier-standard-empty";
+  return empty;
+};
+
+const mountCreatorBadgeSlot = (slotEl, isCreator, small = false, tier = "standard") => {
   if (!slotEl) return;
   slotEl.textContent = "";
   if (isCreator) {
     slotEl.appendChild(createCreatorBadgeEl(small));
+  } else if (tier === "pro" || tier === "plus") {
+    slotEl.appendChild(renderMembershipBadge(tier, small));
   }
+};
+
+/* =========================================================
+   2. MOTOR DE AFINIDAD COMUNITARIA PARA 'PARA TI'
+   ========================================================= */
+const AFFINITY_WEIGHTS = {
+  LIKE: 0.25,
+  COMMENT: 0.40,
+  VIEW_DEEP: 0.15,
+  PROFILE_INSPECT: 0.20
+};
+
+const getUserAffinityVector = (userUid) => {
+  const defaultVector = { dev: 0.25, video: 0.25, photo: 0.25, design: 0.25, motion3d: 0.1 };
+  if (!userUid) return defaultVector;
+  return readJson(`xuanii_affinity_${userUid}`, defaultVector);
+};
+
+const trackUserInteraction = (category, weightType, userUid) => {
+  if (!userUid || !category) return;
+  const current = getUserAffinityVector(userUid);
+  const inc = AFFINITY_WEIGHTS[weightType] || 0.1;
+  current[category] = Math.min(2.5, (current[category] || 0) + inc);
+  const sum = Object.values(current).reduce((acc, v) => acc + v, 0);
+  if (sum > 5.0) {
+    Object.keys(current).forEach((k) => {
+      current[k] = current[k] / (sum / 2.5);
+    });
+  }
+  writeJson(`xuanii_affinity_${userUid}`, current);
+};
+
+const calculatePostScore = (post, userVector, nowMs) => {
+  const cat = post.authorCategory || "video";
+  const affinityVal = userVector[cat] || 0.2;
+
+  const ageHours = Math.max(0, (nowMs - (post.createdAtMs || nowMs)) / (1000 * 60 * 60));
+  const timeDecay = Math.exp(-ageHours / 48);
+
+  const likesCount = Array.isArray(post.likes) ? post.likes.length : 0;
+  const commentsCount = Number(post.commentCount) || 0;
+  const rawEngagement = likesCount * 2 + commentsCount * 3.5;
+  const socialScore = Math.min(1.0, Math.log1p(rawEngagement) / Math.log1p(30));
+
+  let tierScore = 0.1;
+  if (post.membershipTier === "creator" || isCreatorAccount(post.authorInternalId, post.authorUid)) {
+    tierScore = 1.0;
+  } else if (post.membershipTier === "pro") {
+    tierScore = 0.85;
+  } else if (post.membershipTier === "plus") {
+    tierScore = 0.50;
+  }
+
+  return (
+    affinityVal * 35 +
+    timeDecay * 25 +
+    socialScore * 20 +
+    tierScore * 20
+  );
+};
+
+const rankFeedPostsByAffinity = (posts, userUid) => {
+  const nowMs = Date.now();
+  const vector = getUserAffinityVector(userUid);
+  return [...posts]
+    .map((post) => ({
+      ...post,
+      _algScore: calculatePostScore(post, vector, nowMs)
+    }))
+    .sort((a, b) => b._algScore - a._algScore);
+};
+
+/* =========================================================
+   3. PARSER Y RENDERIZADOR MULTIMEDIA (VIDEO Y CÓDIGO)
+   ========================================================= */
+const parseVideoUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== "string") return null;
+  const url = rawUrl.trim();
+
+  // YouTube Shorts / Watch / youtu.be
+  const ytMatch = url.match(
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (ytMatch && ytMatch[1]) {
+    const videoId = ytMatch[1];
+    return {
+      provider: "youtube",
+      videoId,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`,
+      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+    };
+  }
+
+  // Vimeo
+  const vimeoMatch = url.match(
+    /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/
+  );
+  if (vimeoMatch && vimeoMatch[3]) {
+    const videoId = vimeoMatch[3];
+    return {
+      provider: "vimeo",
+      videoId,
+      embedUrl: `https://player.vimeo.com/video/${videoId}?autoplay=1&color=ffffff&title=0&byline=0`
+    };
+  }
+
+  // Direct video file (mp4, webm)
+  if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url)) {
+    return {
+      provider: "direct",
+      videoUrl: url
+    };
+  }
+
+  return null;
+};
+
+const renderMediaContainer = (post, onPhotoClick) => {
+  const container = document.createElement("div");
+  container.className = "post-media-container";
+
+  // 1. Video Embed o Directo
+  const vData = post.videoData || parseVideoUrl(post.videoUrl);
+  if (post.mediaType === "video" || post.videoUrl || vData) {
+    if (vData?.provider === "youtube") {
+      const frame = document.createElement("div");
+      frame.className = "video-responsive-frame";
+
+      const facade = document.createElement("div");
+      facade.className = "youtube-facade-dark";
+      facade.style.backgroundImage = `url("${vData.thumbnailUrl}")`;
+
+      const playBtn = document.createElement("button");
+      playBtn.className = "video-play-trigger-btn";
+      playBtn.setAttribute("aria-label", "Reproducir video");
+      playBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+      `;
+
+      facade.appendChild(playBtn);
+      frame.appendChild(facade);
+
+      facade.addEventListener("click", () => {
+        const iframe = document.createElement("iframe");
+        iframe.src = vData.embedUrl;
+        iframe.title = post.caption || "Video de Xuanii";
+        iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
+        iframe.setAttribute("allowfullscreen", "true");
+        iframe.className = "embedded-iframe";
+        frame.textContent = "";
+        frame.appendChild(iframe);
+      });
+
+      container.appendChild(frame);
+      return container;
+    }
+
+    if (vData?.provider === "direct") {
+      const vid = document.createElement("video");
+      vid.className = "xuanii-dark-video";
+      vid.src = vData.videoUrl;
+      vid.controls = true;
+      vid.preload = "metadata";
+      vid.playsInline = true;
+      container.appendChild(vid);
+      return container;
+    }
+  }
+
+  // 2. Fragmento de Código Fuente
+  if (post.codeSnippet && post.codeSnippet.code) {
+    container.appendChild(renderCodeSnippetBlock(post.codeSnippet));
+    return container;
+  }
+
+  // 3. Fotografía con Zoom Lightbox
+  if (post.photoUrl) {
+    const frame = document.createElement("div");
+    frame.className = "post-photo-frame zoomable";
+    frame.title = "Clic para ampliar fotografía";
+    const img = document.createElement("img");
+    img.src = post.photoUrl;
+    img.alt = post.caption || "Fotografía de portafolio";
+    img.loading = "lazy";
+    frame.addEventListener("click", () => onPhotoClick?.(post));
+    frame.appendChild(img);
+    container.appendChild(frame);
+    return container;
+  }
+
+  return null;
+};
+
+const renderCodeSnippetBlock = ({ code, language = "javascript", title = "Snippet de Código" }) => {
+  const wrapper = document.createElement("div");
+  wrapper.className = "xuanii-code-window";
+
+  const bar = document.createElement("div");
+  bar.className = "code-window-bar";
+
+  const dots = document.createElement("div");
+  dots.className = "code-window-dots";
+  for (let i = 0; i < 3; i++) {
+    const d = document.createElement("span");
+    d.className = "dot";
+    dots.appendChild(d);
+  }
+  const tit = document.createElement("span");
+  tit.className = "code-title mono";
+  tit.textContent = title;
+  dots.appendChild(tit);
+
+  const acts = document.createElement("div");
+  acts.className = "code-actions";
+  const lang = document.createElement("span");
+  lang.className = "lang-tag mono";
+  lang.textContent = (language || "CODE").toUpperCase();
+
+  const cBtn = document.createElement("button");
+  cBtn.type = "button";
+  cBtn.className = "copy-code-btn mono";
+  cBtn.textContent = "Copiar";
+  cBtn.addEventListener("click", () => copyTextWithFeedback(code, cBtn));
+
+  acts.appendChild(lang);
+  acts.appendChild(cBtn);
+  bar.appendChild(dots);
+  bar.appendChild(acts);
+
+  const pre = document.createElement("pre");
+  pre.className = "code-pre mono";
+  const codeEl = document.createElement("code");
+  codeEl.textContent = code;
+  pre.appendChild(codeEl);
+
+  wrapper.appendChild(bar);
+  wrapper.appendChild(pre);
+  return wrapper;
+};
+
+/* =========================================================
+   4. CONEXIÓN GITHUB Y REPUTACIÓN PROFESIONAL
+   ========================================================= */
+const fetchGitHubDeveloperStats = async (username) => {
+  const cleanUser = String(username || "").trim().replace(/^@+/, "");
+  if (!cleanUser) throw new Error("Nombre de usuario de GitHub no válido.");
+
+  const cacheKey = `xuanii_gh_${cleanUser.toLowerCase()}`;
+  const cached = readJson(cacheKey, null);
+  if (cached && Date.now() - cached.fetchedAtMs < 6 * 3600 * 1000) {
+    return cached.data;
+  }
+
+  const userRes = await fetch(`https://api.github.com/users/${encodeURIComponent(cleanUser)}`);
+  if (!userRes.ok) throw new Error("Usuario de GitHub no encontrado.");
+  const uData = await userRes.json();
+
+  const reposRes = await fetch(
+    `https://api.github.com/users/${encodeURIComponent(cleanUser)}/repos?per_page=100&sort=pushed`
+  ).catch(() => null);
+  const repos = reposRes && reposRes.ok ? await reposRes.json() : [];
+
+  let totalStars = 0;
+  const langCount = {};
+  repos.forEach((r) => {
+    totalStars += Number(r.stargazers_count) || 0;
+    if (r.language) {
+      langCount[r.language] = (langCount[r.language] || 0) + 1;
+    }
+  });
+
+  const topLanguages = Object.entries(langCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([l, cnt]) => ({ lang: l, count: cnt }));
+
+  const result = {
+    username: uData.login,
+    htmlUrl: uData.html_url,
+    avatarUrl: uData.avatar_url,
+    publicRepos: uData.public_repos || 0,
+    totalStars,
+    topLanguages,
+    accountAgeYears: Math.max(
+      0,
+      ((Date.now() - new Date(uData.created_at).getTime()) / (1000 * 3600 * 24 * 365)).toFixed(1)
+    )
+  };
+
+  writeJson(cacheKey, { fetchedAtMs: Date.now(), data: result });
+  return result;
+};
+
+const computeDeveloperReputation = ({
+  reviewsStats,
+  githubData,
+  portfolioPostsCount,
+  isVerified,
+  membershipTier
+}) => {
+  let score = 0;
+
+  // 1. Reseñas y Estrellas (Máximo 35 pts)
+  if (reviewsStats && reviewsStats.count > 0) {
+    const starRatio = Math.max(0, Math.min(1, (reviewsStats.avg - 1) / 4));
+    const confidence = Math.min(1, reviewsStats.count / 4);
+    score += starRatio * 35 * confidence;
+  } else {
+    score += 15; // Puntos base iniciales
+  }
+
+  // 2. Conexión Válida de GitHub (Máximo 25 pts)
+  if (githubData?.username) {
+    score += 8;
+    score += Math.min(7, (githubData.totalStars || 0) / 4);
+    score += Math.min(5, (githubData.publicRepos || 0) / 3);
+    score += Math.min(5, Number(githubData.accountAgeYears || 0) * 1.5);
+  }
+
+  // 3. Muestras de Portafolio (Máximo 25 pts)
+  const pCount = Number(portfolioPostsCount) || 0;
+  score += Math.min(25, pCount * 5);
+
+  // 4. Membresía y Verificación (Máximo 15 pts)
+  if (isVerified) score += 3;
+  if (membershipTier === "creator") score += 12;
+  else if (membershipTier === "pro") score += 10;
+  else if (membershipTier === "plus") score += 6;
+
+  const finalScore = Math.min(100, Math.max(10, Math.round(score)));
+
+  let badgeLabel = "Especialista Activo";
+  if (finalScore >= 85) badgeLabel = "Élite Xuanii · Verificado";
+  else if (finalScore >= 70) badgeLabel = "Senior Destacado";
+  else if (finalScore >= 50) badgeLabel = "Especialista Certificado";
+
+  return {
+    score: finalScore,
+    badgeLabel,
+    hasGitHub: Boolean(githubData?.username),
+    starsAvg: reviewsStats?.avg || 0,
+    reviewsCount: reviewsStats?.count || 0
+  };
+};
+
+/* =========================================================
+   4B. MÓDULO INTELIGENTE DE EMPLEO Y RECLUTAMIENTO ESPEJO
+   ========================================================= */
+const renderDeveloperReputationStudio = (stageEl, userProfile) => {
+  if (!stageEl) return;
+  const uid = userProfile?.uid || activeAuthUser?.uid || "";
+  const stats = getRatingStats(uid);
+  const myPostsCount = allPostsList.filter((p) => p.authorUid === uid).length;
+  const ghData = userProfile?.developerProfile?.github;
+  const isCr = isCreatorAccount(userProfile?.internalId, uid);
+  const rep = computeDeveloperReputation({
+    reviewsStats: stats,
+    githubData: ghData,
+    portfolioPostsCount: myPostsCount,
+    isVerified: Boolean(userProfile?.internalId),
+    membershipTier: isCr ? "creator" : (userProfile?.membershipTier || "standard")
+  });
+
+  const card = document.createElement("div");
+  card.className = "arch-col";
+  card.style.background = "#07080c";
+  card.style.border = "1px solid var(--line-dark)";
+  card.style.borderRadius = "14px";
+  card.style.padding = "24px 22px";
+  card.style.marginBottom = "24px";
+
+  const ghConnectedHtml = ghData?.username
+    ? `
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <a href="${ghData.htmlUrl}" target="_blank" rel="noopener" class="gh-verified-tag mono">
+            @${ghData.username} verificado ✓ (${ghData.totalStars}★ · ${ghData.publicRepos} repos)
+          </a>
+          <span class="open-row-sub" style="margin-top: 4px; display: block;">Lenguajes: ${(ghData.topLanguages || []).map((l) => l.lang).join(", ") || "Código"}</span>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="devDisconnectGhBtn">Cambiar usuario GitHub</button>
+      </div>
+    `
+    : `
+      <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 12px;">
+        Conecta tu usuario de GitHub para certificar tus repositorios públicos, estrellas y lenguajes en tu reputación.
+      </p>
+      <div style="display: flex; gap: 10px; max-width: 440px;">
+        <input type="text" id="devQuickGhInput" class="line-input mono" placeholder="usuario-github" />
+        <button type="button" class="btn btn-white btn-sm" id="devQuickGhBtn">Conectar</button>
+      </div>
+      <span id="devQuickGhFeedback" class="mono" style="font-size: 0.72rem; color: var(--silver); margin-top: 6px; display: block;"></span>
+    `;
+
+  card.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+      <div>
+        <span class="mono" style="font-size: 0.72rem; color: var(--silver); letter-spacing: 0.08em;">TU ESTUDIO DE REPUTACIÓN PROFESIONAL</span>
+        <h3 style="font-size: 1.35rem; margin-top: 4px;">Construye tu valor en el ecosistema</h3>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 10px;">
+        <span style="font-size: 2.2rem; font-weight: 800; color: var(--white);">${rep.score}</span>
+        <span class="mono" style="font-size: 0.8rem; color: var(--muted);">/ 100 PTS</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+      <span class="rep-badge-tag mono">${rep.badgeLabel}</span>
+      <span class="mono" style="font-size: 0.78rem; color: var(--silver);">${stats.count > 0 ? `★ ${stats.avg.toFixed(1)} (${stats.count} reseñas)` : "Sin reseñas aún"}</span>
+      <span class="mono" style="font-size: 0.78rem; color: var(--silver);">${myPostsCount} entregables en portafolio</span>
+    </div>
+
+    <!-- CONEXIÓN GITHUB -->
+    <div class="gh-connect-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+      <span class="mono" style="font-size: 0.72rem; color: var(--silver); display: block; margin-bottom: 6px;">CONEXIÓN TÉCNICA · GITHUB API</span>
+      ${ghConnectedHtml}
+    </div>
+
+    <!-- ACCIONES DE PROMOCIÓN -->
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-white btn-sm" id="devGoToPublishBtn">
+        + Publicar Muestra o Código
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" id="devOpenPlansBtn">
+        Subir de Nivel (Membresías PRO / PLUS)
+      </button>
+      <button type="button" class="text-action-btn" id="devPreviewProfileBtn">
+        Ver cómo te ven los clientes →
+      </button>
+    </div>
+  `;
+
+  stageEl.appendChild(card);
+
+  card.querySelector("#devGoToPublishBtn")?.addEventListener("click", () => {
+    switchWorkspaceTab("feed");
+    const cap = document.getElementById("feedPostCaption");
+    if (cap) {
+      cap.focus();
+      cap.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+
+  card.querySelector("#devOpenPlansBtn")?.addEventListener("click", () => {
+    openMembershipModal(currentOwnProfile, cloudHooks.updateMembershipTier);
+  });
+
+  card.querySelector("#devPreviewProfileBtn")?.addEventListener("click", () => {
+    if (uid) renderInspectorContent(uid);
+  });
+
+  card.querySelector("#devDisconnectGhBtn")?.addEventListener("click", () => {
+    switchWorkspaceTab("profile");
+    document.getElementById("profileGitHubUser")?.focus();
+  });
+
+  const ghBtn = card.querySelector("#devQuickGhBtn");
+  const ghInp = card.querySelector("#devQuickGhInput");
+  const ghFb = card.querySelector("#devQuickGhFeedback");
+  ghBtn?.addEventListener("click", async () => {
+    const u = (ghInp?.value || "").trim();
+    if (!u) return;
+    ghBtn.disabled = true;
+    if (ghFb) ghFb.textContent = "Validando con GitHub...";
+    try {
+      const gStats = await fetchGitHubDeveloperStats(u);
+      if (currentOwnProfile) {
+        currentOwnProfile.developerProfile = { github: gStats };
+      }
+      await cloudHooks.saveProfile?.({
+        developerProfile: { github: gStats }
+      });
+      if (ghFb) ghFb.textContent = `GitHub conectado con éxito ✓`;
+      setTimeout(() => {
+        renderDeveloperReputationStudio(stageEl, currentOwnProfile);
+      }, 900);
+    } catch (err) {
+      if (ghFb) ghFb.textContent = err?.message || "No se pudo validar el usuario de GitHub.";
+    } finally {
+      ghBtn.disabled = false;
+    }
+  });
+};
+
+const renderRecruiterMirrorDirectory = (targetContainer, currentAuthUser) => {
+  if (!targetContainer) return;
+  targetContainer.innerHTML = `
+    <div class="recruiter-mirror-panel">
+      <div class="recruiter-header-filter">
+        <div>
+          <span class="open-eyebrow mono" style="margin-bottom: 4px;">PANEL RECLUTADOR · CONTRATACIÓN DIRECTA</span>
+          <h3 style="font-size: 1.35rem;">Explora talento por stack y reputación</h3>
+        </div>
+        <div class="recruiter-search-bar">
+          <input type="search" id="recruiterTechSearch" class="line-input" placeholder="Filtrar por tecnología: React, Rust, Python, DaVinci, Figma..." />
+        </div>
+      </div>
+
+      <div class="topic-tabs" id="recruiterTechPills" style="border-bottom: none; padding-bottom: 0;">
+        <button type="button" class="topic-tab active" data-tech="all">Todos los oficios</button>
+        <button type="button" class="topic-tab" data-tech="dev">Desarrollo Web / Software</button>
+        <button type="button" class="topic-tab" data-tech="video">Edición de Video</button>
+        <button type="button" class="topic-tab" data-tech="photo">Fotografía y Retoque</button>
+        <button type="button" class="topic-tab" data-tech="design">Diseño UI/UX & 3D</button>
+      </div>
+
+      <div id="recruiterCandidatesGrid" class="candidates-card-grid"></div>
+    </div>
+  `;
+
+  const gridEl = targetContainer.querySelector("#recruiterCandidatesGrid");
+  const searchInput = targetContainer.querySelector("#recruiterTechSearch");
+  let activeTech = "all";
+
+  targetContainer.querySelectorAll("#recruiterTechPills .topic-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      targetContainer.querySelectorAll("#recruiterTechPills .topic-tab").forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      activeTech = tab.dataset.tech || "all";
+      filterAndPaint();
+    });
+  });
+
+  const filterAndPaint = () => {
+    if (!gridEl) return;
+    const q = (searchInput?.value || "").toLowerCase().trim();
+    gridEl.textContent = "";
+
+    const candidates = allProfilesList
+      .filter((p) => p.isPublic !== false && !bannedUsersMap.has(p.uid))
+      .map((prof) => {
+        const stats = getRatingStats(prof.uid);
+        const pCount = allPostsList.filter((post) => post.authorUid === prof.uid).length;
+        const isCr = isCreatorAccount(prof.internalId, prof.uid);
+        const rep = computeDeveloperReputation({
+          reviewsStats: stats,
+          githubData: prof.developerProfile?.github,
+          portfolioPostsCount: pCount,
+          isVerified: Boolean(prof.internalId),
+          membershipTier: isCr ? "creator" : (prof.membershipTier || "standard")
+        });
+        return { ...prof, _rep: rep, _isCreator: isCr };
+      })
+      .sort((a, b) => {
+        const aBoost = a._isCreator ? 400 : (a.membershipTier === "pro" ? 250 : (a.membershipTier === "plus" ? 120 : 0));
+        const bBoost = b._isCreator ? 400 : (b.membershipTier === "pro" ? 250 : (b.membershipTier === "plus" ? 120 : 0));
+        if (aBoost !== bBoost) return bBoost - aBoost;
+        return b._rep.score - a._rep.score;
+      });
+
+    let renderedCount = 0;
+    candidates.forEach((cand) => {
+      if (activeTech !== "all") {
+        const ok = cand.category === activeTech || (activeTech === "video" && cand.category === "motion3d");
+        if (!ok) return;
+      }
+
+      const skillsStr = (Array.isArray(cand.skills) ? cand.skills.join(" ") : (cand.skills || "")).toLowerCase();
+      const match =
+        !q ||
+        (cand.displayName || "").toLowerCase().includes(q) ||
+        skillsStr.includes(q) ||
+        (cand.role || "").toLowerCase().includes(q) ||
+        (cand.internalId || deriveInternalId(cand.uid)).toLowerCase().includes(q);
+
+      if (!match) return;
+      renderedCount++;
+
+      const card = document.createElement("article");
+      card.className = "candidate-mirror-card";
+
+      const top = document.createElement("div");
+      top.className = "candidate-card-top";
+
+      const av = document.createElement("img");
+      let ring = "";
+      if (cand._isCreator) ring = "creator-avatar-ring";
+      else if (cand.membershipTier === "pro") ring = "pro-avatar-ring";
+      else if (cand.membershipTier === "plus") ring = "plus-avatar-ring";
+      av.className = `candidate-avatar ${ring}`.trim();
+      av.src = cand.photoURL || "favicon.svg";
+      av.alt = "";
+      av.onerror = () => { av.src = "favicon.svg"; };
+
+      const info = document.createElement("div");
+      info.style.flex = "1";
+      info.style.minWidth = "0";
+
+      const nameLine = document.createElement("div");
+      nameLine.style.display = "flex";
+      nameLine.style.alignItems = "center";
+      nameLine.style.gap = "6px";
+      nameLine.style.flexWrap = "wrap";
+
+      const strong = document.createElement("strong");
+      strong.style.fontSize = "1rem";
+      strong.textContent = cand.displayName || "Especialista";
+      nameLine.appendChild(strong);
+
+      if (cand._isCreator) {
+        nameLine.appendChild(createCreatorBadgeEl(true));
+      } else if (cand.membershipTier === "pro") {
+        nameLine.appendChild(renderMembershipBadge("pro", true));
+      } else if (cand.membershipTier === "plus") {
+        nameLine.appendChild(renderMembershipBadge("plus", true));
+      }
+
+      const roleSpan = document.createElement("span");
+      roleSpan.className = "candidate-role";
+      roleSpan.textContent = cand.role || CATEGORY_LABELS[cand.category] || "Especialista digital";
+
+      const idSpan = document.createElement("span");
+      idSpan.className = "mono candidate-id";
+      idSpan.textContent = `ID: ${cand.internalId || deriveInternalId(cand.uid)}`;
+
+      info.appendChild(nameLine);
+      info.appendChild(roleSpan);
+      info.appendChild(idSpan);
+
+      const scoreBox = document.createElement("div");
+      scoreBox.className = "candidate-score-box mono";
+      scoreBox.innerHTML = `
+        <span class="score-num">${cand._rep.score}</span>
+        <span class="score-lbl">REPUTACIÓN</span>
+      `;
+
+      top.appendChild(av);
+      top.appendChild(info);
+      top.appendChild(scoreBox);
+      card.appendChild(top);
+
+      const meta = document.createElement("div");
+      meta.className = "candidate-card-meta";
+      meta.innerHTML = `
+        <span class="mono rep-badge-tag">${cand._rep.badgeLabel}</span>
+        ${
+          cand.developerProfile?.github?.username
+            ? `<a href="${cand.developerProfile.github.htmlUrl}" target="_blank" rel="noopener" class="gh-verified-tag mono">GitHub Verificado (${cand.developerProfile.github.totalStars}★)</a>`
+            : ""
+        }
+      `;
+      card.appendChild(meta);
+
+      if (Array.isArray(cand.skills) && cand.skills.length > 0) {
+        const skillsWrap = document.createElement("div");
+        skillsWrap.className = "candidate-skills-wrap mono";
+        cand.skills.slice(0, 4).forEach((sk) => {
+          const sTag = document.createElement("span");
+          sTag.className = "skill-tag";
+          sTag.textContent = sk;
+          skillsWrap.appendChild(sTag);
+        });
+        card.appendChild(skillsWrap);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "candidate-card-actions";
+
+      const viewBtn = document.createElement("button");
+      viewBtn.type = "button";
+      viewBtn.className = "btn btn-ghost btn-sm";
+      viewBtn.textContent = "Ver portafolio y ★";
+      viewBtn.addEventListener("click", () => renderInspectorContent(cand.uid));
+
+      const contactBtn = document.createElement("button");
+      contactBtn.type = "button";
+      contactBtn.className = "btn btn-white btn-sm";
+      contactBtn.textContent = "Contactar cifrado →";
+      contactBtn.addEventListener("click", () => {
+        if (!currentAuthUser) {
+          signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(cand.uid)}`);
+          return;
+        }
+        if (window.location.pathname.endsWith("cuenta.html")) {
+          switchWorkspaceTab("messages");
+          cloudHooks.openChatWithPeer?.(cand.uid);
+        } else {
+          window.location.href = `cuenta.html?chat=${encodeURIComponent(cand.uid)}`;
+        }
+      });
+
+      actions.appendChild(viewBtn);
+      actions.appendChild(contactBtn);
+      card.appendChild(actions);
+
+      gridEl.appendChild(card);
+    });
+
+    if (renderedCount === 0) {
+      const empty = document.createElement("p");
+      empty.style.color = "var(--muted)";
+      empty.style.fontSize = "0.9rem";
+      empty.style.padding = "24px 0";
+      empty.textContent = "No se encontraron especialistas para esa tecnología o búsqueda.";
+      gridEl.appendChild(empty);
+    }
+  };
+
+  searchInput?.addEventListener("input", filterAndPaint);
+  filterAndPaint();
+};
+
+const mountEmploymentSmartModule = (containerEl, userProfile) => {
+  if (!containerEl) return;
+  containerEl.textContent = "";
+
+  const isRecruiter = userProfile?.workSituation === "hiring";
+
+  const switcher = document.createElement("div");
+  switcher.className = "employment-mode-switch";
+  switcher.innerHTML = `
+    <button type="button" class="emp-tab-btn ${!isRecruiter ? "active" : ""}" data-mode="dev">
+      Vista Especialista · Construir Reputación
+    </button>
+    <button type="button" class="emp-tab-btn ${isRecruiter ? "active" : ""}" data-mode="recruiter">
+      Panel Espejo · Reclutamiento de Talento
+    </button>
+  `;
+  containerEl.appendChild(switcher);
+
+  const stage = document.createElement("div");
+  stage.id = "employmentStageArea";
+  containerEl.appendChild(stage);
+
+  const renderView = (mode) => {
+    stage.textContent = "";
+    if (mode === "dev") {
+      renderDeveloperReputationStudio(stage, userProfile);
+    } else {
+      renderRecruiterMirrorDirectory(stage, activeAuthUser);
+    }
+  };
+
+  switcher.querySelectorAll(".emp-tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      switcher.querySelectorAll(".emp-tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderView(btn.dataset.mode);
+    });
+  });
+
+  renderView(isRecruiter ? "recruiter" : "dev");
+};
+
+const openMembershipModal = (currentProfile, onTierSelect) => {
+  const modal = document.getElementById("xuaniiMembershipModal");
+  if (!modal) return;
+  modal.hidden = false;
+
+  const activeTier = currentProfile?.membershipTier || "standard";
+  const cardPlus = document.getElementById("tierCardPlus");
+  const cardPro = document.getElementById("tierCardPro");
+  const btnPlus = document.getElementById("activateTierPlusBtn");
+  const btnPro = document.getElementById("activateTierProBtn");
+  const feedback = document.getElementById("tierFeedback");
+
+  if (cardPlus) cardPlus.classList.toggle("current-tier", activeTier === "plus");
+  if (cardPro) cardPro.classList.toggle("current-tier", activeTier === "pro");
+
+  if (btnPlus) {
+    btnPlus.textContent = activeTier === "plus" ? "Membresía PLUS activa ✓" : "Activar Membresía PLUS";
+    btnPlus.onclick = async () => {
+      btnPlus.disabled = true;
+      try {
+        await onTierSelect?.("plus");
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent = "Membresía PLUS activada correctamente en tu perfil ✓";
+        }
+        setTimeout(() => { modal.hidden = true; }, 1400);
+      } catch (err) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent = err?.message || "Error al actualizar membresía.";
+        }
+      } finally {
+        btnPlus.disabled = false;
+      }
+    };
+  }
+
+  if (btnPro) {
+    btnPro.textContent = activeTier === "pro" ? "Membresía PRO activa ✓" : "Activar Membresía PRO";
+    btnPro.onclick = async () => {
+      btnPro.disabled = true;
+      try {
+        await onTierSelect?.("pro");
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent = "Membresía PRO dorada activada correctamente en tu perfil ✓";
+        }
+        setTimeout(() => { modal.hidden = true; }, 1400);
+      } catch (err) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent = err?.message || "Error al actualizar membresía.";
+        }
+      } finally {
+        btnPro.disabled = false;
+      }
+    };
+  }
+
+  const closeBtn = document.getElementById("closeMembershipModalBtn");
+  if (closeBtn) {
+    closeBtn.onclick = () => { modal.hidden = true; };
+  }
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.hidden = true;
+  };
+};
+
+const initAppDockAndNavigation = () => {
+  const toggleBtn = document.getElementById("dockToggleBtn");
+  const closeBtn = document.getElementById("dockCloseBtn");
+  const backdrop = document.getElementById("appDockBackdrop");
+  const quickPublishBtn = document.getElementById("dockQuickPublishBtn");
+  const openPlansBtn = document.getElementById("dockOpenPlansBtn");
+  const createCommBtn = document.getElementById("dockCreateCommBtn");
+
+  const openDock = () => {
+    if (!backdrop) return;
+    backdrop.hidden = false;
+    if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
+  };
+
+  const closeDock = () => {
+    if (!backdrop) return;
+    backdrop.hidden = true;
+    if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
+  };
+
+  toggleBtn?.addEventListener("click", () => {
+    if (backdrop?.hidden) openDock();
+    else closeDock();
+  });
+
+  closeBtn?.addEventListener("click", closeDock);
+  backdrop?.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeDock();
+  });
+
+  quickPublishBtn?.addEventListener("click", () => {
+    closeDock();
+    const fyInp = document.getElementById("forYouPostCaption");
+    const feedInp = document.getElementById("feedPostCaption");
+    if (fyInp) {
+      fyInp.focus();
+      fyInp.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (feedInp) {
+      switchWorkspaceTab("feed");
+      feedInp.focus();
+      feedInp.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      window.location.href = "para-ti.html";
+    }
+  });
+
+  openPlansBtn?.addEventListener("click", () => {
+    closeDock();
+    openMembershipModal(currentOwnProfile, cloudHooks.updateMembershipTier);
+  });
+
+  createCommBtn?.addEventListener("click", () => {
+    closeDock();
+    if (window.location.pathname.endsWith("cuenta.html")) {
+      switchWorkspaceTab("communities");
+      const cForm = document.getElementById("createCommunityForm");
+      if (cForm) {
+        cForm.hidden = false;
+        document.getElementById("newCommTitle")?.focus();
+      }
+    } else {
+      window.location.href = "cuenta.html?tab=communities";
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeDock();
+      const memModal = document.getElementById("xuaniiMembershipModal");
+      if (memModal) memModal.hidden = true;
+    }
+  });
 };
 
 const copyTextWithFeedback = async (text, el) => {
@@ -811,12 +1767,16 @@ if (contactForm) {
 }
 
 /* =========================================================
-   5. NAVEGACIÓN DE LA RED PROFESIONAL (CUENTA.HTML)
+   5. NAVEGACIÓN DEL ESPACIO DE TRABAJO (CUENTA.HTML)
    ========================================================= */
-const ALL_WS_TABS = ["feed", "network", "messages", "communities", "profile", "files", "settings"];
+const ALL_WS_TABS = ["feed", "employment", "network", "messages", "communities", "profile", "plans", "files", "settings"];
 const wsNavButtons = document.querySelectorAll("[data-ws-tab]");
 
 const switchWorkspaceTab = (tabName) => {
+  if (tabName === "plans") {
+    openMembershipModal(currentOwnProfile, cloudHooks.updateMembershipTier);
+    return;
+  }
   if (!ALL_WS_TABS.includes(tabName)) return;
   wsNavButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.wsTab === tabName);
@@ -825,6 +1785,9 @@ const switchWorkspaceTab = (tabName) => {
     const panel = document.getElementById(`wsPanel-${key}`);
     if (panel) panel.hidden = key !== tabName;
   });
+  if (tabName === "employment") {
+    mountEmploymentSmartModule(document.getElementById("employmentSmartContainer"), currentOwnProfile);
+  }
 };
 
 wsNavButtons.forEach((btn) => {
@@ -1527,6 +2490,10 @@ const populateProfileForm = (prof) => {
     profileSkillsEl.value = Array.isArray(prof.skills) ? prof.skills.join(", ") : prof.skills || "";
   }
   if (profileBioEl) profileBioEl.value = prof.bio || "";
+  const ghInp = document.getElementById("profileGitHubUser");
+  if (ghInp) {
+    ghInp.value = prof.developerProfile?.gitHubUsername || "";
+  }
   if (profilePublicBtn) {
     const pub = prof.isPublic !== false;
     profilePublicBtn.dataset.active = String(pub);
@@ -1560,6 +2527,40 @@ studioPresenceSelect?.addEventListener("change", async () => {
   }
 });
 
+const verifyGitHubBtn = document.getElementById("verifyGitHubBtn");
+const profileGitHubFeedback = document.getElementById("profileGitHubFeedback");
+const profileGitHubUser = document.getElementById("profileGitHubUser");
+
+verifyGitHubBtn?.addEventListener("click", async () => {
+  const ghUser = (profileGitHubUser?.value || "").trim().replace(/^@/, "");
+  if (!ghUser) {
+    if (profileGitHubFeedback) {
+      profileGitHubFeedback.textContent = "Ingresa tu usuario de GitHub para verificar.";
+      profileGitHubFeedback.style.color = "var(--silver)";
+    }
+    return;
+  }
+  verifyGitHubBtn.disabled = true;
+  if (profileGitHubFeedback) {
+    profileGitHubFeedback.textContent = "Consultando GitHub API pública...";
+    profileGitHubFeedback.style.color = "var(--silver)";
+  }
+  try {
+    const stats = await fetchGitHubDeveloperStats(ghUser);
+    if (profileGitHubFeedback) {
+      profileGitHubFeedback.textContent = `✓ Conectado: @${stats.username} (${stats.publicRepos} repositorios, ${stats.followers} seguidores).`;
+      profileGitHubFeedback.style.color = "var(--gold)";
+    }
+  } catch (err) {
+    if (profileGitHubFeedback) {
+      profileGitHubFeedback.textContent = err?.message || "No se pudo validar el usuario de GitHub.";
+      profileGitHubFeedback.style.color = "var(--silver)";
+    }
+  } finally {
+    verifyGitHubBtn.disabled = false;
+  }
+});
+
 profileEditForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!activeAuthUser || !cloudHooks.saveProfile) return;
@@ -1574,6 +2575,33 @@ profileEditForm?.addEventListener("submit", async (e) => {
   const isPublic = profilePublicBtn?.dataset.active !== "false";
   const availableForWork = workSituation === "seeking_job" || workSituation === "freelance_ready";
 
+  const ghUser = (profileGitHubUser?.value || "").trim().replace(/^@/, "");
+  let developerProfile = currentOwnProfile?.developerProfile || null;
+  if (ghUser) {
+    try {
+      const stats = await fetchGitHubDeveloperStats(ghUser);
+      developerProfile = {
+        gitHubUsername: ghUser,
+        verified: true,
+        publicRepos: stats.publicRepos,
+        followers: stats.followers,
+        totalStars: stats.totalStars,
+        avatarUrl: stats.avatarUrl,
+        topLanguages: stats.topLanguages,
+        htmlUrl: stats.htmlUrl,
+        lastVerifiedAt: Date.now()
+      };
+    } catch {
+      developerProfile = {
+        gitHubUsername: ghUser,
+        verified: false,
+        lastVerifiedAt: Date.now()
+      };
+    }
+  } else {
+    developerProfile = null;
+  }
+
   const saveBtn = document.getElementById("profileSaveBtn");
   if (saveBtn) saveBtn.disabled = true;
 
@@ -1587,6 +2615,7 @@ profileEditForm?.addEventListener("submit", async (e) => {
     bio,
     availableForWork,
     isPublic,
+    developerProfile,
     onboardingDone: true
   });
 
@@ -1710,7 +2739,7 @@ document.getElementById("hubPhotostunPriorityBtn")?.addEventListener("click", as
   if (!activeAuthUser) return;
   const record = {
     email: activeAuthUser.email || "",
-    priority: "Activado desde red profesional",
+    priority: "Activado desde perfil profesional",
     uid: activeAuthUser.uid,
     createdAtIso: new Date().toISOString()
   };
@@ -1985,6 +3014,7 @@ authSetupModal?.addEventListener("click", (e) => {
 prefillKnownUserFields();
 renderAccountWorkspace();
 renderCloudVaultList();
+initAppDockAndNavigation();
 
 const fbCfg = window.XUANII_FIREBASE_CONFIG || {};
 const isFirebaseConfigured = Boolean(fbCfg.apiKey && fbCfg.projectId);
@@ -2054,6 +3084,7 @@ if (isFirebaseConfigured) {
       const user = auth.currentUser;
       if (!user) return;
       const internalId = deriveInternalId(user.uid);
+      const isCreator = isCreatorAccount(internalId, user.uid);
       const payload = {
         uid: user.uid,
         internalId,
@@ -2068,12 +3099,30 @@ if (isFirebaseConfigured) {
         availableForWork: fields.availableForWork !== false,
         isPublic: fields.isPublic !== false,
         onboardingDone: Boolean(fields.onboardingDone),
+        membershipTier: isCreator ? "creator" : (fields.membershipTier || currentOwnProfile?.membershipTier || "standard"),
+        ...(fields.developerProfile ? { developerProfile: fields.developerProfile } : {}),
         ...(myCryptoKeys?.publicKeyJwk ? { publicKeyJwk: myCryptoKeys.publicKeyJwk } : {}),
         updatedAtMs: Date.now(),
         updatedAt: serverTimestamp()
       };
       await setDoc(doc(db, "profiles", user.uid), payload, { merge: true });
       currentOwnProfile = { ...(currentOwnProfile || {}), ...payload };
+    };
+
+    cloudHooks.updateMembershipTier = async (targetTier) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const isCreator = isCreatorAccount("", user.uid);
+      const tier = isCreator ? "creator" : (["pro", "plus", "standard"].includes(targetTier) ? targetTier : "standard");
+      await setDoc(
+        doc(db, "profiles", user.uid),
+        { membershipTier: tier, updatedAtMs: Date.now() },
+        { merge: true }
+      );
+      if (currentOwnProfile) currentOwnProfile.membershipTier = tier;
+      renderAccountWorkspace();
+      renderAllProfileViews();
+      renderFeedAndOwnPortfolio();
     };
 
     cloudHooks.saveSituationQuick = async (sit) => {
@@ -2095,21 +3144,34 @@ if (isFirebaseConfigured) {
       currentOwnProfile = { ...(currentOwnProfile || {}), workSituation: sit, availableForWork };
     };
 
-    cloudHooks.publishPost = async ({ kind, caption, photoUrl }) => {
+    cloudHooks.publishPost = async ({ kind, caption, photoUrl, mediaType = "none", videoUrl = "", codeSnippet = null }) => {
       const user = auth.currentUser;
       if (!user) return;
       const prof = currentOwnProfile || {};
+      const internalId = prof.internalId || deriveInternalId(user.uid);
+      const isCreator = isCreatorAccount(internalId, user.uid);
+      const membershipTier = isCreator ? "creator" : (prof.membershipTier || "standard");
+
+      let resolvedMediaType = mediaType;
+      if (photoUrl) resolvedMediaType = "photo";
+      else if (videoUrl) resolvedMediaType = "video";
+      else if (codeSnippet && codeSnippet.code) resolvedMediaType = "code";
+
       await addDoc(collection(db, "posts"), {
         authorUid: user.uid,
-        authorInternalId: prof.internalId || deriveInternalId(user.uid),
+        authorInternalId: internalId,
         authorName: prof.displayName || user.displayName || "Especialista",
         authorHandle: prof.handle || sanitizeHandle(user.email?.split("@")[0]),
         authorAvatar: prof.photoURL || user.photoURL || "",
         authorRole: prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital",
         authorCategory: prof.category || "video",
+        membershipTier,
         kind: kind || "portfolio",
-        caption: String(caption || "").slice(0, 2200),
+        caption: String(caption || "").slice(0, 2800),
+        mediaType: resolvedMediaType,
         photoUrl: photoUrl || "",
+        videoUrl: videoUrl || "",
+        ...(codeSnippet && codeSnippet.code ? { codeSnippet } : {}),
         likes: [],
         commentCount: 0,
         createdAtMs: Date.now(),
@@ -2713,18 +3775,25 @@ if (isFirebaseConfigured) {
       const authorInternalId =
         post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid);
       const isAuthorCreator = isCreatorAccount(authorInternalId, post.authorUid);
+      const authorTier = isAuthorCreator ? "creator" : (post.membershipTier || authorProf?.membershipTier || "standard");
 
       const head = document.createElement("div");
       head.className = "feed-post-head";
 
       const authorBox = document.createElement("div");
       authorBox.className = "feed-author-info";
-      authorBox.addEventListener("click", () => renderInspectorContent(post.authorUid));
+      authorBox.addEventListener("click", () => {
+        trackUserInteraction(post.authorCategory || authorProf?.category || "video", "PROFILE_INSPECT", activeAuthUser?.uid);
+        renderInspectorContent(post.authorUid);
+      });
 
       const av = document.createElement("img");
-      av.className = isAuthorCreator
-        ? "feed-author-avatar creator-avatar-ring"
-        : "feed-author-avatar";
+      let avatarRingClass = "";
+      if (isAuthorCreator) avatarRingClass = "creator-avatar-ring";
+      else if (authorTier === "pro") avatarRingClass = "pro-avatar-ring";
+      else if (authorTier === "plus") avatarRingClass = "plus-avatar-ring";
+
+      av.className = `feed-author-avatar ${avatarRingClass}`.trim();
       av.src = post.authorAvatar || authorProf?.photoURL || "favicon.svg";
       av.alt = "";
       av.onerror = () => {
@@ -2740,6 +3809,10 @@ if (isFirebaseConfigured) {
       nm.appendChild(strong);
       if (isAuthorCreator) {
         nm.appendChild(createCreatorBadgeEl(true));
+      } else if (authorTier === "pro") {
+        nm.appendChild(renderMembershipBadge("pro", true));
+      } else if (authorTier === "plus") {
+        nm.appendChild(renderMembershipBadge("plus", true));
       }
 
       const hnd = document.createElement("span");
@@ -2772,17 +3845,9 @@ if (isFirebaseConfigured) {
         art.appendChild(cap);
       }
 
-      if (post.photoUrl) {
-        const frame = document.createElement("div");
-        frame.className = "post-photo-frame zoomable";
-        frame.title = "Clic para ampliar fotografía";
-        const img = document.createElement("img");
-        img.src = post.photoUrl;
-        img.alt = post.caption || "Muestra de trabajo";
-        img.loading = "lazy";
-        frame.addEventListener("click", () => openPhotoLightbox(post, signInAndEnterWorkspace));
-        frame.appendChild(img);
-        art.appendChild(frame);
+      const mediaNode = renderMediaContainer(post, () => openPhotoLightbox(post, signInAndEnterWorkspace));
+      if (mediaNode) {
+        art.appendChild(mediaNode);
       }
 
       const bar = document.createElement("div");
@@ -2803,6 +3868,7 @@ if (isFirebaseConfigured) {
           );
           return;
         }
+        trackUserInteraction(post.authorCategory || authorProf?.category || "video", "LIKE", activeAuthUser.uid);
         cloudHooks.toggleLikePost?.(post.id, likedByMe);
       });
       bar.appendChild(likeBtn);
@@ -3248,14 +4314,16 @@ if (isFirebaseConfigured) {
         return;
       }
 
+      const rankedPosts = rankFeedPostsByAffinity(posts, activeAuthUser?.uid);
+
       if (viewMode === "mosaic") {
         containerEl.className = "foryou-visual-mosaic";
-        posts.forEach((post) => {
+        rankedPosts.forEach((post) => {
           containerEl.appendChild(buildMosaicTileEl(post));
         });
       } else {
         containerEl.className = "feed-stream";
-        posts.forEach((post) => {
+        rankedPosts.forEach((post) => {
           containerEl.appendChild(buildRichSocialPostEl(post, scopePrefix));
         });
       }
@@ -3451,6 +4519,29 @@ if (isFirebaseConfigured) {
       renderAllProfileViews();
     });
 
+    // Selector de modo en perfiles.html (Directorio de Especialistas vs Panel Espejo de Reclutamiento)
+    const publicEmpModeSwitch = document.getElementById("publicEmploymentModeSwitch");
+    const specialistsZone = document.getElementById("specialistsDirectoryZone");
+    const recruiterStage = document.getElementById("publicRecruiterMirrorStage");
+
+    publicEmpModeSwitch?.querySelectorAll(".emp-tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        publicEmpModeSwitch.querySelectorAll(".emp-tab-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const mode = btn.dataset.empMode;
+        if (mode === "recruiter") {
+          if (specialistsZone) specialistsZone.style.display = "none";
+          if (recruiterStage) {
+            recruiterStage.style.display = "block";
+            renderRecruiterMirrorDirectory(recruiterStage, activeAuthUser);
+          }
+        } else {
+          if (specialistsZone) specialistsZone.style.display = "block";
+          if (recruiterStage) recruiterStage.style.display = "none";
+        }
+      });
+    });
+
     document.getElementById("networkSearchInput")?.addEventListener("input", (e) => {
       networkQuery = e.target.value || "";
       renderAllProfileViews();
@@ -3531,6 +4622,40 @@ if (isFirebaseConfigured) {
       }
     });
 
+    // Controles multimedia en Para ti (Video y Código)
+    const forYouVideoWrap = document.getElementById("forYouVideoInputWrap");
+    const forYouVideoUrlInput = document.getElementById("forYouVideoUrlInput");
+    const forYouCodeWrap = document.getElementById("forYouCodeSnippetWrap");
+    const forYouCodeTitleInput = document.getElementById("forYouCodeTitleInput");
+    const forYouCodeLangSelect = document.getElementById("forYouCodeLangSelect");
+    const forYouCodeSnippetArea = document.getElementById("forYouCodeSnippetArea");
+    const forYouPostKind = document.getElementById("forYouPostKind");
+
+    document.getElementById("forYouToggleVideoBtn")?.addEventListener("click", () => {
+      if (!forYouVideoWrap) return;
+      const isHidden = forYouVideoWrap.style.display === "none" || !forYouVideoWrap.style.display;
+      forYouVideoWrap.style.display = isHidden ? "block" : "none";
+      if (isHidden) forYouVideoUrlInput?.focus();
+    });
+
+    document.getElementById("forYouToggleCodeBtn")?.addEventListener("click", () => {
+      if (!forYouCodeWrap) return;
+      const isHidden = forYouCodeWrap.style.display === "none" || !forYouCodeWrap.style.display;
+      forYouCodeWrap.style.display = isHidden ? "flex" : "none";
+      if (isHidden) forYouCodeSnippetArea?.focus();
+    });
+
+    forYouPostKind?.addEventListener("change", () => {
+      const val = forYouPostKind.value;
+      if (val === "video" && forYouVideoWrap) {
+        forYouVideoWrap.style.display = "block";
+        forYouVideoUrlInput?.focus();
+      } else if (val === "code_snippet" && forYouCodeWrap) {
+        forYouCodeWrap.style.display = "flex";
+        forYouCodeSnippetArea?.focus();
+      }
+    });
+
     document.getElementById("forYouRemovePhotoBtn")?.addEventListener("click", () => {
       stagedForYouPhotoDataUrl = "";
       if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
@@ -3543,24 +4668,51 @@ if (isFirebaseConfigured) {
       const capEl = document.getElementById("forYouPostCaption");
       const kindEl = document.getElementById("forYouPostKind");
       const caption = (capEl?.value || "").trim();
-      if (!caption && !stagedForYouPhotoDataUrl) {
+
+      const videoUrl = (forYouVideoUrlInput?.value || "").trim();
+      const codeText = (forYouCodeSnippetArea?.value || "").trim();
+      const codeTitle = (forYouCodeTitleInput?.value || "").trim() || "Snippet de código";
+      const codeLang = forYouCodeLangSelect?.value || "javascript";
+
+      let codeSnippet = null;
+      if (codeText) {
+        codeSnippet = { code: codeText, title: codeTitle, language: codeLang };
+      }
+
+      let mediaType = "none";
+      if (stagedForYouPhotoDataUrl) mediaType = "photo";
+      else if (videoUrl) mediaType = "video";
+      else if (codeSnippet) mediaType = "code";
+
+      if (!caption && !stagedForYouPhotoDataUrl && !videoUrl && !codeSnippet) {
         capEl?.focus();
         return;
       }
+
+      const finalCaption = caption || (mediaType === "video" ? "Muestra de video" : mediaType === "code" ? codeTitle : "Publicación en Para ti");
 
       const btn = document.getElementById("forYouPublishBtn");
       if (btn) btn.disabled = true;
       await cloudHooks
         .publishPost({
-          kind: kindEl?.value || "portfolio",
-          caption: caption || "Muestra fotográfica en Para ti",
-          photoUrl: stagedForYouPhotoDataUrl
+          kind: kindEl?.value || (mediaType === "video" ? "video" : mediaType === "code" ? "code_snippet" : "portfolio"),
+          caption: finalCaption,
+          photoUrl: stagedForYouPhotoDataUrl,
+          mediaType,
+          videoUrl,
+          codeSnippet
         })
         .catch(() => {});
 
       if (capEl) capEl.value = "";
       stagedForYouPhotoDataUrl = "";
       if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
+      if (forYouVideoUrlInput) forYouVideoUrlInput.value = "";
+      if (forYouVideoWrap) forYouVideoWrap.style.display = "none";
+      if (forYouCodeSnippetArea) forYouCodeSnippetArea.value = "";
+      if (forYouCodeTitleInput) forYouCodeTitleInput.value = "";
+      if (forYouCodeWrap) forYouCodeWrap.style.display = "none";
+
       if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Lanzado en Para ti y en tu perfil ✓";
       if (btn) btn.disabled = false;
     });
@@ -3571,6 +4723,40 @@ if (isFirebaseConfigured) {
     const feedPhotoPreviewWrap = document.getElementById("feedPhotoPreviewWrap");
     const feedPhotoPreviewImg = document.getElementById("feedPhotoPreviewImg");
     const feedComposerFeedback = document.getElementById("feedComposerFeedback");
+
+    // Controles multimedia en Muro Social (Video y Código)
+    const feedVideoWrap = document.getElementById("feedVideoInputWrap");
+    const feedVideoUrlInput = document.getElementById("feedVideoUrlInput");
+    const feedCodeWrap = document.getElementById("feedCodeSnippetWrap");
+    const feedCodeTitleInput = document.getElementById("feedCodeTitleInput");
+    const feedCodeLangSelect = document.getElementById("feedCodeLangSelect");
+    const feedCodeSnippetArea = document.getElementById("feedCodeSnippetArea");
+    const feedPostKind = document.getElementById("feedPostKind");
+
+    document.getElementById("feedToggleVideoBtn")?.addEventListener("click", () => {
+      if (!feedVideoWrap) return;
+      const isHidden = feedVideoWrap.style.display === "none" || !feedVideoWrap.style.display;
+      feedVideoWrap.style.display = isHidden ? "block" : "none";
+      if (isHidden) feedVideoUrlInput?.focus();
+    });
+
+    document.getElementById("feedToggleCodeBtn")?.addEventListener("click", () => {
+      if (!feedCodeWrap) return;
+      const isHidden = feedCodeWrap.style.display === "none" || !feedCodeWrap.style.display;
+      feedCodeWrap.style.display = isHidden ? "flex" : "none";
+      if (isHidden) feedCodeSnippetArea?.focus();
+    });
+
+    feedPostKind?.addEventListener("change", () => {
+      const val = feedPostKind.value;
+      if (val === "video" && feedVideoWrap) {
+        feedVideoWrap.style.display = "block";
+        feedVideoUrlInput?.focus();
+      } else if (val === "code_snippet" && feedCodeWrap) {
+        feedCodeWrap.style.display = "flex";
+        feedCodeSnippetArea?.focus();
+      }
+    });
 
     document.getElementById("feedAttachPhotoBtn")?.addEventListener("click", () => {
       feedPhotoInput?.click();
@@ -3605,24 +4791,51 @@ if (isFirebaseConfigured) {
       const capEl = document.getElementById("feedPostCaption");
       const kindEl = document.getElementById("feedPostKind");
       const caption = (capEl?.value || "").trim();
-      if (!caption && !stagedFeedPhotoDataUrl) {
+
+      const videoUrl = (feedVideoUrlInput?.value || "").trim();
+      const codeText = (feedCodeSnippetArea?.value || "").trim();
+      const codeTitle = (feedCodeTitleInput?.value || "").trim() || "Snippet de código";
+      const codeLang = feedCodeLangSelect?.value || "javascript";
+
+      let codeSnippet = null;
+      if (codeText) {
+        codeSnippet = { code: codeText, title: codeTitle, language: codeLang };
+      }
+
+      let mediaType = "none";
+      if (stagedFeedPhotoDataUrl) mediaType = "photo";
+      else if (videoUrl) mediaType = "video";
+      else if (codeSnippet) mediaType = "code";
+
+      if (!caption && !stagedFeedPhotoDataUrl && !videoUrl && !codeSnippet) {
         capEl?.focus();
         return;
       }
+
+      const finalCaption = caption || (mediaType === "video" ? "Muestra de video" : mediaType === "code" ? codeTitle : "Publicación en portafolio");
 
       const btn = document.getElementById("feedPublishBtn");
       if (btn) btn.disabled = true;
       await cloudHooks
         .publishPost({
-          kind: kindEl?.value || "portfolio",
-          caption: caption || "Muestra fotográfica de trabajo",
-          photoUrl: stagedFeedPhotoDataUrl
+          kind: kindEl?.value || (mediaType === "video" ? "video" : mediaType === "code" ? "code_snippet" : "portfolio"),
+          caption: finalCaption,
+          photoUrl: stagedFeedPhotoDataUrl,
+          mediaType,
+          videoUrl,
+          codeSnippet
         })
         .catch(() => {});
 
       if (capEl) capEl.value = "";
       stagedFeedPhotoDataUrl = "";
       if (feedPhotoPreviewWrap) feedPhotoPreviewWrap.hidden = true;
+      if (feedVideoUrlInput) feedVideoUrlInput.value = "";
+      if (feedVideoWrap) feedVideoWrap.style.display = "none";
+      if (feedCodeSnippetArea) feedCodeSnippetArea.value = "";
+      if (feedCodeTitleInput) feedCodeTitleInput.value = "";
+      if (feedCodeWrap) feedCodeWrap.style.display = "none";
+
       if (feedComposerFeedback) feedComposerFeedback.textContent = "Publicado en el muro y en tu perfil ✓";
       if (btn) btn.disabled = false;
     });
@@ -4546,11 +5759,29 @@ if (isFirebaseConfigured) {
           };
         }
         const shortName = (user.displayName || user.email || "Cuenta").split(" ")[0];
-        if (navUserName) navUserName.textContent = `Mi red · ${shortName}`;
-        if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Entrar a mi red profesional";
+        if (navUserName) navUserName.textContent = shortName;
+        if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Entrar a mi perfil profesional";
+
+        const myInternalId = deriveInternalId(user.uid);
+        const dockBadge = document.getElementById("dockInternalIdBadge");
+        if (dockBadge) dockBadge.textContent = `ID: ${myInternalId}`;
+
+        if (navUserAvatar) {
+          const isCreator = isCreatorAccount(myInternalId, user.uid);
+          navUserAvatar.classList.toggle("creator-avatar-ring", isCreator);
+        }
 
         await ensureUserCryptoKeys(user);
         await ensureUserProfileExists(user);
+
+        if (navUserAvatar) {
+          const isCreator = isCreatorAccount(myInternalId, user.uid);
+          const tier = isCreator ? "creator" : (currentOwnProfile?.membershipTier || "standard");
+          navUserAvatar.classList.toggle("creator-avatar-ring", isCreator);
+          navUserAvatar.classList.toggle("pro-avatar-ring", tier === "pro");
+          navUserAvatar.classList.toggle("plus-avatar-ring", tier === "plus");
+        }
+
         prefillKnownUserFields();
         renderAccountWorkspace();
         attachConnectionsListener(user);
@@ -4589,7 +5820,11 @@ if (isFirebaseConfigured) {
         if (unsubscribeAdminReports) unsubscribeAdminReports();
         if (navSignInBtn) navSignInBtn.hidden = false;
         if (navUserChip) navUserChip.hidden = true;
-        if (navUserAvatar) navUserAvatar.classList.remove("creator-avatar-ring");
+        if (navUserAvatar) {
+          navUserAvatar.classList.remove("creator-avatar-ring", "pro-avatar-ring", "plus-avatar-ring");
+        }
+        const dockBadge = document.getElementById("dockInternalIdBadge");
+        if (dockBadge) dockBadge.textContent = "ID: XN-00000000";
         if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Crear mi perfil con Google";
         if (onboardingModal) onboardingModal.hidden = true;
         renderAccountWorkspace();
