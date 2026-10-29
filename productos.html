@@ -6,6 +6,7 @@
   <title>Productos — Xuanii</title>
   <meta name="description" content="Conoce PhotoStun, el editor fotográfico en navegador en desarrollo, y regístrate para el acceso anticipado." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -41,6 +42,13 @@
       </nav>
 
       <div class="nav-actions">
+        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="8"></circle>
+            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
+          </svg>
+        </button>
+
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>

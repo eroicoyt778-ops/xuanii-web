@@ -3,15 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi espacio — Xuanii</title>
-  <meta name="description" content="Accede a tus aplicaciones vinculadas, configura tu perfil profesional y conversa en tiempo real para trabajos y proyectos." />
+  <title>Espacio de trabajo — Xuanii</title>
+  <meta name="description" content="Espacio de trabajo privado en Xuanii. Gestiona tus archivos en la nube, personaliza tu fondo y tema, edita tu perfil y chatea en tiempo real." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Motor dinámico de fondo del espacio de trabajo (Wallpaper, Ondas, Retícula o Puntos) -->
+  <div class="ws-backdrop" id="workspaceBackdrop" aria-hidden="true">
+    <img id="wsCustomWallpaper" class="ws-wallpaper-img" alt="" hidden />
+    <canvas id="wsBackdropCanvas" class="ws-backdrop-canvas"></canvas>
+    <div class="ws-pattern-layer"></div>
+  </div>
+
+  <!-- Guías arquitectónicas verticales -->
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -41,6 +50,13 @@
       </nav>
 
       <div class="nav-actions">
+        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="8"></circle>
+            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
+          </svg>
+        </button>
+
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -52,7 +68,7 @@
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link active"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -61,29 +77,14 @@
   </header>
 
   <main>
-    <section class="page-hero">
-      <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono" id="workspaceEyebrow">ESPACIO DE CUENTA</span>
-          <h1 id="workspaceHeading">
-            Tus aplicaciones,<br />
-            <span class="text-silver">perfil y mensajes.</span>
-          </h1>
-          <p class="hero-lead" id="workspaceLead">
-            Panel privado vinculado a tu cuenta de Google. Entra a tus aplicaciones oficiales, personaliza tu perfil público para trabajos y responde conversaciones directas.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section-dark">
-      <div class="container">
-        <!-- BLOQUEO DE ACCESO CUANDO NO HAY SESIÓN INICIADA -->
-        <div id="accountAuthGate" class="auth-gate-open">
-          <span class="open-eyebrow mono" style="margin-bottom: 0;">AUTENTICACIÓN REQUERIDA</span>
-          <h2>Inicia sesión con Google para desbloquear tu espacio.</h2>
+    <div class="container">
+      <!-- PUERTA DE ACCESO CUANDO NO HAY SESIÓN INICIADA -->
+      <div id="accountAuthGate" class="studio-gate-wrap">
+        <div class="auth-gate-open">
+          <span class="open-eyebrow mono" style="margin-bottom: 0;">ESPACIO DE TRABAJO · ACCESO CON GOOGLE</span>
+          <h2>Entra a tu escritorio en la nube.</h2>
           <p>
-            Al entrar con tu cuenta tendrás acceso directo al panel donde viven nuestras aplicaciones oficiales, podrás activar tu perfil público para trabajos y chatear en tiempo real con otros miembros.
+            Inicia sesión con Google para abrir tu entorno personal: guarda archivos y notas de trabajo en la nube, personaliza tu fondo de pantalla y tema visual, lanza tus aplicaciones y chatea en vivo con otros perfiles.
           </p>
           <div class="inline-actions" style="margin-top: 8px;">
             <button class="btn btn-white" id="accountSignInBtn" type="button">
@@ -96,169 +97,286 @@
               <span>Continuar con Google</span>
             </button>
             <a href="perfiles.html" class="link-editorial">
-              Explorar perfiles públicos <span class="arrow">→</span>
+              Ver directorio de perfiles <span class="arrow">→</span>
             </a>
           </div>
         </div>
+      </div>
 
-        <!-- ESPACIO DESBLOQUEADO SOLO AL INICIAR SESIÓN CON GOOGLE -->
-        <div id="authenticatedWorkspace" hidden>
-          <div class="workspace-nav-bar" role="tablist" aria-label="Secciones de tu espacio">
-            <button type="button" class="workspace-tab active" data-ws-tab="apps">Mis aplicaciones</button>
-            <button type="button" class="workspace-tab" data-ws-tab="profile">Mi perfil</button>
-            <button type="button" class="workspace-tab" data-ws-tab="messages" id="wsMessagesTabBtn">Mensajes y trabajos</button>
-            <button type="button" class="workspace-tab" data-ws-tab="settings">Ajustes y envíos</button>
+      <!-- APLICACIÓN WEB FUNCIONAL (STUDIO SHELL DESBLOQUEADO) -->
+      <div id="authenticatedWorkspace" class="studio-shell" hidden>
+        <!-- Barra lateral del estudio -->
+        <aside class="studio-sidebar">
+          <div>
+            <div class="studio-user-head">
+              <div class="studio-user-row">
+                <img id="studioSideAvatar" src="favicon.svg" alt="" class="studio-avatar" />
+                <div class="studio-user-meta">
+                  <span id="studioSideName" class="studio-user-name">Cargando...</span>
+                  <span id="studioSideHandle" class="studio-user-handle mono">@usuario</span>
+                </div>
+              </div>
+
+              <select id="studioPresenceSelect" class="studio-presence-select" aria-label="Estado de disponibilidad">
+                <option value="available">● Disponible para trabajos</option>
+                <option value="focus">◐ En modo enfoque (ocupado)</option>
+                <option value="away">○ Solo explorando</option>
+              </select>
+            </div>
+
+            <nav class="studio-nav" style="margin-top: 20px;" aria-label="Secciones del espacio de trabajo">
+              <span class="studio-nav-label mono">ESPACIO</span>
+              <button type="button" class="studio-nav-btn active" data-ws-tab="overview">
+                <span>Escritorio</span>
+              </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="files">
+                <span>Archivos y notas</span>
+                <span class="studio-badge mono" id="badgeFilesCount">0</span>
+              </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="apps">
+                <span>Aplicaciones</span>
+              </button>
+
+              <span class="studio-nav-label mono">COMUNIDAD</span>
+              <button type="button" class="studio-nav-btn" data-ws-tab="messages" id="wsMessagesTabBtn">
+                <span>Mensajes</span>
+                <span class="studio-badge mono" id="badgeMsgsCount">0</span>
+              </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="profile">
+                <span>Mi perfil público</span>
+              </button>
+
+              <span class="studio-nav-label mono">ENTORNO</span>
+              <button type="button" class="studio-nav-btn" data-ws-tab="appearance">
+                <span>Fondo y apariencia</span>
+              </button>
+              <button type="button" class="studio-nav-btn" data-ws-tab="settings">
+                <span>Cuenta y datos</span>
+              </button>
+            </nav>
           </div>
 
-          <!-- 1. MIS APLICACIONES -->
-          <div id="wsPanel-apps" class="workspace-panel">
-            <div class="infra-head" style="margin-bottom: 24px;">
-              <span class="open-eyebrow mono">LANZADOR DE APLICACIONES</span>
-              <h2>Herramientas conectadas a tu cuenta</h2>
+          <div class="studio-side-foot mono">
+            <span>● <strong id="activeUsersCount">1</strong> en línea</span>
+            <button type="button" class="text-action-btn" id="sidebarSignOutBtn" style="font-size: 0.76rem;">Salir</button>
+          </div>
+        </aside>
+
+        <!-- Escenario principal del espacio de trabajo -->
+        <div class="studio-stage">
+          <!-- 1. ESCRITORIO GENERAL -->
+          <section id="wsPanel-overview" class="workspace-panel">
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">ESCRITORIO EN LA NUBE</span>
+                <h1 id="studioGreeting">Bienvenido a tu espacio</h1>
+              </div>
+              <span class="studio-clock mono" id="studioLiveClock">Sincronizado con Google Cloud</span>
+            </div>
+
+            <div class="columns-3-open" style="margin-bottom: 52px;">
+              <div class="arch-col">
+                <span class="col-index mono">NUBE PERSONAL</span>
+                <h3><span id="statFilesCount" class="mono">0</span> archivos y notas</h3>
+                <p id="statStorageUsed">Espacio listo para guardar trabajos, referencias e ideas.</p>
+                <button type="button" class="text-action-btn" data-jump-tab="files" style="margin-top: 10px;">
+                  Abrir mis archivos →
+                </button>
+              </div>
+
+              <div class="arch-col">
+                <span class="col-index mono">RED DE TRABAJO</span>
+                <h3><span id="statChatsCount" class="mono">0</span> conversaciones</h3>
+                <p id="statPresenceSummary">Tu perfil está conectado al directorio en tiempo real.</p>
+                <button type="button" class="text-action-btn" data-jump-tab="messages" style="margin-top: 10px;">
+                  Ir a mensajes →
+                </button>
+              </div>
+
+              <div class="arch-col">
+                <span class="col-index mono">AMBIENTE VISUAL</span>
+                <h3 id="statEnvTitle">Obsidiana</h3>
+                <p>Cambia entre negro, grafito o blanco y sube tu propio fondo de trabajo.</p>
+                <button type="button" class="text-action-btn" data-jump-tab="appearance" style="margin-top: 10px;">
+                  Personalizar fondo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Cambio rápido de tema en 1 clic desde el escritorio -->
+            <div class="open-rows" style="margin-bottom: 48px;">
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Tema rápido de trabajo</span>
+                  <span class="open-row-sub">Invierte al instante toda la interfaz entre tonos oscuros y blanco editorial.</span>
+                </div>
+                <div class="option-strip" data-theme-group>
+                  <button type="button" class="option-choice active" data-set-theme="obsidian">
+                    <span class="swatch-dot" style="background: #050506;"></span> Obsidiana
+                  </button>
+                  <button type="button" class="option-choice" data-set-theme="graphite">
+                    <span class="swatch-dot" style="background: #1c1d24;"></span> Grafito
+                  </button>
+                  <button type="button" class="option-choice" data-set-theme="light">
+                    <span class="swatch-dot" style="background: #fafafa;"></span> Blanco
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cuaderno rápido sincronizado automáticamente en Cloud Firestore -->
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;">
+                <span class="open-eyebrow mono" style="margin-bottom: 0;">BLOC RÁPIDO DE TRABAJO (GUARDADO AUTOMÁTICO)</span>
+                <span id="scratchpadStatus" class="mono" style="font-size: 0.74rem; color: var(--muted);">Sincronizado ✓</span>
+              </div>
+              <textarea
+                id="quickScratchpad"
+                class="scratchpad-area"
+                placeholder="Apunta aquí ideas rápidas, enlaces, medidas de edición, tareas pendientes o notas de clientes. Todo lo que escribas se guarda solo en tu cuenta de Google..."
+              ></textarea>
+            </div>
+          </section>
+
+          <!-- 2. ARCHIVOS Y NOTAS EN LA NUBE -->
+          <section id="wsPanel-files" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">ALMACENAMIENTO SINCRONIZADO</span>
+                <h2>Tus archivos y notas de trabajo</h2>
+              </div>
+              <div>
+                <input type="file" id="cloudFileUploadInput" hidden accept="image/*,.txt,.md,.json,.csv,.svg,.pdf" />
+                <button type="button" class="btn btn-white btn-sm" id="triggerCloudUploadBtn">
+                  Subir archivo o imagen <span class="arrow">↑</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="vault-grid-split">
+              <!-- Crear nota/documento nuevo -->
+              <form id="cloudNoteForm" class="open-form" novalidate>
+                <div class="field-line">
+                  <label for="newNoteTitle" class="mono">NUEVO DOCUMENTO O BRIEF</label>
+                  <input type="text" id="newNoteTitle" class="line-input" maxlength="100" placeholder="Título del trabajo o nota..." required />
+                </div>
+
+                <div class="field-line">
+                  <label for="newNoteBody" class="mono">CONTENIDO</label>
+                  <textarea id="newNoteBody" class="line-textarea" maxlength="4000" placeholder="Escribe especificaciones, enlaces o detalles del proyecto..." required></textarea>
+                </div>
+
+                <div class="inline-actions">
+                  <button type="submit" class="btn btn-white btn-sm" id="saveCloudNoteBtn">
+                    Guardar en mi nube <span class="arrow">→</span>
+                  </button>
+                </div>
+
+                <div class="form-feedback" id="vaultFeedback" hidden></div>
+              </form>
+
+              <!-- Listado en tiempo real de archivos e imágenes subidas -->
+              <div>
+                <div id="vaultViewerBox" class="arch-col" hidden style="margin-bottom: 32px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span id="vaultViewerMeta" class="col-index mono" style="margin-bottom: 0;">VISTA PREVIA</span>
+                    <button type="button" class="text-action-btn" id="closeVaultViewerBtn">Cerrar vista</button>
+                  </div>
+                  <h3 id="vaultViewerTitle" style="margin-bottom: 10px;"></h3>
+                  <img id="vaultViewerImg" alt="" hidden style="max-width: 100%; max-height: 300px; border: 1px solid var(--line-dark-strong); margin-bottom: 10px;" />
+                  <p id="vaultViewerText" style="white-space: pre-wrap; color: var(--silver-bright); font-size: 0.92rem;"></p>
+                </div>
+
+                <div id="cloudVaultList"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. APLICACIONES VINCULADAS -->
+          <section id="wsPanel-apps" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">ECOSISTEMA CONECTADO</span>
+                <h2>Tus aplicaciones oficiales</h2>
+              </div>
             </div>
 
             <div class="app-hub-list">
               <article class="app-hub-row">
                 <div class="app-hub-main">
-                  <span class="app-hub-kicker mono">EDICIÓN FOTOGRÁFICA · EN DESARROLLO</span>
+                  <span class="app-hub-kicker mono">EDICIÓN FOTOGRÁFICA · SESIÓN VINCULADA</span>
                   <h3>PhotoStun</h3>
                   <p>
-                    Estudio fotográfico de alta precisión en el navegador con curvas tonales, flujo no destructivo y respaldo automático de proyectos en tu espacio en la nube.
+                    Estudio fotográfico en el navegador. Configura desde ya tus preferencias predeterminadas de lienzo y exportación para que carguen automáticamente con tu cuenta.
                   </p>
                 </div>
                 <div class="app-hub-actions">
                   <span class="work-status-inline mono">
                     <span class="work-dot"></span>
-                    <span id="hubPhotostunState">Cuenta vinculada</span>
+                    <span id="hubPhotostunState">Cuenta sincronizada</span>
                   </span>
                   <button type="button" class="btn btn-white btn-sm" id="hubPhotostunPriorityBtn">
                     Activar acceso prioritario
                   </button>
-                  <a href="productos.html" class="text-action-btn">Ver especificaciones</a>
-                </div>
-              </article>
-
-              <article class="app-hub-row">
-                <div class="app-hub-main secondary-rail">
-                  <span class="app-hub-kicker mono">ECOSISTEMA · PRÓXIMOS MÓDULOS</span>
-                  <h3>Nuevas aplicaciones independientes</h3>
-                  <p>
-                    Todas las herramientas oficiales que vayamos lanzando aparecerán desbloqueadas directamente aquí, listas para abrirse en 1 clic con tu sesión actual.
-                  </p>
-                </div>
-                <div class="app-hub-actions">
-                  <a href="contacto.html" class="link-editorial" style="padding-right: 0;">
-                    Proponer próxima aplicación <span class="arrow">→</span>
-                  </a>
                 </div>
               </article>
             </div>
-          </div>
 
-          <!-- 2. MI PERFIL PÚBLICO -->
-          <div id="wsPanel-profile" class="workspace-panel" hidden>
-            <div class="split-editorial">
-              <div class="editorial-stack">
-                <div>
-                  <span class="open-eyebrow mono">IDENTIDAD PÚBLICA</span>
-                  <h2>Tu perfil para trabajos</h2>
-                </div>
-                <p class="hero-lead" style="margin-bottom: 0;">
-                  Configura cómo apareces en el apartado de Perfiles para que otros usuarios o clientes puedan conocer tu especialidad y hablarte directamente.
-                </p>
-
-                <div class="arch-col">
-                  <span class="col-index mono">VISTA PREVIA</span>
-                  <div class="profile-identity" style="margin-top: 10px;">
-                    <img id="profilePreviewAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" />
-                    <div class="profile-meta-stack">
-                      <div class="profile-name-line">
-                        <h3 id="profilePreviewName">Tu nombre</h3>
-                        <span id="profilePreviewHandle" class="profile-handle mono">@usuario</span>
-                      </div>
-                      <span id="profilePreviewRole" class="profile-role">Miembro de Xuanii</span>
-                    </div>
+            <!-- Ajustes reales en la nube pre-sincronizados para PhotoStun -->
+            <div style="margin-top: 36px;">
+              <span class="open-eyebrow mono">PREFERENCIAS EN LA NUBE PARA PHOTOSTUN</span>
+              <div class="open-rows">
+                <div class="open-row">
+                  <div>
+                    <span class="open-row-title">Formato de exportación predeterminado</span>
+                    <span class="open-row-sub">Formato inicial al guardar fotografías terminadas desde el estudio.</span>
                   </div>
+                  <select id="psDefaultFormat" class="studio-presence-select" style="width: auto; min-width: 190px;">
+                    <option value="png">PNG (Sin pérdida)</option>
+                    <option value="webp">WebP (Optimizado web)</option>
+                    <option value="jpeg">JPEG (95% Alta calidad)</option>
+                  </select>
                 </div>
 
-                <div>
-                  <a href="perfiles.html" class="link-editorial" style="padding-left: 0;">
-                    Abrir directorio público de Perfiles <span class="arrow">→</span>
-                  </a>
+                <div class="open-row">
+                  <div>
+                    <span class="open-row-title">Color de mesa de montaje del editor</span>
+                    <span class="open-row-sub">Tono alrededor de la fotografía al evaluar contraste e iluminación.</span>
+                  </div>
+                  <select id="psCanvasBackdrop" class="studio-presence-select" style="width: auto; min-width: 190px;">
+                    <option value="obsidian">Negro cuarto oscuro (#050506)</option>
+                    <option value="neutral">Gris óptico neutro 18% (#262629)</option>
+                    <option value="paper">Blanco galería (#f4f4f5)</option>
+                  </select>
                 </div>
               </div>
-
-              <form class="open-form" id="profileEditForm" novalidate>
-                <div class="field-line">
-                  <label for="profileDisplayName" class="mono">NOMBRE VISIBLE</label>
-                  <input type="text" id="profileDisplayName" class="line-input" maxlength="80" placeholder="Tu nombre o marca" required />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileHandle" class="mono">USUARIO (@ALIAS)</label>
-                  <input type="text" id="profileHandle" class="line-input mono" maxlength="32" placeholder="ej. xuanii" required />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileRole" class="mono">ESPECIALIDAD O ROL</label>
-                  <input type="text" id="profileRole" class="line-input" maxlength="80" placeholder="Ej. Editor visual, Desarrollador, Fotógrafo, Diseñador..." />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileBio" class="mono">PRESENTACIÓN Y TRABAJOS QUE REALIZAS</label>
-                  <textarea id="profileBio" class="line-textarea" maxlength="500" placeholder="Describe en qué proyectos trabajas, tus habilidades o cómo puedes colaborar con otros..."></textarea>
-                </div>
-
-                <div class="open-rows">
-                  <div class="open-row">
-                    <div>
-                      <span class="open-row-title">Disponible para trabajos y proyectos</span>
-                      <span class="open-row-sub">Muestra un indicador activo en tu perfil para recibir encargos o colaboraciones.</span>
-                    </div>
-                    <button type="button" class="open-toggle-btn" id="profileAvailableBtn" data-active="true">
-                      DISPONIBLE
-                    </button>
-                  </div>
-
-                  <div class="open-row">
-                    <div>
-                      <span class="open-row-title">Visibilidad en el directorio</span>
-                      <span class="open-row-sub">Permite que otros visitantes encuentren tu perfil en el apartado Perfiles.</span>
-                    </div>
-                    <button type="button" class="open-toggle-btn" id="profilePublicBtn" data-active="true">
-                      PÚBLICO
-                    </button>
-                  </div>
-                </div>
-
-                <div class="inline-actions">
-                  <button type="submit" class="btn btn-white" id="profileSaveBtn">
-                    Guardar cambios del perfil <span class="arrow">→</span>
-                  </button>
-                </div>
-
-                <div class="form-feedback" id="profileSaveFeedback" hidden></div>
-              </form>
             </div>
-          </div>
+          </section>
 
-          <!-- 3. MENSAJES DIRECTOS Y TRABAJOS -->
-          <div id="wsPanel-messages" class="workspace-panel" hidden>
+          <!-- 4. MENSAJES DIRECTOS Y TRABAJOS -->
+          <section id="wsPanel-messages" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">CHAT PROFESIONAL EN VIVO</span>
+                <h2>Mensajes y propuestas de trabajo</h2>
+              </div>
+              <a href="perfiles.html" class="link-editorial" style="padding: 0;">
+                Buscar perfiles <span class="arrow">→</span>
+              </a>
+            </div>
+
             <div class="chat-split-open">
               <aside class="conv-list-open">
                 <span class="open-eyebrow mono" style="margin-bottom: 10px;">CONVERSACIONES</span>
                 <div id="conversationsList"></div>
-                <a href="perfiles.html" class="link-editorial" style="margin-top: 16px; padding-left: 0; font-size: 0.86rem;">
-                  Explorar perfiles <span class="arrow">→</span>
-                </a>
               </aside>
 
               <div class="chat-thread-open">
                 <div id="chatEmptyState" class="arch-col" style="align-self: start;">
                   <span class="col-index mono">BANDEJA DIRECTA</span>
-                  <h3>Habla con otros miembros para trabajos</h3>
+                  <h3>Conecta con otros creadores</h3>
                   <p>
-                    Selecciona una conversación en la columna izquierda o entra al apartado Perfiles y pulsa «Hablar / Proponer trabajo» sobre cualquier persona para conversar en tiempo real.
+                    Elige una conversación a la izquierda o visita el directorio de Perfiles y pulsa «Hablar / Proponer trabajo» sobre cualquier miembro para chatear al instante.
                   </p>
                 </div>
 
@@ -284,7 +402,7 @@
                       id="chatMessageInput"
                       class="line-input"
                       maxlength="2000"
-                      placeholder="Escribe un mensaje sobre un trabajo, encargo o colaboración..."
+                      placeholder="Escribe un mensaje directo sobre un trabajo o proyecto..."
                       autocomplete="off"
                       required
                     />
@@ -295,19 +413,233 @@
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- 4. AJUSTES DE CUENTA Y PROPUESTAS ENVIADAS -->
-          <div id="wsPanel-settings" class="workspace-panel" hidden>
-            <div class="infra-head" style="margin-bottom: 24px;">
-              <span class="open-eyebrow mono">SESIÓN Y SINCRONIZACIÓN</span>
-              <h2>Ajustes de tu cuenta</h2>
+          <!-- 5. MI PERFIL PÚBLICO -->
+          <section id="wsPanel-profile" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">DIRECTORIO PÚBLICO</span>
+                <h2>Tu perfil profesional</h2>
+              </div>
+              <a href="perfiles.html" class="link-editorial" style="padding: 0;">
+                Ver cómo luzco en Perfiles <span class="arrow">→</span>
+              </a>
+            </div>
+
+            <div class="split-editorial">
+              <div class="editorial-stack">
+                <div class="arch-col">
+                  <span class="col-index mono">VISTA PREVIA EN VIVO</span>
+                  <div class="profile-identity" style="margin-top: 10px;">
+                    <img id="profilePreviewAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" />
+                    <div class="profile-meta-stack">
+                      <div class="profile-name-line">
+                        <h3 id="profilePreviewName">Tu nombre</h3>
+                        <span id="profilePreviewHandle" class="profile-handle mono">@usuario</span>
+                      </div>
+                      <span id="profilePreviewRole" class="profile-role">Creador digital</span>
+                      <div id="profilePreviewSkills" class="skills-tags-line mono"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form class="open-form" id="profileEditForm" novalidate>
+                <div class="field-line">
+                  <label for="profileDisplayName" class="mono">NOMBRE VISIBLE</label>
+                  <input type="text" id="profileDisplayName" class="line-input" maxlength="80" placeholder="Tu nombre o estudio" required />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileHandle" class="mono">USUARIO (@ALIAS)</label>
+                  <input type="text" id="profileHandle" class="line-input mono" maxlength="32" placeholder="ej. xuanii" required />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileRole" class="mono">ESPECIALIDAD PRINCIPAL</label>
+                  <input type="text" id="profileRole" class="line-input" maxlength="80" placeholder="Ej. Retoque fotográfico, Desarrollo Web, Diseño UI..." />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileSkills" class="mono">HABILIDADES (SEPARADAS POR COMA)</label>
+                  <input type="text" id="profileSkills" class="line-input" maxlength="120" placeholder="Ej. Fotografía, Edición RAW, Branding, Frontend" />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileBio" class="mono">PRESENTACIÓN Y TRABAJOS QUE OFRECES</label>
+                  <textarea id="profileBio" class="line-textarea" maxlength="500" placeholder="Cuenta en qué proyectos trabajas, tu experiencia y cómo pueden colaborar contigo..."></textarea>
+                </div>
+
+                <div class="open-rows">
+                  <div class="open-row">
+                    <div>
+                      <span class="open-row-title">Disponible para trabajos y encargos</span>
+                      <span class="open-row-sub">Activa el indicador luminoso en el directorio de Perfiles.</span>
+                    </div>
+                    <button type="button" class="open-toggle-btn" id="profileAvailableBtn" data-active="true">
+                      DISPONIBLE
+                    </button>
+                  </div>
+
+                  <div class="open-row">
+                    <div>
+                      <span class="open-row-title">Mostrar perfil en el directorio público</span>
+                      <span class="open-row-sub">Si lo pasas a privado, nadie podrá encontrarte en Perfiles.</span>
+                    </div>
+                    <button type="button" class="open-toggle-btn" id="profilePublicBtn" data-active="true">
+                      PÚBLICO
+                    </button>
+                  </div>
+                </div>
+
+                <div class="inline-actions">
+                  <button type="submit" class="btn btn-white" id="profileSaveBtn">
+                    Guardar perfil <span class="arrow">→</span>
+                  </button>
+                </div>
+
+                <div class="form-feedback" id="profileSaveFeedback" hidden></div>
+              </form>
+            </div>
+          </section>
+
+          <!-- 6. ESTUDIO DE FONDO DE TRABAJO Y APARIENCIA EN TIEMPO REAL -->
+          <section id="wsPanel-appearance" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">PERSONALIZACIÓN DEL ENTORNO</span>
+                <h2>Fondo de trabajo y apariencia</h2>
+              </div>
+              <button type="button" class="text-action-btn" id="wsResetAppearanceBtn">
+                Restablecer original
+              </button>
+            </div>
+
+            <div class="open-rows">
+              <!-- Tema global Blanco / Grafito / Negro -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Tema de color global</span>
+                  <span class="open-row-sub">Se aplica en toda la web y se sincroniza con tu cuenta de Google.</span>
+                </div>
+                <div class="option-strip" data-theme-group>
+                  <button type="button" class="option-choice active" data-set-theme="obsidian">
+                    <span class="swatch-dot" style="background: #050506;"></span> Obsidiana
+                  </button>
+                  <button type="button" class="option-choice" data-set-theme="graphite">
+                    <span class="swatch-dot" style="background: #1c1d24;"></span> Grafito
+                  </button>
+                  <button type="button" class="option-choice" data-set-theme="light">
+                    <span class="swatch-dot" style="background: #fafafa;"></span> Blanco Editorial
+                  </button>
+                </div>
+              </div>
+
+              <!-- Estilo del fondo del escritorio -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Textura / Lienzo del fondo de trabajo</span>
+                  <span class="open-row-sub">Elige el ambiente visual detrás de tu escritorio.</span>
+                </div>
+                <div class="option-strip" id="backdropModeGroup">
+                  <button type="button" class="option-choice active" data-set-backdrop="grid">Retícula CAD</button>
+                  <button type="button" class="option-choice" data-set-backdrop="dots">Puntos ópticos</button>
+                  <button type="button" class="option-choice" data-set-backdrop="waves">Ondas en vivo</button>
+                  <button type="button" class="option-choice" data-set-backdrop="solid">Liso puro</button>
+                  <button type="button" class="option-choice" data-set-backdrop="custom">Imagen propia</button>
+                </div>
+              </div>
+
+              <!-- Subir fondo personalizado o elegir arte generativo -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Fondo de pantalla personalizado</span>
+                  <span class="open-row-sub">Sube cualquier imagen desde tu computadora o genera un fondo de estudio monocromático.</span>
+                </div>
+                <div class="inline-actions">
+                  <input type="file" id="wsWallpaperInput" accept="image/*" hidden />
+                  <button type="button" class="btn btn-white btn-sm" id="wsUploadWallpaperBtn">
+                    Subir imagen propia
+                  </button>
+                  <button type="button" class="text-action-btn" data-preset-wall="topo">Topografía</button>
+                  <button type="button" class="text-action-btn" data-preset-wall="prism">Luz mineral</button>
+                  <button type="button" class="text-action-btn" id="wsClearWallpaperBtn" hidden>Quitar imagen</button>
+                </div>
+              </div>
+
+              <!-- Slider Opacidad -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Intensidad del fondo de imagen</span>
+                  <span class="open-row-sub">Ajusta la visibilidad de tu fondo para mantener lectura nítida.</span>
+                </div>
+                <div class="range-row">
+                  <input type="range" id="wsOpacityRange" class="mono-range" min="5" max="80" value="26" />
+                  <span id="wsOpacityVal" class="mono" style="font-size: 0.82rem; min-width: 40px;">26%</span>
+                </div>
+              </div>
+
+              <!-- Slider Blur -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Desenfoque de cristal (Blur)</span>
+                  <span class="open-row-sub">Suaviza la imagen de fondo detrás del espacio de trabajo.</span>
+                </div>
+                <div class="range-row">
+                  <input type="range" id="wsBlurRange" class="mono-range" min="0" max="32" value="10" />
+                  <span id="wsBlurVal" class="mono" style="font-size: 0.82rem; min-width: 40px;">10px</span>
+                </div>
+              </div>
+
+              <!-- Blanco y negro vs color en wallpaper -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Filtro monocromático sobre tu fondo</span>
+                  <span class="open-row-sub">Adapta automáticamente cualquier fotografía subida a escala de grises editorial.</span>
+                </div>
+                <button type="button" class="open-toggle-btn" id="wsMonoToggle" data-active="true">
+                  BLANCO Y NEGRO
+                </button>
+              </div>
+
+              <!-- Densidad de interfaz -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Densidad del espacio de trabajo</span>
+                  <span class="open-row-sub">Reduce márgenes para ver más controles e información en pantalla.</span>
+                </div>
+                <button type="button" class="open-toggle-btn" id="wsDensityToggle" data-active="false">
+                  ESTÁNDAR
+                </button>
+              </div>
+
+              <!-- Guías verticales -->
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Guías arquitectónicas verticales</span>
+                  <span class="open-row-sub">Muestra u oculta las líneas estructurales de 4 columnas en toda la web.</span>
+                </div>
+                <button type="button" class="open-toggle-btn" id="wsGuidesToggle" data-active="true">
+                  VISIBLES
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. CUENTA, RESPALDO Y SESIÓN -->
+          <section id="wsPanel-settings" class="workspace-panel" hidden>
+            <div class="studio-top-bar">
+              <div>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">SEGURIDAD Y DATOS</span>
+                <h2>Cuenta y respaldo</h2>
+              </div>
             </div>
 
             <div class="open-rows">
               <div class="open-row">
                 <div>
-                  <span class="open-row-title">Sesión de Google activa</span>
+                  <span class="open-row-title">Cuenta de Google vinculada</span>
                   <span class="open-row-sub" id="accountUserSub">Autenticado mediante Google OAuth 2.0.</span>
                 </div>
                 <div class="inline-actions">
@@ -320,8 +652,8 @@
 
               <div class="open-row">
                 <div>
-                  <span class="open-row-title">Guardado automático en aplicaciones</span>
-                  <span class="open-row-sub">Sincronizar proyectos y preferencias en la nube al cambiar de herramienta.</span>
+                  <span class="open-row-title">Sincronización automática entre equipos</span>
+                  <span class="open-row-sub">Respalda tema, fondo, bloc rápido y ajustes en tu nube de Google.</span>
                 </div>
                 <button type="button" class="open-toggle-btn" id="prefCloudAutosaveBtn" data-pref="cloudAutosave" data-active="true">
                   ACTIVADO
@@ -330,44 +662,31 @@
 
               <div class="open-row">
                 <div>
-                  <span class="open-row-title">Avisos de nuevos lanzamientos</span>
-                  <span class="open-row-sub">Recibir notificación cuando PhotoStun o una nueva aplicación esté disponible.</span>
+                  <span class="open-row-title">Exportar copia completa de mis datos</span>
+                  <span class="open-row-sub">Descarga un archivo JSON con tu perfil, notas, ajustes y actividad.</span>
                 </div>
-                <button type="button" class="open-toggle-btn" id="prefReleaseAlertsBtn" data-pref="releaseAlerts" data-active="true">
-                  ACTIVADO
+                <button type="button" class="btn btn-white btn-sm" id="exportAccountJsonBtn">
+                  Descargar respaldo (.json)
                 </button>
-              </div>
-
-              <div class="open-row">
-                <div>
-                  <span class="open-row-title">Personas en línea ahora mismo</span>
-                  <span class="open-row-sub">Sesiones activas en tiempo real en la plataforma y servicios en la nube.</span>
-                </div>
-                <span class="open-row-val mono"><strong id="activeUsersCount">1</strong> en línea</span>
               </div>
             </div>
 
-            <div style="margin-top: 72px;">
-              <div class="infra-head" style="margin-bottom: 24px;">
-                <span class="open-eyebrow mono">BUZÓN DE PLATAFORMA</span>
-                <h2>Tus propuestas enviadas a Xuanii</h2>
-              </div>
-
+            <div style="margin-top: 56px;">
+              <span class="open-eyebrow mono">TUS PROPUESTAS ENVIADAS A XUANII</span>
               <div id="accountSubmissionsList" class="submission-list"></div>
-
-              <div class="inline-actions" style="margin-top: 32px;">
-                <a href="contacto.html" class="btn btn-white btn-sm">
-                  Enviar propuesta a Xuanii <span class="arrow">→</span>
+              <div class="inline-actions" style="margin-top: 24px;">
+                <a href="contacto.html" class="link-editorial" style="padding-left: 0;">
+                  Enviar nueva propuesta <span class="arrow">→</span>
                 </a>
                 <button type="button" class="text-action-btn" id="clearLocalHistoryBtn" hidden>
                   Limpiar historial local
                 </button>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
-    </section>
+    </div>
   </main>
 
   <footer class="footer">
