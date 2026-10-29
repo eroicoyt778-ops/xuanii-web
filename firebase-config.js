@@ -1,15 +1,12 @@
-// 1. Correo donde recibirás los mensajes y propuestas enviados desde la página de Contacto
-// (Ej: "tucorreo@gmail.com" — usa envío serverless directo sin necesidad de servidor propio).
-window.XUANII_CONTACT_EMAIL = "";
+// 1. Correo oficial donde llegan los mensajes y propuestas enviados desde Contacto
+window.XUANII_CONTACT_EMAIL = "thexsactc@gmail.com";
 
-// 2. Configuración oficial de Firebase (Plan gratuito Spark — 100% Serverless).
-// Pega aquí las credenciales de tu proyecto web de console.firebase.google.com
-// para habilitar Google Sign-In, guardado de progreso en la nube y conteo global en tiempo real.
+// 2. Configuración oficial de Google Cloud / Firebase (Proyecto: xuanii-official — Serverless)
 window.XUANII_FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
+  apiKey: "AIzaSyBUowncNJRwHLseJdNg5Njn5LivgKi7Sgc",
+  authDomain: "xuanii-official.firebaseapp.com",
+  projectId: "xuanii-official",
+  storageBucket: "xuanii-official.firebasestorage.app",
+  messagingSenderId: "463365940533",
   appId: ""
 };

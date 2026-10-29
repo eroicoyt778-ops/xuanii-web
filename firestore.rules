@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Sesiones activas en tiempo real ("Personas en línea")
+    match /presence/{sessionId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.updatedAtMs is number;
+      allow delete: if true;
+    }
+
+    // Buzón oficial de propuestas y contacto
+    match /messages/{msgId} {
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.subject is string
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() <= 5000;
+      allow read: if request.auth != null
+                  && (resource.data.uid == request.auth.uid
+                      || request.auth.token.email == "thexsactc@gmail.com");
+    }
+
+    // Registro de acceso anticipado a PhotoStun
+    match /photostun_waitlist/{entryId} {
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.priority is string;
+      allow read: if request.auth != null
+                  && request.auth.token.email == "thexsactc@gmail.com";
+    }
+
+    // Cuenta privada y proyectos guardados de cada usuario (PhotoStun y futuras apps)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /projects/{projectId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

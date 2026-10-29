@@ -744,7 +744,15 @@ if (!isFirebaseConfigured) {
         window.location.href = "cuenta.html";
         return;
       }
-      await signInWithPopup(auth, provider);
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        const code = err?.code || "";
+        if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+          return;
+        }
+        if (authSetupModal) authSetupModal.hidden = false;
+      }
     };
 
     navSignInBtn?.addEventListener("click", triggerGoogleLogin);
