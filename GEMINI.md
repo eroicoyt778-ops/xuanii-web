@@ -10,7 +10,8 @@
 - **`xuanii.com` es exclusivamente el portal oficial y central de la marca.**
 - Las herramientas reales (como el editor fotográfico **PhotoStun**) **NO** se amontonan dentro de la portada principal: cada aplicación vivirá en su propio espacio/subdominio dedicado conectado a este portal.
 - El portal oficial cuenta con navegación multi-página real y espacio privado desbloqueable con Google:
-  - `index.html` — Portada principal con métrica abierta en vivo de *Personas en línea* y presentación general.
+  - `index.html` — Portada principal con métrica abierta en vivo de *Personas en línea*, mosaico visual *Para ti* y presentación general.
+  - `para-ti.html` — Apartado social y descubrimiento visual en tiempo real (*Flujo social* y *Mosaico visual*, fotos con zoom Lightbox, comentarios en vivo, me gusta y buscador de especialistas).
   - `productos.html` — Ficha oficial de **PhotoStun** (con esquema interactivo de curva tonal y registro funcional de acceso anticipado).
   - `perfiles.html` — Directorio público en tiempo real de miembros reales de la plataforma disponibles para trabajos, encargos y proyectos.
   - `novedades.html` — Línea de tiempo abierta con avances y hoja de ruta reales.

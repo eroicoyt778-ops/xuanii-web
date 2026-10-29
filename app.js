@@ -8,6 +8,17 @@ const STORAGE_KEYS = {
 
 const ADMIN_EMAIL = "thexsactc@gmail.com";
 
+// Cuentas oficiales del Creador de Xuanii (reconocidas por ID interno e inmutables)
+const CREATOR_UIDS = new Set([
+  "KVtoDRTJ7FUxZJelcicoSISSazA3",
+  "iHw8l7jKnzPp1JDCGsJ73C9I4z73"
+]);
+
+const CREATOR_INTERNAL_IDS = new Set([
+  "XN-7808897A",
+  "XN-35BE2545"
+]);
+
 const CATEGORY_LABELS = {
   video: "Edición de Video y Postproducción",
   photo: "Edición de Foto y Retoque Digital",
@@ -150,6 +161,53 @@ const deriveInternalId = (uid) => {
   const partA = (h1 >>> 0).toString(16).toUpperCase().padStart(8, "0").slice(0, 4);
   const partB = (h2 >>> 0).toString(16).toUpperCase().padStart(8, "0").slice(0, 4);
   return `XN-${partA}${partB}`;
+};
+
+// Verificador determinista de cuenta oficial del Creador (ambas cuentas XN-7808897A y XN-35BE2545)
+const isCreatorAccount = (internalId = "", uid = "") => {
+  if (uid && CREATOR_UIDS.has(uid)) return true;
+  const code = String(internalId || (uid ? deriveInternalId(uid) : ""))
+    .trim()
+    .toUpperCase();
+  return CREATOR_INTERNAL_IDS.has(code);
+};
+
+const isAdminUser = (user) =>
+  Boolean(user && (user.email === ADMIN_EMAIL || isCreatorAccount("", user.uid)));
+
+// Constructor DOM de la Insignia Oficial de Creador (Monocromática Luminosa)
+const createCreatorBadgeEl = (small = false) => {
+  const badge = document.createElement("span");
+  badge.className = small ? "creator-badge creator-badge-sm" : "creator-badge";
+  badge.title = "Creador oficial de Xuanii";
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS(svgNS, "path");
+  path.setAttribute(
+    "d",
+    "M8 0.8L9.85 6.15L15.2 8L9.85 9.85L8 15.2L6.15 9.85L0.8 8L6.15 6.15L8 0.8Z"
+  );
+  path.setAttribute("fill", "currentColor");
+  svg.appendChild(path);
+
+  const txt = document.createElement("span");
+  txt.textContent = "CREADOR";
+
+  badge.appendChild(svg);
+  badge.appendChild(txt);
+  return badge;
+};
+
+const mountCreatorBadgeSlot = (slotEl, isCreator, small = false) => {
+  if (!slotEl) return;
+  slotEl.textContent = "";
+  if (isCreator) {
+    slotEl.appendChild(createCreatorBadgeEl(small));
+  }
 };
 
 const copyTextWithFeedback = async (text, el) => {
@@ -583,6 +641,9 @@ let cloudHooks = {
   publishPost: null,
   toggleLikePost: null,
   deletePost: null,
+  addPostComment: null,
+  deletePostComment: null,
+  subscribePostComments: null,
   submitStarReview: null,
   requestConnection: null,
   acceptConnection: null,
@@ -805,6 +866,134 @@ const renderSkillTagsInto = (container, skillsInputOrArray) => {
   });
 };
 
+// Visor Lightbox a pantalla completa para fotografías de Para ti y portafolios
+const photoLightboxModal = document.getElementById("photoLightboxModal");
+const closePhotoLightbox = () => {
+  if (photoLightboxModal) photoLightboxModal.hidden = true;
+};
+document.getElementById("lightboxCloseBtn")?.addEventListener("click", closePhotoLightbox);
+photoLightboxModal?.addEventListener("click", (e) => {
+  if (e.target === photoLightboxModal) closePhotoLightbox();
+});
+
+const openPhotoLightbox = (post, signInCallback) => {
+  if (!photoLightboxModal || !post?.photoUrl) return;
+  const imgEl = document.getElementById("lightboxImage");
+  const capEl = document.getElementById("lightboxCaption");
+  const authorEl = document.getElementById("lightboxAuthorInfo");
+  const actsEl = document.getElementById("lightboxActions");
+
+  if (imgEl) {
+    imgEl.src = post.photoUrl;
+    imgEl.alt = post.caption || "Fotografía de portafolio";
+  }
+  if (capEl) {
+    capEl.textContent = post.caption || "";
+  }
+
+  const authorProf = profilesByUid.get(post.authorUid);
+  const authorInternalId =
+    post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid);
+  const creatorFlag = isCreatorAccount(authorInternalId, post.authorUid);
+
+  if (authorEl) {
+    authorEl.textContent = "";
+    authorEl.onclick = () => {
+      closePhotoLightbox();
+      renderInspectorContent(post.authorUid);
+    };
+
+    const av = document.createElement("img");
+    av.className = creatorFlag
+      ? "feed-author-avatar creator-avatar-ring"
+      : "feed-author-avatar";
+    av.src = post.authorAvatar || authorProf?.photoURL || "favicon.svg";
+    av.alt = "";
+    av.onerror = () => {
+      av.src = "favicon.svg";
+    };
+
+    const meta = document.createElement("div");
+    const nm = document.createElement("div");
+    nm.className = "profile-name-line";
+    const strong = document.createElement("strong");
+    strong.style.fontSize = "0.95rem";
+    strong.textContent = post.authorName || authorProf?.displayName || "Especialista";
+    nm.appendChild(strong);
+    if (creatorFlag) nm.appendChild(createCreatorBadgeEl(true));
+
+    const hnd = document.createElement("span");
+    hnd.className = "profile-handle mono";
+    hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"} · ${authorInternalId}`;
+    nm.appendChild(hnd);
+
+    const sub = document.createElement("span");
+    sub.className = "open-row-sub";
+    sub.style.marginTop = "0";
+    sub.textContent = `${post.authorRole || authorProf?.role || "Especialista"} · ${formatDateEs(post.createdAtMs)}`;
+
+    meta.appendChild(nm);
+    meta.appendChild(sub);
+    authorEl.appendChild(av);
+    authorEl.appendChild(meta);
+  }
+
+  if (actsEl) {
+    actsEl.textContent = "";
+    const likesArr = Array.isArray(post.likes) ? post.likes : [];
+    let likedNow = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
+    let countNow = likesArr.length;
+
+    const likeBtn = document.createElement("button");
+    likeBtn.type = "button";
+    likeBtn.className = likedNow ? "post-like-btn liked" : "post-like-btn";
+    likeBtn.textContent = `${likedNow ? "♥" : "♡"} ${countNow} Me gusta`;
+    likeBtn.addEventListener("click", () => {
+      if (!activeAuthUser) {
+        if (signInCallback) signInCallback(window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html");
+        return;
+      }
+      cloudHooks.toggleLikePost?.(post.id, likedNow);
+      likedNow = !likedNow;
+      countNow = Math.max(0, countNow + (likedNow ? 1 : -1));
+      likeBtn.className = likedNow ? "post-like-btn liked" : "post-like-btn";
+      likeBtn.textContent = `${likedNow ? "♥" : "♡"} ${countNow} Me gusta`;
+    });
+    actsEl.appendChild(likeBtn);
+
+    const viewBtn = document.createElement("button");
+    viewBtn.type = "button";
+    viewBtn.className = "btn btn-ghost btn-sm";
+    viewBtn.textContent = "Ver perfil y ★";
+    viewBtn.addEventListener("click", () => {
+      closePhotoLightbox();
+      renderInspectorContent(post.authorUid);
+    });
+    actsEl.appendChild(viewBtn);
+
+    if (!activeAuthUser || post.authorUid !== activeAuthUser.uid) {
+      const chatBtn = document.createElement("button");
+      chatBtn.type = "button";
+      chatBtn.className = "btn btn-white btn-sm";
+      chatBtn.textContent = "Contactar / Trabajo →";
+      chatBtn.addEventListener("click", () => {
+        closePhotoLightbox();
+        if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+          switchWorkspaceTab("messages");
+          cloudHooks.openChatWithPeer?.(post.authorUid);
+        } else if (signInCallback) {
+          signInCallback(`cuenta.html?chat=${encodeURIComponent(post.authorUid)}`);
+        } else {
+          window.location.href = `cuenta.html?chat=${encodeURIComponent(post.authorUid)}`;
+        }
+      });
+      actsEl.appendChild(chatBtn);
+    }
+  }
+
+  photoLightboxModal.hidden = false;
+};
+
 // Inspector lateral de Perfil Completo, Fotos y Calificación con Estrellas
 let inspectedProfileUid = null;
 let selectedStarValue = 5;
@@ -818,6 +1007,16 @@ const closeInspector = () => {
 closeInspectorBtn?.addEventListener("click", closeInspector);
 inspectorBackdrop?.addEventListener("click", (e) => {
   if (e.target === inspectorBackdrop) closeInspector();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (photoLightboxModal && !photoLightboxModal.hidden) {
+      closePhotoLightbox();
+    } else if (inspectorBackdrop && !inspectorBackdrop.hidden) {
+      closeInspector();
+    }
+  }
 });
 
 const starPickerEl = document.getElementById("inspStarPicker");
@@ -852,14 +1051,17 @@ const renderInspectorContent = (targetUid) => {
   }
 
   const avatarEl = document.getElementById("inspAvatar");
+  const isTargetCreator = isCreatorAccount(internalId, targetUid);
   if (avatarEl) {
     avatarEl.src = prof.photoURL || "favicon.svg";
+    avatarEl.classList.toggle("creator-avatar-ring", isTargetCreator);
     avatarEl.onerror = () => {
       avatarEl.src = "favicon.svg";
     };
   }
 
   const nameEl = document.getElementById("inspName");
+  const creatorSlotEl = document.getElementById("inspCreatorSlot");
   const handleEl = document.getElementById("inspHandle");
   const roleEl = document.getElementById("inspRole");
   const sitEl = document.getElementById("inspSituation");
@@ -871,6 +1073,7 @@ const renderInspectorContent = (targetUid) => {
 
   if (feedbackEl) feedbackEl.hidden = true;
   if (nameEl) nameEl.textContent = prof.displayName || "Especialista";
+  mountCreatorBadgeSlot(creatorSlotEl, isTargetCreator, false);
   if (handleEl) handleEl.textContent = `@${prof.handle || "usuario"}`;
   if (roleEl) {
     roleEl.textContent = prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital";
@@ -991,6 +1194,8 @@ const renderInspectorContent = (targetUid) => {
           const img = document.createElement("img");
           img.src = post.photoUrl;
           img.alt = post.caption || "Trabajo";
+          img.style.cursor = "zoom-in";
+          img.addEventListener("click", () => openPhotoLightbox(post));
           card.appendChild(img);
         }
         const foot = document.createElement("div");
@@ -1034,12 +1239,24 @@ const renderInspectorContent = (targetUid) => {
       stats.items.forEach((r) => {
         const item = document.createElement("div");
         item.className = "review-open-item";
-        const head = document.createElement("span");
+        const head = document.createElement("div");
         head.className = "mono";
         head.style.fontSize = "0.75rem";
         head.style.color = "var(--silver)";
+        head.style.display = "flex";
+        head.style.alignItems = "center";
+        head.style.flexWrap = "wrap";
+        head.style.gap = "8px";
         const starsStr = "★".repeat(r.stars || 5) + "☆".repeat(Math.max(0, 5 - (r.stars || 5)));
-        head.textContent = `${starsStr} · ${r.reviewerName || "Usuario"} (@${r.reviewerHandle || "miembro"}) · ${formatDateEs(r.updatedAtMs)}`;
+        const metaTxt = document.createElement("span");
+        metaTxt.textContent = `${starsStr} · ${r.reviewerName || "Usuario"} (@${r.reviewerHandle || "miembro"})`;
+        head.appendChild(metaTxt);
+        if (isCreatorAccount("", r.reviewerUid)) {
+          head.appendChild(createCreatorBadgeEl(true));
+        }
+        const dateTxt = document.createElement("span");
+        dateTxt.textContent = `· ${formatDateEs(r.updatedAtMs)}`;
+        head.appendChild(dateTxt);
 
         const txt = document.createElement("p");
         txt.style.fontSize = "0.9rem";
@@ -1092,13 +1309,16 @@ const createProfileDirectoryRow = (prof, signInCallback) => {
   row.className = "profile-open-row";
 
   const internalId = prof.internalId || deriveInternalId(prof.uid);
+  const isProfCreator = isCreatorAccount(internalId, prof.uid);
   const stats = getRatingStats(prof.uid);
 
   const left = document.createElement("div");
   left.className = "profile-identity";
 
   const avatar = document.createElement("img");
-  avatar.className = "profile-avatar-lg";
+  avatar.className = isProfCreator
+    ? "profile-avatar-lg creator-avatar-ring"
+    : "profile-avatar-lg";
   avatar.src = prof.photoURL || "favicon.svg";
   avatar.alt = prof.displayName || "Especialista";
   avatar.onerror = () => {
@@ -1126,6 +1346,9 @@ const createProfileDirectoryRow = (prof, signInCallback) => {
   idSpan.addEventListener("click", () => copyTextWithFeedback(internalId, idSpan));
 
   nameLine.appendChild(h3);
+  if (isProfCreator) {
+    nameLine.appendChild(createCreatorBadgeEl(false));
+  }
   nameLine.appendChild(handleSpan);
   nameLine.appendChild(idSpan);
 
@@ -1175,7 +1398,7 @@ const createProfileDirectoryRow = (prof, signInCallback) => {
       thumb.className = "mini-shot-img";
       thumb.src = p.photoUrl;
       thumb.alt = p.caption || "Portafolio";
-      thumb.addEventListener("click", () => renderInspectorContent(prof.uid));
+      thumb.addEventListener("click", () => openPhotoLightbox(p, signInCallback));
       shotsRow.appendChild(thumb);
     });
     meta.appendChild(shotsRow);
@@ -1274,8 +1497,13 @@ const syncProfilePreview = () => {
   }
   if (profilePreviewInternalId && activeAuthUser) {
     const idCode = currentOwnProfile?.internalId || deriveInternalId(activeAuthUser.uid);
+    const iAmCreator = isCreatorAccount(idCode, activeAuthUser.uid);
     profilePreviewInternalId.textContent = `ID: ${idCode}`;
     profilePreviewInternalId.onclick = () => copyTextWithFeedback(idCode, profilePreviewInternalId);
+    mountCreatorBadgeSlot(document.getElementById("previewCreatorSlot"), iAmCreator, false);
+    if (profilePreviewAvatar) {
+      profilePreviewAvatar.classList.toggle("creator-avatar-ring", iAmCreator);
+    }
   }
   if (profilePreviewSkills && profileSkillsEl) {
     renderSkillTagsInto(profilePreviewSkills, profileSkillsEl.value);
@@ -1409,10 +1637,12 @@ const renderAccountWorkspace = () => {
 
   if (activeAuthUser) {
     const myId = currentOwnProfile?.internalId || deriveInternalId(activeAuthUser.uid);
+    const iAmCreator = isCreatorAccount(myId, activeAuthUser.uid);
     const myStats = getRatingStats(activeAuthUser.uid);
 
     const sideAvatar = document.getElementById("studioSideAvatar");
     const sideName = document.getElementById("studioSideName");
+    const sideCreatorSlot = document.getElementById("studioCreatorSlot");
     const sideHandle = document.getElementById("studioSideHandle");
     const sideIdBadge = document.getElementById("studioSideIdBadge");
     const sideStars = document.getElementById("studioSideStars");
@@ -1422,6 +1652,7 @@ const renderAccountWorkspace = () => {
 
     if (sideAvatar) {
       sideAvatar.src = currentOwnProfile?.photoURL || activeAuthUser.photoURL || "favicon.svg";
+      sideAvatar.classList.toggle("creator-avatar-ring", iAmCreator);
       sideAvatar.onerror = () => {
         sideAvatar.src = "favicon.svg";
       };
@@ -1429,6 +1660,7 @@ const renderAccountWorkspace = () => {
     if (sideName) {
       sideName.textContent = currentOwnProfile?.displayName || activeAuthUser.displayName || "Mi cuenta";
     }
+    mountCreatorBadgeSlot(sideCreatorSlot, iAmCreator, true);
     if (sideHandle) {
       sideHandle.textContent = `@${currentOwnProfile?.handle || sanitizeHandle(activeAuthUser.email?.split("@")[0])}`;
     }
@@ -1450,10 +1682,10 @@ const renderAccountWorkspace = () => {
       userSubEl.textContent = activeAuthUser.email || "OAuth 2.0 activo.";
     }
 
-    // Mostrar panel de moderación exclusivamente al propietario
+    // Mostrar panel de moderación exclusivamente al creador / propietario
     const adminPanel = document.getElementById("adminModerationPanel");
     if (adminPanel) {
-      adminPanel.hidden = activeAuthUser.email !== ADMIN_EMAIL;
+      adminPanel.hidden = !isAdminUser(activeAuthUser);
     }
   }
 
@@ -1874,10 +2106,12 @@ if (isFirebaseConfigured) {
         authorHandle: prof.handle || sanitizeHandle(user.email?.split("@")[0]),
         authorAvatar: prof.photoURL || user.photoURL || "",
         authorRole: prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital",
+        authorCategory: prof.category || "video",
         kind: kind || "portfolio",
         caption: String(caption || "").slice(0, 2200),
         photoUrl: photoUrl || "",
         likes: [],
+        commentCount: 0,
         createdAtMs: Date.now(),
         createdAt: serverTimestamp()
       });
@@ -1894,6 +2128,46 @@ if (isFirebaseConfigured) {
     cloudHooks.deletePost = async (postId) => {
       if (!auth.currentUser || !postId) return;
       await deleteDoc(doc(db, "posts", postId));
+    };
+
+    cloudHooks.addPostComment = async ({ postId, text, currentCount = 0 }) => {
+      const user = auth.currentUser;
+      if (!user || !postId) return;
+      const clean = String(text || "").trim().slice(0, 1000);
+      if (!clean) return;
+      const prof = currentOwnProfile || {};
+      await addDoc(collection(db, "posts", postId, "comments"), {
+        authorUid: user.uid,
+        authorInternalId: prof.internalId || deriveInternalId(user.uid),
+        authorName: prof.displayName || user.displayName || "Especialista",
+        authorHandle: prof.handle || sanitizeHandle(user.email?.split("@")[0]),
+        text: clean,
+        createdAtMs: Date.now(),
+        createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, "posts", postId), {
+        commentCount: Math.max(0, Number(currentCount) || 0) + 1
+      }).catch(() => {});
+    };
+
+    cloudHooks.deletePostComment = async (postId, commentId, nextCount = 0) => {
+      if (!auth.currentUser || !postId || !commentId) return;
+      await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+      await updateDoc(doc(db, "posts", postId), {
+        commentCount: Math.max(0, Number(nextCount) || 0)
+      }).catch(() => {});
+    };
+
+    cloudHooks.subscribePostComments = (postId, callback) => {
+      const qComments = query(
+        collection(db, "posts", postId, "comments"),
+        orderBy("createdAtMs", "asc")
+      );
+      return onSnapshot(qComments, (snap) => {
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        callback(list);
+      });
     };
 
     cloudHooks.submitStarReview = async ({ targetUid, stars, comment }) => {
@@ -1974,7 +2248,9 @@ if (isFirebaseConfigured) {
       );
       const targetUid = matched?.uid || (q.length >= 20 && !upper.startsWith("XN-") ? q : "");
       if (!targetUid) throw new Error("No se encontró ninguna cuenta con ese ID interno.");
-      if (matched?.uid === auth.currentUser?.uid) throw new Error("No puedes suspender tu propia cuenta administradora.");
+      if (matched?.uid === auth.currentUser?.uid || isCreatorAccount(matched?.internalId, targetUid)) {
+        throw new Error("Las cuentas oficiales del Creador están protegidas y no pueden suspenderse.");
+      }
       const internalId = matched?.internalId || deriveInternalId(targetUid);
       await setDoc(doc(db, "banned_users", targetUid), {
         uid: targetUid,
@@ -2179,14 +2455,18 @@ if (isFirebaseConfigured) {
     // Inicio y cierre de sesión con Google
     const signInAndEnterWorkspace = async (destinationUrl = "cuenta.html") => {
       if (activeAuthUser) {
-        window.location.href = destinationUrl;
+        if (!window.location.pathname.endsWith(destinationUrl)) {
+          window.location.href = destinationUrl;
+        }
         return;
       }
       try {
         const cred = await signInWithPopup(auth, provider);
         if (cred?.user) {
-          const onAccountPage = window.location.pathname.endsWith("cuenta.html");
-          if (!onAccountPage || destinationUrl !== "cuenta.html") {
+          const alreadyAtDest =
+            (destinationUrl === "cuenta.html" && window.location.pathname.endsWith("cuenta.html")) ||
+            (destinationUrl === "para-ti.html" && window.location.pathname.endsWith("para-ti.html"));
+          if (!alreadyAtDest) {
             window.location.href = destinationUrl;
           }
         }
@@ -2200,6 +2480,9 @@ if (isFirebaseConfigured) {
     navSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
     heroSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
     accountSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
+    document.getElementById("forYouGuestSignInBtn")?.addEventListener("click", () =>
+      signInAndEnterWorkspace("para-ti.html")
+    );
 
     const handleSignOut = async () => {
       await signOut(auth);
@@ -2213,22 +2496,646 @@ if (isFirebaseConfigured) {
     document.getElementById("bannedSignOutBtn")?.addEventListener("click", handleSignOut);
 
     // =========================================================
-    // ESCUCHAS GLOBALES: BANEOS, RESEÑAS, PERFILES Y PUBLICACIONES
+    // ESCUCHAS GLOBALES: BANEOS, RESEÑAS, PERFILES Y "PARA TI"
     // =========================================================
     let directoryFilter = "all";
     let directoryQuery = "";
     let networkQuery = "";
+
+    // Estado de búsqueda, filtro y modo de vista para "Para ti" (en cuenta.html y en para-ti.html)
     let feedFilter = "all";
+    let wsFeedQuery = "";
+    let wsFeedViewMode = "stream";
+
+    let forYouFilter = "all";
+    let forYouQuery = "";
+    let forYouViewMode = "stream";
+
+    const expandedCommentPosts = new Set();
+    const commentUnsubsByKey = new Map();
 
     const profilesListEl = document.getElementById("profilesDirectoryList");
     const networkExploreListEl = document.getElementById("networkExploreList");
     const socialFeedStreamEl = document.getElementById("socialFeedStream");
+    const forYouStreamContainerEl = document.getElementById("forYouStreamContainer");
+    const homeForYouMosaicEl = document.getElementById("homeForYouMosaic");
     const ownPortfolioGridEl = document.getElementById("ownProfilePortfolioGrid");
 
-    const renderAllProfileViews = () => {
+    const CATEGORY_KEYWORDS = {
+      video: ["video", "edición de video", "reels", "premiere", "davinci", "after effects", "motion", "montaje", "youtube"],
+      photo: ["foto", "fotografía", "retoque", "photostun", "lightroom", "photoshop", "raw", "color"],
+      design: ["diseño", "ui", "ux", "branding", "figma", "identidad", "miniatura", "3d", "ilustración"],
+      dev: ["desarrollo", "web", "código", "software", "programador", "app", "frontend", "backend", "javascript"]
+    };
+
+    const filterPostsForDiscovery = (posts, filterKey, rawQuery) => {
+      const q = String(rawQuery || "").trim().toLowerCase();
+      return posts.filter((post) => {
+        const authorProf = profilesByUid.get(post.authorUid);
+        const resolvedCat = post.authorCategory || authorProf?.category || "";
+        const idCode = (post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid)).toLowerCase();
+        const skillsStr = Array.isArray(authorProf?.skills) ? authorProf.skills.join(" ") : "";
+        const haystack = `${post.caption || ""} ${post.authorName || ""} @${post.authorHandle || ""} ${idCode} ${post.authorRole || ""} ${CATEGORY_LABELS[resolvedCat] || ""} ${skillsStr}`.toLowerCase();
+
+        if (filterKey === "photos" || filterKey === "portfolio") {
+          if (!post.photoUrl && post.kind !== "portfolio") return false;
+          if (filterKey === "photos" && !post.photoUrl) return false;
+        } else if (filterKey === "job") {
+          if (post.kind !== "job" && post.kind !== "available") return false;
+        } else if (["video", "photo", "design", "dev"].includes(filterKey)) {
+          const catMatch =
+            resolvedCat === filterKey ||
+            (filterKey === "video" && resolvedCat === "motion3d");
+          const kwMatch = (CATEGORY_KEYWORDS[filterKey] || []).some((kw) => haystack.includes(kw));
+          if (!catMatch && !kwMatch) return false;
+        }
+
+        if (!q) return true;
+        return haystack.includes(q);
+      });
+    };
+
+    const filterProfilesForDiscovery = (profiles, filterKey, rawQuery) => {
+      const q = String(rawQuery || "").trim().toLowerCase();
+      const matched = profiles.filter((p) => {
+        if (["video", "photo", "design", "dev"].includes(filterKey)) {
+          const ok = p.category === filterKey || (filterKey === "video" && p.category === "motion3d");
+          if (!ok && !q) return false;
+        }
+        if (!q) return true;
+        const idCode = (p.internalId || deriveInternalId(p.uid)).toLowerCase();
+        const skillsStr = Array.isArray(p.skills) ? p.skills.join(" ") : "";
+        const hay = `${p.displayName || ""} @${p.handle || ""} ${idCode} ${p.role || ""} ${CATEGORY_LABELS[p.category] || ""} ${skillsStr} ${p.bio || ""}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      // Ordenar priorizando Creadores, perfiles con fotos o estrellas y actividad reciente
+      return matched.sort((a, b) => {
+        const aCreator = isCreatorAccount(a.internalId, a.uid) ? 1 : 0;
+        const bCreator = isCreatorAccount(b.internalId, b.uid) ? 1 : 0;
+        if (aCreator !== bCreator) return bCreator - aCreator;
+        const aStars = getRatingStats(a.uid).count;
+        const bStars = getRatingStats(b.uid).count;
+        if (aStars !== bStars) return bStars - aStars;
+        return (b.updatedAtMs || 0) - (a.updatedAtMs || 0);
+      });
+    };
+
+    const renderSpecialistsStripInto = (zoneEl, labelEl, gridEl, filterKey, rawQuery, alwaysShow = false) => {
+      if (!zoneEl || !gridEl) return;
       const visibleProfiles = allProfilesList.filter(
         (p) => p.isPublic !== false && !bannedUsersMap.has(p.uid)
       );
+      const hasActiveSearch = Boolean(String(rawQuery || "").trim()) || ["video", "photo", "design", "dev"].includes(filterKey);
+
+      if (!alwaysShow && !hasActiveSearch) {
+        zoneEl.hidden = true;
+        return;
+      }
+
+      const list = filterProfilesForDiscovery(visibleProfiles, filterKey, rawQuery).slice(0, 4);
+      if (list.length === 0) {
+        zoneEl.hidden = true;
+        return;
+      }
+
+      zoneEl.hidden = false;
+      if (labelEl) {
+        labelEl.textContent = hasActiveSearch
+          ? `ESPECIALISTAS QUE COINCIDEN (${list.length})`
+          : "PERFILES DESTACADOS PARA TI";
+      }
+
+      gridEl.textContent = "";
+      list.forEach((prof) => {
+        const internalId = prof.internalId || deriveInternalId(prof.uid);
+        const creatorFlag = isCreatorAccount(internalId, prof.uid);
+        const stats = getRatingStats(prof.uid);
+
+        const rail = document.createElement("article");
+        rail.className = "foryou-specialist-rail";
+
+        const top = document.createElement("div");
+        top.className = "foryou-specialist-top";
+        top.addEventListener("click", () => renderInspectorContent(prof.uid));
+
+        const av = document.createElement("img");
+        av.className = creatorFlag
+          ? "foryou-specialist-avatar creator-avatar-ring"
+          : "foryou-specialist-avatar";
+        av.src = prof.photoURL || "favicon.svg";
+        av.alt = prof.displayName || "Especialista";
+        av.onerror = () => {
+          av.src = "favicon.svg";
+        };
+
+        const info = document.createElement("div");
+        info.style.minWidth = "0";
+        const nmRow = document.createElement("div");
+        nmRow.className = "profile-name-line";
+        nmRow.style.gap = "6px";
+
+        const nm = document.createElement("strong");
+        nm.style.fontSize = "0.94rem";
+        nm.textContent = prof.displayName || "Especialista";
+        nmRow.appendChild(nm);
+        if (creatorFlag) nmRow.appendChild(createCreatorBadgeEl(true));
+
+        const hnd = document.createElement("span");
+        hnd.className = "profile-handle mono";
+        hnd.style.display = "block";
+        hnd.textContent = `@${prof.handle || "usuario"} · ${internalId}`;
+
+        const role = document.createElement("span");
+        role.className = "open-row-sub";
+        role.textContent = prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital";
+
+        info.appendChild(nmRow);
+        info.appendChild(hnd);
+        info.appendChild(role);
+        top.appendChild(av);
+        top.appendChild(info);
+
+        const foot = document.createElement("div");
+        foot.className = "inline-actions";
+        foot.style.justifyContent = "space-between";
+        foot.style.gap = "10px";
+
+        const starsSpan = document.createElement("span");
+        starsSpan.className = "mono";
+        starsSpan.style.fontSize = "0.75rem";
+        starsSpan.style.color = "var(--silver-bright)";
+        starsSpan.textContent = stats.count > 0 ? `★ ${stats.avg.toFixed(1)} (${stats.count})` : "★ Verificado";
+
+        const actWrap = document.createElement("div");
+        actWrap.className = "inline-actions";
+        actWrap.style.gap = "12px";
+
+        const viewBtn = document.createElement("button");
+        viewBtn.type = "button";
+        viewBtn.className = "text-action-btn";
+        viewBtn.textContent = "Ver perfil";
+        viewBtn.addEventListener("click", () => renderInspectorContent(prof.uid));
+        actWrap.appendChild(viewBtn);
+
+        if (!activeAuthUser || prof.uid !== activeAuthUser.uid) {
+          const contactBtn = document.createElement("button");
+          contactBtn.type = "button";
+          contactBtn.className = "text-action-btn";
+          contactBtn.style.color = "var(--white)";
+          contactBtn.textContent = "Contactar →";
+          contactBtn.addEventListener("click", () => {
+            if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+              switchWorkspaceTab("messages");
+              cloudHooks.openChatWithPeer?.(prof.uid);
+            } else {
+              signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(prof.uid)}`);
+            }
+          });
+          actWrap.appendChild(contactBtn);
+        }
+
+        foot.appendChild(starsSpan);
+        foot.appendChild(actWrap);
+
+        rail.appendChild(top);
+        rail.appendChild(foot);
+        gridEl.appendChild(rail);
+      });
+    };
+
+    // Constructor de publicación rica (con Foto Zoom Lightbox, Insignia Creador, Likes y Comentarios en vivo)
+    const buildRichSocialPostEl = (post, scopePrefix = "fy") => {
+      const art = document.createElement("article");
+      art.className = "feed-post-open";
+
+      const authorProf = profilesByUid.get(post.authorUid);
+      const authorInternalId =
+        post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid);
+      const isAuthorCreator = isCreatorAccount(authorInternalId, post.authorUid);
+
+      const head = document.createElement("div");
+      head.className = "feed-post-head";
+
+      const authorBox = document.createElement("div");
+      authorBox.className = "feed-author-info";
+      authorBox.addEventListener("click", () => renderInspectorContent(post.authorUid));
+
+      const av = document.createElement("img");
+      av.className = isAuthorCreator
+        ? "feed-author-avatar creator-avatar-ring"
+        : "feed-author-avatar";
+      av.src = post.authorAvatar || authorProf?.photoURL || "favicon.svg";
+      av.alt = "";
+      av.onerror = () => {
+        av.src = "favicon.svg";
+      };
+
+      const meta = document.createElement("div");
+      const nm = document.createElement("div");
+      nm.className = "profile-name-line";
+      const strong = document.createElement("strong");
+      strong.style.fontSize = "0.96rem";
+      strong.textContent = post.authorName || authorProf?.displayName || "Especialista";
+      nm.appendChild(strong);
+      if (isAuthorCreator) {
+        nm.appendChild(createCreatorBadgeEl(true));
+      }
+
+      const hnd = document.createElement("span");
+      hnd.className = "profile-handle mono";
+      hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"} · ${authorInternalId}`;
+      nm.appendChild(hnd);
+
+      const sub = document.createElement("span");
+      sub.className = "open-row-sub";
+      sub.style.marginTop = "0";
+      sub.textContent = `${post.authorRole || authorProf?.role || "Especialista"} · ${formatDateEs(post.createdAtMs)}`;
+
+      meta.appendChild(nm);
+      meta.appendChild(sub);
+      authorBox.appendChild(av);
+      authorBox.appendChild(meta);
+
+      const kindBadge = document.createElement("span");
+      kindBadge.className = "feed-post-kind mono";
+      kindBadge.textContent = POST_KIND_LABELS[post.kind] || "PUBLICACIÓN";
+
+      head.appendChild(authorBox);
+      head.appendChild(kindBadge);
+      art.appendChild(head);
+
+      if (post.caption) {
+        const cap = document.createElement("p");
+        cap.className = "feed-post-caption";
+        cap.textContent = post.caption;
+        art.appendChild(cap);
+      }
+
+      if (post.photoUrl) {
+        const frame = document.createElement("div");
+        frame.className = "post-photo-frame zoomable";
+        frame.title = "Clic para ampliar fotografía";
+        const img = document.createElement("img");
+        img.src = post.photoUrl;
+        img.alt = post.caption || "Muestra de trabajo";
+        img.loading = "lazy";
+        frame.addEventListener("click", () => openPhotoLightbox(post, signInAndEnterWorkspace));
+        frame.appendChild(img);
+        art.appendChild(frame);
+      }
+
+      const bar = document.createElement("div");
+      bar.className = "post-actions-bar";
+      bar.style.flexWrap = "wrap";
+
+      const likesArr = Array.isArray(post.likes) ? post.likes : [];
+      const likedByMe = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
+
+      const likeBtn = document.createElement("button");
+      likeBtn.type = "button";
+      likeBtn.className = likedByMe ? "post-like-btn liked" : "post-like-btn";
+      likeBtn.textContent = `${likedByMe ? "♥" : "♡"} ${likesArr.length} Me gusta`;
+      likeBtn.addEventListener("click", () => {
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          );
+          return;
+        }
+        cloudHooks.toggleLikePost?.(post.id, likedByMe);
+      });
+      bar.appendChild(likeBtn);
+
+      const commentCountNum = Number(post.commentCount) || 0;
+      const commentBtn = document.createElement("button");
+      commentBtn.type = "button";
+      commentBtn.className = "text-action-btn";
+      commentBtn.textContent =
+        commentCountNum > 0 ? `Comentarios (${commentCountNum})` : "Comentar";
+      bar.appendChild(commentBtn);
+
+      const inspectBtn = document.createElement("button");
+      inspectBtn.type = "button";
+      inspectBtn.className = "text-action-btn";
+      inspectBtn.textContent = "Ver perfil / ★";
+      inspectBtn.addEventListener("click", () => renderInspectorContent(post.authorUid));
+      bar.appendChild(inspectBtn);
+
+      if (!activeAuthUser || post.authorUid !== activeAuthUser.uid) {
+        const contactBtn = document.createElement("button");
+        contactBtn.type = "button";
+        contactBtn.className = "text-action-btn";
+        contactBtn.style.color = "var(--white)";
+        contactBtn.textContent = "Contactar →";
+        contactBtn.addEventListener("click", () => {
+          if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+            switchWorkspaceTab("messages");
+            cloudHooks.openChatWithPeer?.(post.authorUid);
+          } else {
+            signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(post.authorUid)}`);
+          }
+        });
+        bar.appendChild(contactBtn);
+      }
+
+      if (
+        activeAuthUser &&
+        (post.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
+      ) {
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "text-action-btn";
+        delBtn.textContent = "Eliminar";
+        delBtn.addEventListener("click", () => {
+          cloudHooks.deletePost?.(post.id);
+        });
+        bar.appendChild(delBtn);
+      }
+
+      art.appendChild(bar);
+
+      // Cajón abierto de comentarios en tiempo real
+      const commentsDrawer = document.createElement("div");
+      commentsDrawer.className = "post-comments-drawer";
+      const subKey = `${scopePrefix}:${post.id}`;
+      commentsDrawer.hidden = !expandedCommentPosts.has(post.id);
+
+      const commentsListEl = document.createElement("div");
+      commentsListEl.className = "post-comments-list";
+      commentsDrawer.appendChild(commentsListEl);
+
+      let latestCommentsCount = commentCountNum;
+
+      const mountCommentsSubscription = () => {
+        if (commentUnsubsByKey.has(subKey)) {
+          commentUnsubsByKey.get(subKey)();
+          commentUnsubsByKey.delete(subKey);
+        }
+        if (!cloudHooks.subscribePostComments) return;
+        const unsub = cloudHooks.subscribePostComments(post.id, (comments) => {
+          const cleanComments = comments.filter((c) => !bannedUsersMap.has(c.authorUid));
+          latestCommentsCount = cleanComments.length;
+          commentBtn.textContent =
+            latestCommentsCount > 0 ? `Comentarios (${latestCommentsCount})` : "Comentar";
+
+          commentsListEl.textContent = "";
+          if (cleanComments.length === 0) {
+            const emptyC = document.createElement("span");
+            emptyC.className = "mono";
+            emptyC.style.fontSize = "0.75rem";
+            emptyC.style.color = "var(--muted)";
+            emptyC.textContent = "Sé el primero en comentar esta publicación.";
+            commentsListEl.appendChild(emptyC);
+            return;
+          }
+
+          cleanComments.forEach((c) => {
+            const cRow = document.createElement("div");
+            cRow.className = "post-comment-row";
+
+            const cHead = document.createElement("div");
+            cHead.className = "post-comment-head";
+
+            const cAuthor = document.createElement("div");
+            cAuthor.className = "post-comment-author";
+            cAuthor.addEventListener("click", () => renderInspectorContent(c.authorUid));
+
+            const cCode = c.authorInternalId || deriveInternalId(c.authorUid);
+            const cIsCreator = isCreatorAccount(cCode, c.authorUid);
+
+            const cName = document.createElement("strong");
+            cName.style.fontSize = "0.83rem";
+            cName.textContent = c.authorName || "Miembro";
+            cAuthor.appendChild(cName);
+            if (cIsCreator) cAuthor.appendChild(createCreatorBadgeEl(true));
+
+            const cMeta = document.createElement("span");
+            cMeta.className = "mono";
+            cMeta.style.fontSize = "0.72rem";
+            cMeta.style.color = "var(--muted)";
+            cMeta.textContent = `@${c.authorHandle || "usuario"} · ${formatDateEs(c.createdAtMs)}`;
+            cAuthor.appendChild(cMeta);
+            cHead.appendChild(cAuthor);
+
+            if (
+              activeAuthUser &&
+              (c.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
+            ) {
+              const delC = document.createElement("button");
+              delC.type = "button";
+              delC.className = "text-action-btn";
+              delC.style.fontSize = "0.74rem";
+              delC.textContent = "Borrar";
+              delC.addEventListener("click", () => {
+                cloudHooks.deletePostComment?.(
+                  post.id,
+                  c.id,
+                  Math.max(0, latestCommentsCount - 1)
+                );
+              });
+              cHead.appendChild(delC);
+            }
+
+            const cTxt = document.createElement("p");
+            cTxt.className = "post-comment-text";
+            cTxt.textContent = c.text || "";
+
+            cRow.appendChild(cHead);
+            cRow.appendChild(cTxt);
+            commentsListEl.appendChild(cRow);
+          });
+        });
+        commentUnsubsByKey.set(subKey, unsub);
+      };
+
+      if (expandedCommentPosts.has(post.id)) {
+        mountCommentsSubscription();
+      }
+
+      commentBtn.addEventListener("click", () => {
+        if (expandedCommentPosts.has(post.id)) {
+          expandedCommentPosts.delete(post.id);
+          commentsDrawer.hidden = true;
+          if (commentUnsubsByKey.has(subKey)) {
+            commentUnsubsByKey.get(subKey)();
+            commentUnsubsByKey.delete(subKey);
+          }
+        } else {
+          expandedCommentPosts.add(post.id);
+          commentsDrawer.hidden = false;
+          mountCommentsSubscription();
+        }
+      });
+
+      if (activeAuthUser) {
+        const cForm = document.createElement("form");
+        cForm.className = "post-comment-form";
+        const cInp = document.createElement("input");
+        cInp.type = "text";
+        cInp.className = "line-input";
+        cInp.maxLength = 900;
+        cInp.placeholder = "Escribe un comentario o pregunta sobre este trabajo...";
+        cInp.required = true;
+        const cBtn = document.createElement("button");
+        cBtn.type = "submit";
+        cBtn.className = "btn btn-white btn-sm";
+        cBtn.textContent = "Responder";
+        cForm.appendChild(cInp);
+        cForm.appendChild(cBtn);
+
+        cForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const val = cInp.value.trim();
+          if (!val || !cloudHooks.addPostComment) return;
+          cBtn.disabled = true;
+          await cloudHooks
+            .addPostComment({
+              postId: post.id,
+              text: val,
+              currentCount: latestCommentsCount
+            })
+            .catch(() => {});
+          cInp.value = "";
+          cBtn.disabled = false;
+        });
+        commentsDrawer.appendChild(cForm);
+      } else {
+        const loginToComment = document.createElement("button");
+        loginToComment.type = "button";
+        loginToComment.className = "text-action-btn";
+        loginToComment.style.justifySelf = "start";
+        loginToComment.textContent = "Inicia sesión con Google para comentar →";
+        loginToComment.addEventListener("click", () =>
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          )
+        );
+        commentsDrawer.appendChild(loginToComment);
+      }
+
+      art.appendChild(commentsDrawer);
+      return art;
+    };
+
+    // Constructor de tarjeta visual para el modo "Mosaico visual" en Para ti e Inicio
+    const buildMosaicTileEl = (post) => {
+      const tile = document.createElement("article");
+      tile.className = "mosaic-shot-item";
+
+      const authorProf = profilesByUid.get(post.authorUid);
+      const authorInternalId =
+        post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid);
+      const isAuthorCreator = isCreatorAccount(authorInternalId, post.authorUid);
+
+      if (post.photoUrl) {
+        const media = document.createElement("div");
+        media.className = "mosaic-shot-media";
+        media.title = "Ampliar imagen";
+        const img = document.createElement("img");
+        img.src = post.photoUrl;
+        img.alt = post.caption || "Fotografía publicada";
+        img.loading = "lazy";
+        media.appendChild(img);
+        media.addEventListener("click", () => openPhotoLightbox(post, signInAndEnterWorkspace));
+        tile.appendChild(media);
+      } else {
+        const textBox = document.createElement("div");
+        textBox.className = "mosaic-text-showcase";
+        textBox.addEventListener("click", () => renderInspectorContent(post.authorUid));
+
+        const kindTag = document.createElement("span");
+        kindTag.className = "feed-post-kind mono";
+        kindTag.textContent = POST_KIND_LABELS[post.kind] || "PUBLICACIÓN";
+
+        const txt = document.createElement("p");
+        txt.style.fontSize = "0.96rem";
+        txt.style.color = "var(--white)";
+        txt.style.lineHeight = "1.55";
+        txt.textContent = (post.caption || "").slice(0, 170);
+
+        textBox.appendChild(kindTag);
+        textBox.appendChild(txt);
+        tile.appendChild(textBox);
+      }
+
+      const body = document.createElement("div");
+      body.className = "mosaic-shot-body";
+
+      if (post.photoUrl && post.caption) {
+        const cap = document.createElement("p");
+        cap.className = "mosaic-shot-caption";
+        cap.textContent = post.caption;
+        body.appendChild(cap);
+      }
+
+      const foot = document.createElement("div");
+      foot.className = "mosaic-shot-foot";
+
+      const authorWrap = document.createElement("div");
+      authorWrap.className = "feed-author-info";
+      authorWrap.style.gap = "8px";
+      authorWrap.addEventListener("click", () => renderInspectorContent(post.authorUid));
+
+      const av = document.createElement("img");
+      av.className = isAuthorCreator
+        ? "feed-author-avatar creator-avatar-ring"
+        : "feed-author-avatar";
+      av.style.width = "28px";
+      av.style.height = "28px";
+      av.src = post.authorAvatar || authorProf?.photoURL || "favicon.svg";
+      av.alt = "";
+      av.onerror = () => {
+        av.src = "favicon.svg";
+      };
+
+      const nameRow = document.createElement("div");
+      nameRow.style.display = "flex";
+      nameRow.style.alignItems = "center";
+      nameRow.style.gap = "6px";
+      nameRow.style.flexWrap = "wrap";
+
+      const nm = document.createElement("strong");
+      nm.style.fontSize = "0.83rem";
+      nm.textContent = post.authorName || authorProf?.displayName || "Especialista";
+      nameRow.appendChild(nm);
+      if (isAuthorCreator) nameRow.appendChild(createCreatorBadgeEl(true));
+
+      authorWrap.appendChild(av);
+      authorWrap.appendChild(nameRow);
+
+      const likesArr = Array.isArray(post.likes) ? post.likes : [];
+      const likedByMe = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
+      const likeBtn = document.createElement("button");
+      likeBtn.type = "button";
+      likeBtn.className = likedByMe ? "post-like-btn liked" : "post-like-btn";
+      likeBtn.textContent = `${likedByMe ? "♥" : "♡"} ${likesArr.length}`;
+      likeBtn.addEventListener("click", () => {
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          );
+          return;
+        }
+        cloudHooks.toggleLikePost?.(post.id, likedByMe);
+      });
+
+      foot.appendChild(authorWrap);
+      foot.appendChild(likeBtn);
+      body.appendChild(foot);
+      tile.appendChild(body);
+      return tile;
+    };
+
+    const renderAllProfileViews = () => {
+      const visibleProfiles = allProfilesList
+        .filter((p) => p.isPublic !== false && !bannedUsersMap.has(p.uid))
+        .sort((a, b) => {
+          const aC = isCreatorAccount(a.internalId, a.uid) ? 1 : 0;
+          const bC = isCreatorAccount(b.internalId, b.uid) ? 1 : 0;
+          if (aC !== bC) return bC - aC;
+          return (b.updatedAtMs || 0) - (a.updatedAtMs || 0);
+        });
 
       if (homeRegisteredCountEl) {
         homeRegisteredCountEl.textContent = String(visibleProfiles.length);
@@ -2289,157 +3196,151 @@ if (isFirebaseConfigured) {
         });
       }
 
+      // 3. Franjas de especialistas recomendados en Para ti (para-ti.html y cuenta.html)
+      renderSpecialistsStripInto(
+        document.getElementById("forYouSpecialistsZone"),
+        document.getElementById("forYouSpecialistsLabel"),
+        document.getElementById("forYouSpecialistsGrid"),
+        forYouFilter,
+        forYouQuery,
+        true
+      );
+      renderSpecialistsStripInto(
+        document.getElementById("wsFeedSpecialistsZone"),
+        document.getElementById("wsFeedSpecialistsLabel"),
+        document.getElementById("wsFeedSpecialistsGrid"),
+        feedFilter,
+        wsFeedQuery,
+        false
+      );
+
       if (inspectedProfileUid) {
         renderInspectorContent(inspectedProfileUid);
+      }
+    };
+
+    const renderDiscoveryStreamInto = (containerEl, posts, viewMode, scopePrefix) => {
+      if (!containerEl) return;
+      // Limpiar suscripciones activas de comentarios de este contenedor antes de repintar
+      commentUnsubsByKey.forEach((unsub, key) => {
+        if (key.startsWith(`${scopePrefix}:`)) {
+          unsub();
+          commentUnsubsByKey.delete(key);
+        }
+      });
+
+      containerEl.textContent = "";
+      if (posts.length === 0) {
+        containerEl.className = "feed-stream";
+        const empty = document.createElement("div");
+        empty.className = "arch-col";
+        const idx = document.createElement("span");
+        idx.className = "col-index mono";
+        idx.textContent = "PARA TI · RED EN VIVO";
+        const p = document.createElement("p");
+        p.textContent =
+          allPostsList.length === 0
+            ? "Lanza la primera fotografía de tu portafolio o una búsqueda de talento para estrenar Para ti."
+            : "No hay publicaciones o fotos que coincidan con ese filtro. Prueba otra palabra clave.";
+        empty.appendChild(idx);
+        empty.appendChild(p);
+        containerEl.appendChild(empty);
+        return;
+      }
+
+      if (viewMode === "mosaic") {
+        containerEl.className = "foryou-visual-mosaic";
+        posts.forEach((post) => {
+          containerEl.appendChild(buildMosaicTileEl(post));
+        });
+      } else {
+        containerEl.className = "feed-stream";
+        posts.forEach((post) => {
+          containerEl.appendChild(buildRichSocialPostEl(post, scopePrefix));
+        });
       }
     };
 
     const renderFeedAndOwnPortfolio = () => {
       const cleanPosts = allPostsList.filter((p) => !bannedUsersMap.has(p.authorUid));
 
-      // Muro social en cuenta.html
-      if (socialFeedStreamEl) {
-        socialFeedStreamEl.textContent = "";
-        const filtered = cleanPosts.filter((p) => {
-          if (feedFilter === "portfolio") return p.kind === "portfolio";
-          if (feedFilter === "job") return p.kind === "job" || p.kind === "available";
-          return true;
-        });
+      // Sincronizar barra de publicación en para-ti.html según estado de sesión
+      const fyGuestBar = document.getElementById("forYouGuestBar");
+      const fyComposerWrap = document.getElementById("forYouComposerWrap");
+      if (fyGuestBar && fyComposerWrap) {
+        const banned = Boolean(activeAuthUser && bannedUsersMap.has(activeAuthUser.uid));
+        fyGuestBar.hidden = Boolean(activeAuthUser);
+        fyComposerWrap.hidden = !activeAuthUser || banned;
+      }
 
-        if (filtered.length === 0) {
+      // 1. "Para ti" dentro de cuenta.html (#socialFeedStream)
+      if (socialFeedStreamEl) {
+        const wsFiltered = filterPostsForDiscovery(cleanPosts, feedFilter, wsFeedQuery);
+        renderDiscoveryStreamInto(socialFeedStreamEl, wsFiltered, wsFeedViewMode, "ws");
+        renderSpecialistsStripInto(
+          document.getElementById("wsFeedSpecialistsZone"),
+          document.getElementById("wsFeedSpecialistsLabel"),
+          document.getElementById("wsFeedSpecialistsGrid"),
+          feedFilter,
+          wsFeedQuery,
+          false
+        );
+      }
+
+      // 2. Página dedicada para-ti.html (#forYouStreamContainer)
+      if (forYouStreamContainerEl) {
+        const fyFiltered = filterPostsForDiscovery(cleanPosts, forYouFilter, forYouQuery);
+        const metaEl = document.getElementById("forYouResultsMeta");
+        if (metaEl) {
+          metaEl.textContent =
+            fyFiltered.length === 1 ? "1 PUBLICACIÓN" : `${fyFiltered.length} PUBLICACIONES`;
+        }
+        renderDiscoveryStreamInto(forYouStreamContainerEl, fyFiltered, forYouViewMode, "fy");
+        renderSpecialistsStripInto(
+          document.getElementById("forYouSpecialistsZone"),
+          document.getElementById("forYouSpecialistsLabel"),
+          document.getElementById("forYouSpecialistsGrid"),
+          forYouFilter,
+          forYouQuery,
+          true
+        );
+      }
+
+      // 3. Muestra en vivo de "Para ti" en la portada index.html (#homeForYouMosaic)
+      if (homeForYouMosaicEl) {
+        homeForYouMosaicEl.textContent = "";
+        const featured = [...cleanPosts]
+          .sort((a, b) => {
+            const aPhoto = a.photoUrl ? 1 : 0;
+            const bPhoto = b.photoUrl ? 1 : 0;
+            if (aPhoto !== bPhoto) return bPhoto - aPhoto;
+            return (b.createdAtMs || 0) - (a.createdAtMs || 0);
+          })
+          .slice(0, 6);
+
+        if (featured.length === 0) {
           const empty = document.createElement("div");
           empty.className = "arch-col";
           const idx = document.createElement("span");
           idx.className = "col-index mono";
-          idx.textContent = "ESTRENA EL MURO";
+          idx.textContent = "ESTRENA PARA TI";
+          const h = document.createElement("h3");
+          h.textContent = "Sube tus primeras fotografías de trabajo";
           const p = document.createElement("p");
           p.textContent =
-            "Sube la primera fotografía de un trabajo terminado o publica una búsqueda de especialista arriba.";
+            "Entra con Google y lanza muestras visuales de tus ediciones, diseños o proyectos para aparecer aquí en tiempo real.";
           empty.appendChild(idx);
+          empty.appendChild(h);
           empty.appendChild(p);
-          socialFeedStreamEl.appendChild(empty);
+          homeForYouMosaicEl.appendChild(empty);
         } else {
-          filtered.forEach((post) => {
-            const art = document.createElement("article");
-            art.className = "feed-post-open";
-
-            const head = document.createElement("div");
-            head.className = "feed-post-head";
-
-            const authorBox = document.createElement("div");
-            authorBox.className = "feed-author-info";
-            authorBox.addEventListener("click", () => renderInspectorContent(post.authorUid));
-
-            const av = document.createElement("img");
-            av.className = "feed-author-avatar";
-            av.src = post.authorAvatar || "favicon.svg";
-            av.alt = "";
-            av.onerror = () => {
-              av.src = "favicon.svg";
-            };
-
-            const meta = document.createElement("div");
-            const nm = document.createElement("div");
-            nm.className = "profile-name-line";
-            const strong = document.createElement("strong");
-            strong.style.fontSize = "0.95rem";
-            strong.textContent = post.authorName || "Especialista";
-            const hnd = document.createElement("span");
-            hnd.className = "profile-handle mono";
-            hnd.textContent = `@${post.authorHandle || "usuario"} · ${post.authorInternalId || deriveInternalId(post.authorUid)}`;
-            nm.appendChild(strong);
-            nm.appendChild(hnd);
-
-            const sub = document.createElement("span");
-            sub.className = "open-row-sub";
-            sub.style.marginTop = "0";
-            sub.textContent = `${post.authorRole || "Especialista"} · ${formatDateEs(post.createdAtMs)}`;
-
-            meta.appendChild(nm);
-            meta.appendChild(sub);
-            authorBox.appendChild(av);
-            authorBox.appendChild(meta);
-
-            const kindBadge = document.createElement("span");
-            kindBadge.className = "feed-post-kind mono";
-            kindBadge.textContent = POST_KIND_LABELS[post.kind] || "PUBLICACIÓN";
-
-            head.appendChild(authorBox);
-            head.appendChild(kindBadge);
-            art.appendChild(head);
-
-            if (post.caption) {
-              const cap = document.createElement("p");
-              cap.className = "feed-post-caption";
-              cap.textContent = post.caption;
-              art.appendChild(cap);
-            }
-
-            if (post.photoUrl) {
-              const frame = document.createElement("div");
-              frame.className = "post-photo-frame";
-              const img = document.createElement("img");
-              img.src = post.photoUrl;
-              img.alt = "Muestra de trabajo";
-              frame.appendChild(img);
-              art.appendChild(frame);
-            }
-
-            const bar = document.createElement("div");
-            bar.className = "post-actions-bar";
-
-            const likesArr = Array.isArray(post.likes) ? post.likes : [];
-            const likedByMe = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
-
-            const likeBtn = document.createElement("button");
-            likeBtn.type = "button";
-            likeBtn.className = likedByMe ? "post-like-btn liked" : "post-like-btn";
-            likeBtn.textContent = `${likedByMe ? "♥" : "♡"} ${likesArr.length} Me gusta`;
-            likeBtn.addEventListener("click", () => {
-              cloudHooks.toggleLikePost?.(post.id, likedByMe);
-            });
-            bar.appendChild(likeBtn);
-
-            const inspectBtn = document.createElement("button");
-            inspectBtn.type = "button";
-            inspectBtn.className = "text-action-btn";
-            inspectBtn.textContent = "Ver perfil / ★";
-            inspectBtn.addEventListener("click", () => renderInspectorContent(post.authorUid));
-            bar.appendChild(inspectBtn);
-
-            if (activeAuthUser && post.authorUid !== activeAuthUser.uid) {
-              const contactBtn = document.createElement("button");
-              contactBtn.type = "button";
-              contactBtn.className = "text-action-btn";
-              contactBtn.textContent = "Enviar mensaje";
-              contactBtn.addEventListener("click", () => {
-                switchWorkspaceTab("messages");
-                cloudHooks.openChatWithPeer?.(post.authorUid);
-              });
-              bar.appendChild(contactBtn);
-            }
-
-            if (
-              activeAuthUser &&
-              (post.authorUid === activeAuthUser.uid || activeAuthUser.email === ADMIN_EMAIL)
-            ) {
-              const delBtn = document.createElement("button");
-              delBtn.type = "button";
-              delBtn.className = "text-action-btn";
-              delBtn.textContent = "Eliminar";
-              delBtn.addEventListener("click", () => {
-                cloudHooks.deletePost?.(post.id);
-              });
-              bar.appendChild(delBtn);
-            }
-
-            art.appendChild(bar);
-            socialFeedStreamEl.appendChild(art);
+          featured.forEach((post) => {
+            homeForYouMosaicEl.appendChild(buildMosaicTileEl(post));
           });
         }
       }
 
-      // Galería propia en Mi Perfil
+      // 4. Galería propia en Mi Perfil
       if (ownPortfolioGridEl && activeAuthUser) {
         ownPortfolioGridEl.textContent = "";
         const mine = allPostsList.filter((p) => p.authorUid === activeAuthUser.uid);
@@ -2457,6 +3358,8 @@ if (isFirebaseConfigured) {
               const img = document.createElement("img");
               img.src = post.photoUrl;
               img.alt = "";
+              img.style.cursor = "zoom-in";
+              img.addEventListener("click", () => openPhotoLightbox(post, signInAndEnterWorkspace));
               card.appendChild(img);
             }
             const foot = document.createElement("div");
@@ -2560,6 +3463,106 @@ if (isFirebaseConfigured) {
         feedFilter = tab.dataset.feedFilter || "all";
         renderFeedAndOwnPortfolio();
       });
+    });
+
+    document.getElementById("wsFeedSearchInput")?.addEventListener("input", (e) => {
+      wsFeedQuery = e.target.value || "";
+      renderFeedAndOwnPortfolio();
+    });
+
+    document.querySelectorAll("#wsFeedViewSwitch .view-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#wsFeedViewSwitch .view-mode-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        wsFeedViewMode = btn.dataset.wsView || "stream";
+        renderFeedAndOwnPortfolio();
+      });
+    });
+
+    // Controles de búsqueda, filtros y modo mosaico en para-ti.html
+    document.querySelectorAll("#forYouFilterTabs .topic-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll("#forYouFilterTabs .topic-tab").forEach((b) => b.classList.remove("active"));
+        tab.classList.add("active");
+        forYouFilter = tab.dataset.fyFilter || "all";
+        renderFeedAndOwnPortfolio();
+      });
+    });
+
+    document.getElementById("forYouSearchInput")?.addEventListener("input", (e) => {
+      forYouQuery = e.target.value || "";
+      renderFeedAndOwnPortfolio();
+    });
+
+    document.querySelectorAll("#forYouViewSwitch .view-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#forYouViewSwitch .view-mode-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        forYouViewMode = btn.dataset.fyView || "stream";
+        renderFeedAndOwnPortfolio();
+      });
+    });
+
+    // Publicador directo en para-ti.html con foto adjunta
+    let stagedForYouPhotoDataUrl = "";
+    const forYouPhotoInput = document.getElementById("forYouPhotoInput");
+    const forYouPhotoPreviewWrap = document.getElementById("forYouPhotoPreviewWrap");
+    const forYouPhotoPreviewImg = document.getElementById("forYouPhotoPreviewImg");
+    const forYouComposerFeedback = document.getElementById("forYouComposerFeedback");
+
+    document.getElementById("forYouAttachPhotoBtn")?.addEventListener("click", () => {
+      forYouPhotoInput?.click();
+    });
+
+    forYouPhotoInput?.addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Optimizando foto...";
+        let dataUrl = await compressImageDataUrl(file, 1280, 0.8);
+        if (dataUrl.length > 740000) dataUrl = await compressImageDataUrl(file, 960, 0.68);
+        stagedForYouPhotoDataUrl = dataUrl;
+        if (forYouPhotoPreviewImg) forYouPhotoPreviewImg.src = dataUrl;
+        if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = false;
+        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Foto lista para publicar ✓";
+      } catch {
+        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Formato de imagen no compatible.";
+      }
+    });
+
+    document.getElementById("forYouRemovePhotoBtn")?.addEventListener("click", () => {
+      stagedForYouPhotoDataUrl = "";
+      if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
+      if (forYouComposerFeedback) forYouComposerFeedback.textContent = "";
+    });
+
+    document.getElementById("forYouComposerForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!activeAuthUser || !cloudHooks.publishPost) return;
+      const capEl = document.getElementById("forYouPostCaption");
+      const kindEl = document.getElementById("forYouPostKind");
+      const caption = (capEl?.value || "").trim();
+      if (!caption && !stagedForYouPhotoDataUrl) {
+        capEl?.focus();
+        return;
+      }
+
+      const btn = document.getElementById("forYouPublishBtn");
+      if (btn) btn.disabled = true;
+      await cloudHooks
+        .publishPost({
+          kind: kindEl?.value || "portfolio",
+          caption: caption || "Muestra fotográfica en Para ti",
+          photoUrl: stagedForYouPhotoDataUrl
+        })
+        .catch(() => {});
+
+      if (capEl) capEl.value = "";
+      stagedForYouPhotoDataUrl = "";
+      if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
+      if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Lanzado en Para ti y en tu perfil ✓";
+      if (btn) btn.disabled = false;
     });
 
     // Publicador del Muro Social con foto adjunta
@@ -2678,12 +3681,20 @@ if (isFirebaseConfigured) {
         pendingSec.hidden = incoming.length === 0;
         incoming.forEach(({ otherUid }) => {
           const prof = profilesByUid.get(otherUid);
+          const isCreator = isCreatorAccount(prof?.internalId, otherUid);
           const row = document.createElement("div");
           row.className = "open-row";
           const info = document.createElement("div");
           const t = document.createElement("span");
           t.className = "open-row-title";
-          t.textContent = `${prof?.displayName || "Usuario"} (@${prof?.handle || "miembro"})`;
+          t.style.display = "inline-flex";
+          t.style.alignItems = "center";
+          t.style.gap = "8px";
+          t.style.flexWrap = "wrap";
+          const nameTxt = document.createElement("span");
+          nameTxt.textContent = `${prof?.displayName || "Usuario"} (@${prof?.handle || "miembro"})`;
+          t.appendChild(nameTxt);
+          if (isCreator) t.appendChild(createCreatorBadgeEl(true));
           const s = document.createElement("span");
           s.className = "open-row-sub";
           s.textContent = `${prof?.role || "Quiere conectar contigo"} · ID: ${prof?.internalId || deriveInternalId(otherUid)}`;
@@ -2718,12 +3729,20 @@ if (isFirebaseConfigured) {
         } else {
           accepted.forEach(({ otherUid }) => {
             const prof = profilesByUid.get(otherUid);
+            const isCreator = isCreatorAccount(prof?.internalId, otherUid);
             const row = document.createElement("div");
             row.className = "open-row";
             const info = document.createElement("div");
             const t = document.createElement("span");
             t.className = "open-row-title";
-            t.textContent = `${prof?.displayName || "Contacto"} (@${prof?.handle || "usuario"})`;
+            t.style.display = "inline-flex";
+            t.style.alignItems = "center";
+            t.style.gap = "8px";
+            t.style.flexWrap = "wrap";
+            const nameTxt = document.createElement("span");
+            nameTxt.textContent = `${prof?.displayName || "Contacto"} (@${prof?.handle || "usuario"})`;
+            t.appendChild(nameTxt);
+            if (isCreator) t.appendChild(createCreatorBadgeEl(true));
             const s = document.createElement("span");
             s.className = "open-row-sub";
             s.textContent = `${prof?.role || "Especialista"} · ${prof?.internalId || deriveInternalId(otherUid)}`;
@@ -2949,14 +3968,17 @@ if (isFirebaseConfigured) {
       const hnEl = document.getElementById("chatPeerHandle");
       const idEl = document.getElementById("chatPeerIdTag");
       const rlEl = document.getElementById("chatPeerRole");
+      const peerIsCreator = isCreatorAccount(peerIdCode, peerUid);
 
       if (avEl) {
         avEl.src = selectedPeerProfile.photoURL || "favicon.svg";
+        avEl.classList.toggle("creator-avatar-ring", peerIsCreator);
         avEl.onerror = () => {
           avEl.src = "favicon.svg";
         };
       }
       if (nmEl) nmEl.textContent = selectedPeerProfile.displayName || "Especialista";
+      mountCreatorBadgeSlot(document.getElementById("chatPeerCreatorSlot"), peerIsCreator, true);
       if (hnEl) hnEl.textContent = `@${selectedPeerProfile.handle || "usuario"}`;
       if (idEl) {
         idEl.textContent = peerIdCode;
@@ -3170,8 +4192,9 @@ if (isFirebaseConfigured) {
           btn.dataset.convId = c.id;
           if (c.id === selectedConvId) btn.classList.add("active");
 
+          const peerIsCreator = isCreatorAccount(otherInfo.internalId, otherUid);
           const img = document.createElement("img");
-          img.className = "conv-item-avatar";
+          img.className = peerIsCreator ? "conv-item-avatar creator-avatar-ring" : "conv-item-avatar";
           img.src = otherInfo.photoURL || "favicon.svg";
           img.alt = "";
           img.onerror = () => {
@@ -3183,7 +4206,14 @@ if (isFirebaseConfigured) {
 
           const nm = document.createElement("span");
           nm.className = "conv-item-name";
-          nm.textContent = otherInfo.displayName || "Conversación";
+          nm.style.display = "inline-flex";
+          nm.style.alignItems = "center";
+          nm.style.gap = "6px";
+          nm.style.flexWrap = "wrap";
+          const nmTxt = document.createElement("span");
+          nmTxt.textContent = otherInfo.displayName || "Conversación";
+          nm.appendChild(nmTxt);
+          if (peerIsCreator) nm.appendChild(createCreatorBadgeEl(true));
 
           const prev = document.createElement("span");
           prev.className = "conv-item-preview";
@@ -3251,7 +4281,19 @@ if (isFirebaseConfigured) {
           const meta = document.createElement("span");
           meta.className = "chat-msg-meta mono";
           meta.style.cursor = "pointer";
-          meta.textContent = `${(m.senderName || "MIEMBRO").toUpperCase()} (@${m.senderHandle || "usuario"} · ${m.senderInternalId || deriveInternalId(m.senderUid)}) · ${formatDateEs(m.createdAtMs)}`;
+          meta.style.display = "inline-flex";
+          meta.style.alignItems = "center";
+          meta.style.gap = "8px";
+          meta.style.flexWrap = "wrap";
+          const senderTag = document.createElement("span");
+          senderTag.textContent = (m.senderName || "MIEMBRO").toUpperCase();
+          meta.appendChild(senderTag);
+          if (isCreatorAccount(m.senderInternalId, m.senderUid)) {
+            meta.appendChild(createCreatorBadgeEl(true));
+          }
+          const restTag = document.createElement("span");
+          restTag.textContent = `(@${m.senderHandle || "usuario"} · ${m.senderInternalId || deriveInternalId(m.senderUid)}) · ${formatDateEs(m.createdAtMs)}`;
+          meta.appendChild(restTag);
           meta.addEventListener("click", () => renderInspectorContent(m.senderUid));
 
           const txt = document.createElement("p");
@@ -3422,7 +4464,7 @@ if (isFirebaseConfigured) {
     let unsubscribeAdminReports = null;
     const attachAdminReportsListener = (user) => {
       if (unsubscribeAdminReports) unsubscribeAdminReports();
-      if (user.email !== ADMIN_EMAIL) return;
+      if (!isAdminUser(user)) return;
       const listEl = document.getElementById("adminReportsList");
       if (!listEl) return;
 
@@ -3498,6 +4540,7 @@ if (isFirebaseConfigured) {
         if (navUserChip) navUserChip.hidden = false;
         if (navUserAvatar) {
           navUserAvatar.src = user.photoURL || "favicon.svg";
+          navUserAvatar.classList.toggle("creator-avatar-ring", isCreatorAccount("", user.uid));
           navUserAvatar.onerror = () => {
             navUserAvatar.src = "favicon.svg";
           };
@@ -3546,9 +4589,11 @@ if (isFirebaseConfigured) {
         if (unsubscribeAdminReports) unsubscribeAdminReports();
         if (navSignInBtn) navSignInBtn.hidden = false;
         if (navUserChip) navUserChip.hidden = true;
+        if (navUserAvatar) navUserAvatar.classList.remove("creator-avatar-ring");
         if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Crear mi perfil con Google";
         if (onboardingModal) onboardingModal.hidden = true;
         renderAccountWorkspace();
+        renderFeedAndOwnPortfolio();
       }
     });
   })();

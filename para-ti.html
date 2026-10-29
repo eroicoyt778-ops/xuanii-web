@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para ti — Fotos, trabajos y talento en vivo · Xuanii</title>
+  <meta name="description" content="Explora fotografías, muestras de edición, diseños, proyectos de código y búsquedas de talento publicadas en tiempo real por especialistas verificados en Xuanii." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="theme-boot.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
+  <div class="stripe-guides" aria-hidden="true">
+    <div class="guides-inner">
+      <span class="guide-line"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line"></span>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="para-ti.html" class="active">Para ti</a>
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
+        <a href="productos.html">Productos</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
+          <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
+            <path fill="currentColor" d="M12.17 20.5c2.7 0 4.97-.9 6.62-2.43l-3.22-2.5c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.24v2.58A9.99 9.99 0 0 0 12.17 20.5z"/>
+            <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
+            <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
+          </svg>
+          <span>Entrar con Google</span>
+        </button>
+
+        <div class="user-inline" id="navUserChip" hidden>
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
+          <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
+          <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- CABECERA Y BUSCADOR EN VIVO "PARA TI" -->
+    <section class="foryou-hub-head">
+      <div class="container">
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">PARA TI · RED VISUAL Y TALENTO EN VIVO</span>
+          <h1 style="font-size: clamp(2.15rem, 4.2vw, 3.35rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.07; margin-bottom: 14px;">
+            Descubre fotos, trabajos reales<br />
+            <span class="text-silver">y a la persona exacta que necesitas.</span>
+          </h1>
+          <p class="hero-lead" style="margin-bottom: 0; max-width: 680px;">
+            Explora lo que están lanzando editores de video, retocadores de foto, diseñadores y programadores. Busca por especialidad, mira sus imágenes en grande y contáctalos con un clic.
+          </p>
+        </div>
+
+        <div class="foryou-search-shell" data-reveal style="--reveal-delay: 90ms;">
+          <div class="foryou-search-line">
+            <svg class="foryou-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="16.5" y1="16.5" x2="21.5" y2="21.5"></line>
+            </svg>
+            <input
+              type="search"
+              id="forYouSearchInput"
+              class="foryou-search-input"
+              placeholder="Buscar fotos, editor de video, editor de foto, diseño, @usuario o ID (XN-...)..."
+              aria-label="Buscar en Para ti"
+            />
+            <span id="forYouResultsMeta" class="mono" style="font-size: 0.74rem; color: var(--muted); white-space: nowrap;">EN VIVO</span>
+          </div>
+
+          <div class="foryou-controls-bar">
+            <div class="topic-tabs" id="forYouFilterTabs" role="tablist" aria-label="Filtrar publicaciones Para ti" style="border-bottom: none; padding-bottom: 0;">
+              <button type="button" class="topic-tab active" data-fy-filter="all">Para ti</button>
+              <button type="button" class="topic-tab" data-fy-filter="photos">Fotos y visual</button>
+              <button type="button" class="topic-tab" data-fy-filter="job">Empleo y encargos</button>
+              <button type="button" class="topic-tab" data-fy-filter="video">Video y Motion</button>
+              <button type="button" class="topic-tab" data-fy-filter="photo">Foto y Retoque</button>
+              <button type="button" class="topic-tab" data-fy-filter="design">Diseño y UI</button>
+              <button type="button" class="topic-tab" data-fy-filter="dev">Desarrollo</button>
+            </div>
+
+            <div class="view-mode-switch" id="forYouViewSwitch" aria-label="Modo de visualización">
+              <button type="button" class="view-mode-btn active" data-fy-view="stream">Flujo social</button>
+              <button type="button" class="view-mode-btn" data-fy-view="mosaic">Mosaico visual</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL: PUBLICADOR RÁPIDO + PERFILES RECOMENDADOS + FEED DE FOTOS Y PUBLICACIONES -->
+    <section class="section-dark" style="padding-top: 44px;">
+      <div class="container">
+        <!-- Invitación limpia para visitantes sin sesión -->
+        <div id="forYouGuestBar" class="open-row" style="padding-top: 0; padding-bottom: 24px; margin-bottom: 28px;">
+          <div>
+            <span class="open-row-title">¿Quieres lanzar fotos de tus trabajos o publicar que buscas un especialista?</span>
+            <span class="open-row-sub">Entra con tu cuenta de Google para subir imágenes a Para ti, comentar y recibir propuestas cifradas.</span>
+          </div>
+          <button type="button" class="btn btn-white btn-sm" id="forYouGuestSignInBtn">
+            Publicar con Google <span class="arrow">→</span>
+          </button>
+        </div>
+
+        <!-- Publicador directo en Para ti cuando el usuario tiene sesión iniciada -->
+        <div id="forYouComposerWrap" hidden style="margin-bottom: 36px;">
+          <form id="forYouComposerForm" class="feed-composer-open" style="margin-bottom: 0;" novalidate>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">LANZAR EN PARA TI Y EN TU PORTAFOLIO</span>
+              <select id="forYouPostKind" class="studio-presence-select" style="width: auto; min-width: 240px;">
+                <option value="portfolio">Foto / Muestra de trabajo</option>
+                <option value="job">Oferta de empleo / Busco especialista</option>
+                <option value="available">Me ofrezco para trabajar / Encargos</option>
+              </select>
+            </div>
+
+            <textarea
+              id="forYouPostCaption"
+              class="line-textarea"
+              style="min-height: 70px;"
+              maxlength="2200"
+              placeholder="Sube fotografías o capturas de tu último trabajo, muestra tu estilo o escribe qué especialista necesitas contratar..."
+              required
+            ></textarea>
+
+            <div id="forYouPhotoPreviewWrap" class="composer-photo-preview" hidden>
+              <img id="forYouPhotoPreviewImg" alt="Vista previa" />
+              <button type="button" class="text-action-btn" id="forYouRemovePhotoBtn" style="margin-top: 6px;">Quitar foto</button>
+            </div>
+
+            <div class="composer-toolbar">
+              <div class="inline-actions">
+                <input type="file" id="forYouPhotoInput" accept="image/*" hidden />
+                <button type="button" class="btn btn-ghost btn-sm" id="forYouAttachPhotoBtn">
+                  Subir foto o imagen
+                </button>
+                <span id="forYouComposerFeedback" class="mono" style="font-size: 0.76rem; color: var(--silver);"></span>
+              </div>
+              <button type="submit" class="btn btn-white btn-sm" id="forYouPublishBtn">
+                Lanzar en Para ti <span class="arrow">→</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Franja dinámica de perfiles que coinciden con lo que buscas -->
+        <div id="forYouSpecialistsZone" class="foryou-specialists-zone" style="padding-top: 8px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <span id="forYouSpecialistsLabel" class="open-eyebrow mono" style="margin-bottom: 0;">PERFILES DESTACADOS PARA TI</span>
+            <a href="perfiles.html" class="text-action-btn" style="text-decoration: none;">Ver directorio completo →</a>
+          </div>
+          <div id="forYouSpecialistsGrid" class="foryou-specialists-grid"></div>
+        </div>
+
+        <!-- Stream principal (Flujo social o Mosaico visual) -->
+        <div id="forYouStreamContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <span class="footer-copy mono">© 2026 Xuanii</span>
+
+      <div class="footer-links">
+        <a href="para-ti.html">Para ti</a>
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
+        <a href="productos.html">Productos</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="privacidad.html">Privacidad</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- DRAWER LATERAL DE PERFIL COMPLETO, GALERÍA DE FOTOS Y ESTRELLAS -->
+  <div class="inspector-backdrop" id="profileInspectorBackdrop" hidden>
+    <aside class="inspector-drawer" role="dialog" aria-modal="true" aria-labelledby="inspName">
+      <div class="modal-head" style="margin-bottom: 0;">
+        <span class="mono modal-kicker" id="inspInternalId">ID: XN-00000000</span>
+        <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="profile-identity">
+        <img id="inspAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" style="width: 64px; height: 64px;" />
+        <div class="profile-meta-stack">
+          <div class="profile-name-line">
+            <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
+            <span id="inspHandle" class="profile-handle mono">@usuario</span>
+          </div>
+          <div class="profile-role-line">
+            <span id="inspRole" class="profile-role">Especialidad</span>
+            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
+          </div>
+          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        </div>
+      </div>
+
+      <p id="inspBio" class="profile-bio"></p>
+      <div id="inspSkills" class="skills-tags-line mono"></div>
+
+      <div class="inline-actions" id="inspActionButtons"></div>
+      <div id="inspActionFeedback" class="form-feedback" hidden></div>
+
+      <div class="section-divider-top" style="padding-top: 24px;">
+        <span class="open-eyebrow mono" style="margin-bottom: 10px;">PORTAFOLIO Y TRABAJOS PUBLICADOS</span>
+        <div id="inspPortfolioList" class="portfolio-gallery-grid"></div>
+      </div>
+
+      <div class="section-divider-top" style="padding-top: 24px;">
+        <span class="open-eyebrow mono" style="margin-bottom: 12px;">VALORACIONES DE TRABAJOS (ESTRELLAS)</span>
+
+        <form id="inspReviewForm" class="open-form" style="gap: 16px; margin-bottom: 28px;" novalidate hidden>
+          <div>
+            <span class="mono" style="font-size: 0.72rem; color: var(--silver); display: block; margin-bottom: 8px;">CALIFICA CÓMO QUEDÓ EL TRABAJO</span>
+            <div class="star-picker-row" id="inspStarPicker">
+              <button type="button" class="star-pick-btn lit" data-star="1">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="2">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="3">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="4">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="5">★</button>
+            </div>
+          </div>
+          <input type="text" id="inspReviewComment" class="line-input" maxlength="600" placeholder="Describe tu experiencia trabajando con esta persona..." required />
+          <div class="inline-actions">
+            <button type="submit" class="btn btn-white btn-sm" id="inspReviewSubmitBtn">Publicar calificación</button>
+          </div>
+        </form>
+
+        <div id="inspReviewsList" style="display: grid; gap: 18px;"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- VISOR DE FOTOGRAFÍAS A PANTALLA COMPLETA (LIGHTBOX) -->
+  <div class="lightbox-backdrop" id="photoLightboxModal" hidden>
+    <div class="lightbox-stage" role="dialog" aria-modal="true" aria-label="Vista ampliada de fotografía">
+      <div class="lightbox-top">
+        <div id="lightboxAuthorInfo" class="feed-author-info"></div>
+        <button class="modal-close" id="lightboxCloseBtn" type="button" aria-label="Cerrar imagen">✕</button>
+      </div>
+      <div class="lightbox-media-wrap">
+        <img id="lightboxImage" src="favicon.svg" alt="Trabajo ampliado" />
+      </div>
+      <div class="lightbox-bottom">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
+        <div id="lightboxActions" class="inline-actions"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="authSetupModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <div class="modal-head">
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
+        <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">
+        Permite la ventana emergente de Google en tu navegador para iniciar sesión de forma segura.
+      </p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

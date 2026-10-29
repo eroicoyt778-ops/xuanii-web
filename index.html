@@ -35,6 +35,7 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -93,8 +94,8 @@
               </svg>
               <span id="heroAuthBtnLabel">Crear mi perfil con Google</span>
             </button>
-            <a href="perfiles.html" class="link-editorial">
-              Explorar especialistas y empleos <span class="arrow">→</span>
+            <a href="para-ti.html" class="link-editorial">
+              Explorar Para ti y fotos en vivo <span class="arrow">→</span>
             </a>
           </div>
         </div>
@@ -121,6 +122,22 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- PARA TI · MUESTRA EN VIVO DE FOTOS, PORTAFOLIOS Y PUBLICACIONES RECIENTES -->
+    <section class="section-dark" style="padding-top: 24px; padding-bottom: 84px;">
+      <div class="container">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;" data-reveal>
+          <div>
+            <span class="open-eyebrow mono" style="margin-bottom: 8px;">PARA TI · RED SOCIAL VISUAL EN VIVO</span>
+            <h2 style="margin-bottom: 0;">Fotos, portafolios y búsquedas recientes.</h2>
+          </div>
+          <a href="para-ti.html" class="link-editorial">
+            Abrir Para ti completo <span class="arrow">→</span>
+          </a>
+        </div>
+        <div id="homeForYouMosaic" class="foryou-visual-mosaic"></div>
       </div>
     </section>
 
@@ -258,6 +275,7 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -267,6 +285,83 @@
       </div>
     </div>
   </footer>
+
+  <!-- DRAWER LATERAL DE PERFIL COMPLETO, GALERÍA DE FOTOS Y ESTRELLAS -->
+  <div class="inspector-backdrop" id="profileInspectorBackdrop" hidden>
+    <aside class="inspector-drawer" role="dialog" aria-modal="true" aria-labelledby="inspName">
+      <div class="modal-head" style="margin-bottom: 0;">
+        <span class="mono modal-kicker" id="inspInternalId">ID: XN-00000000</span>
+        <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="profile-identity">
+        <img id="inspAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" style="width: 64px; height: 64px;" />
+        <div class="profile-meta-stack">
+          <div class="profile-name-line">
+            <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
+            <span id="inspHandle" class="profile-handle mono">@usuario</span>
+          </div>
+          <div class="profile-role-line">
+            <span id="inspRole" class="profile-role">Especialidad</span>
+            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
+          </div>
+          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        </div>
+      </div>
+
+      <p id="inspBio" class="profile-bio"></p>
+      <div id="inspSkills" class="skills-tags-line mono"></div>
+
+      <div class="inline-actions" id="inspActionButtons"></div>
+      <div id="inspActionFeedback" class="form-feedback" hidden></div>
+
+      <div class="section-divider-top" style="padding-top: 24px;">
+        <span class="open-eyebrow mono" style="margin-bottom: 10px;">PORTAFOLIO Y TRABAJOS PUBLICADOS</span>
+        <div id="inspPortfolioList" class="portfolio-gallery-grid"></div>
+      </div>
+
+      <div class="section-divider-top" style="padding-top: 24px;">
+        <span class="open-eyebrow mono" style="margin-bottom: 12px;">VALORACIONES DE TRABAJOS (ESTRELLAS)</span>
+
+        <form id="inspReviewForm" class="open-form" style="gap: 16px; margin-bottom: 28px;" novalidate hidden>
+          <div>
+            <span class="mono" style="font-size: 0.72rem; color: var(--silver); display: block; margin-bottom: 8px;">CALIFICA CÓMO QUEDÓ EL TRABAJO</span>
+            <div class="star-picker-row" id="inspStarPicker">
+              <button type="button" class="star-pick-btn lit" data-star="1">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="2">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="3">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="4">★</button>
+              <button type="button" class="star-pick-btn lit" data-star="5">★</button>
+            </div>
+          </div>
+          <input type="text" id="inspReviewComment" class="line-input" maxlength="600" placeholder="Describe tu experiencia trabajando con esta persona..." required />
+          <div class="inline-actions">
+            <button type="submit" class="btn btn-white btn-sm" id="inspReviewSubmitBtn">Publicar calificación</button>
+          </div>
+        </form>
+
+        <div id="inspReviewsList" style="display: grid; gap: 18px;"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- VISOR DE FOTOGRAFÍAS A PANTALLA COMPLETA (LIGHTBOX) -->
+  <div class="lightbox-backdrop" id="photoLightboxModal" hidden>
+    <div class="lightbox-stage" role="dialog" aria-modal="true" aria-label="Vista ampliada de fotografía">
+      <div class="lightbox-top">
+        <div id="lightboxAuthorInfo" class="feed-author-info"></div>
+        <button class="modal-close" id="lightboxCloseBtn" type="button" aria-label="Cerrar imagen">✕</button>
+      </div>
+      <div class="lightbox-media-wrap">
+        <img id="lightboxImage" src="favicon.svg" alt="Trabajo ampliado" />
+      </div>
+      <div class="lightbox-bottom">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
+        <div id="lightboxActions" class="inline-actions"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">

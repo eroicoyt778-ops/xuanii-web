@@ -40,6 +40,7 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -117,7 +118,10 @@
               <div class="studio-user-row">
                 <img id="studioSideAvatar" src="favicon.svg" alt="" class="studio-avatar" />
                 <div class="studio-user-meta">
-                  <span id="studioSideName" class="studio-user-name">Cargando...</span>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <span id="studioSideName" class="studio-user-name">Cargando...</span>
+                    <span id="studioCreatorSlot"></span>
+                  </div>
                   <span id="studioSideHandle" class="studio-user-handle mono">@usuario</span>
                 </div>
               </div>
@@ -138,7 +142,7 @@
             <nav class="studio-nav" style="margin-top: 18px;" aria-label="Navegación de la red">
               <span class="studio-nav-label mono">RED PROFESIONAL</span>
               <button type="button" class="studio-nav-btn active" data-ws-tab="feed">
-                <span>Muro y trabajos</span>
+                <span>Para ti</span>
               </button>
               <button type="button" class="studio-nav-btn" data-ws-tab="network">
                 <span>Contactos y talento</span>
@@ -173,26 +177,53 @@
         </aside>
 
         <div class="studio-stage">
-          <!-- 1. MURO SOCIAL Y REGISTRO DE TRABAJOS / FOTOS -->
+          <!-- 1. PARA TI — DESCUBRIMIENTO VISUAL, FOTOS, BÚSQUEDA Y PUBLICACIONES -->
           <section id="wsPanel-feed" class="workspace-panel">
-            <div class="studio-top-bar">
+            <div class="studio-top-bar" style="margin-bottom: 24px;">
               <div>
-                <span class="open-eyebrow mono" style="margin-bottom: 6px;">ACTIVIDAD EN TIEMPO REAL</span>
-                <h1 id="studioGreeting">Muro profesional y portafolios</h1>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">PARA TI · FOTOS, PORTAFOLIOS Y EMPLEO EN VIVO</span>
+                <h1 id="studioGreeting">Para ti</h1>
               </div>
-              <div class="topic-tabs" id="feedFilterTabs" style="border-bottom: none; padding-bottom: 0;">
-                <button type="button" class="topic-tab active" data-feed-filter="all">Todo</button>
-                <button type="button" class="topic-tab" data-feed-filter="portfolio">Muestras y fotos</button>
-                <button type="button" class="topic-tab" data-feed-filter="job">Empleo y búsqueda</button>
+              <div class="view-mode-switch" id="wsFeedViewSwitch" aria-label="Modo de vista en Para ti">
+                <button type="button" class="view-mode-btn active" data-ws-view="stream">Flujo social</button>
+                <button type="button" class="view-mode-btn" data-ws-view="mosaic">Mosaico visual</button>
+              </div>
+            </div>
+
+            <!-- Buscador integrado y pestañas en Para ti -->
+            <div style="display: grid; gap: 18px; margin-bottom: 34px;">
+              <div class="foryou-search-line">
+                <svg class="foryou-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <line x1="16.5" y1="16.5" x2="21.5" y2="21.5"></line>
+                </svg>
+                <input
+                  type="search"
+                  id="wsFeedSearchInput"
+                  class="foryou-search-input"
+                  style="font-size: 0.96rem;"
+                  placeholder="Buscar fotos, editor de video, foto, diseño, @usuario o ID (XN-)..."
+                  aria-label="Buscar en Para ti"
+                />
+              </div>
+
+              <div class="topic-tabs" id="feedFilterTabs">
+                <button type="button" class="topic-tab active" data-feed-filter="all">Para ti</button>
+                <button type="button" class="topic-tab" data-feed-filter="photos">Fotos y visual</button>
+                <button type="button" class="topic-tab" data-feed-filter="job">Empleo y encargos</button>
+                <button type="button" class="topic-tab" data-feed-filter="video">Video</button>
+                <button type="button" class="topic-tab" data-feed-filter="photo">Foto</button>
+                <button type="button" class="topic-tab" data-feed-filter="design">Diseño</button>
+                <button type="button" class="topic-tab" data-feed-filter="dev">Desarrollo</button>
               </div>
             </div>
 
             <!-- Publicador social con subida de fotos de trabajos -->
             <form id="feedComposerForm" class="feed-composer-open" novalidate>
               <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">PUBLICAR EN LA RED Y EN TU PERFIL</span>
+                <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">LANZAR EN PARA TI Y EN TU PERFIL</span>
                 <select id="feedPostKind" class="studio-presence-select" style="width: auto; min-width: 230px;">
-                  <option value="portfolio">Muestra de trabajo / Portafolio</option>
+                  <option value="portfolio">Foto / Muestra de trabajo</option>
                   <option value="job">Oferta de empleo / Busco especialista</option>
                   <option value="available">Me ofrezco para trabajar / Encargos</option>
                 </select>
@@ -203,7 +234,7 @@
                 class="line-textarea"
                 style="min-height: 76px;"
                 maxlength="2200"
-                placeholder="Comparte un trabajo terminado, sube capturas o fotografías de tu edición, o publica qué especialista estás buscando..."
+                placeholder="Comparte un trabajo terminado, sube fotografías o capturas de tu edición, o publica qué especialista estás buscando..."
                 required
               ></textarea>
 
@@ -225,6 +256,12 @@
                 </button>
               </div>
             </form>
+
+            <!-- Franja de especialistas sugeridos cuando buscas o exploras Para ti -->
+            <div id="wsFeedSpecialistsZone" class="foryou-specialists-zone" style="padding-top: 0; margin-bottom: 18px;" hidden>
+              <span id="wsFeedSpecialistsLabel" class="open-eyebrow mono" style="margin-bottom: 0;">PERFILES QUE COINCIDEN CON LO QUE BUSCAS</span>
+              <div id="wsFeedSpecialistsGrid" class="foryou-specialists-grid"></div>
+            </div>
 
             <div id="socialFeedStream" class="feed-stream"></div>
           </section>
@@ -299,6 +336,7 @@
                       <div>
                         <div class="profile-name-line">
                           <h3 id="chatPeerName" style="font-size: 1.05rem;">Especialista</h3>
+                          <span id="chatPeerCreatorSlot"></span>
                           <span id="chatPeerHandle" class="profile-handle mono"></span>
                           <span id="chatPeerIdTag" class="id-tag-mono mono"></span>
                         </div>
@@ -414,6 +452,7 @@
                     <div class="profile-meta-stack">
                       <div class="profile-name-line">
                         <h3 id="profilePreviewName">Tu nombre</h3>
+                        <span id="previewCreatorSlot"></span>
                         <span id="profilePreviewHandle" class="profile-handle mono">@usuario</span>
                       </div>
                       <span id="profilePreviewRole" class="profile-role">Especialista digital</span>
@@ -696,6 +735,7 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -772,6 +812,7 @@
         <div class="profile-meta-stack">
           <div class="profile-name-line">
             <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
             <span id="inspHandle" class="profile-handle mono">@usuario</span>
           </div>
           <div class="profile-role-line">
@@ -816,6 +857,23 @@
         <div id="inspReviewsList" style="display: grid; gap: 18px;"></div>
       </div>
     </aside>
+  </div>
+
+  <!-- VISOR DE FOTOGRAFÍAS A PANTALLA COMPLETA (LIGHTBOX) -->
+  <div class="lightbox-backdrop" id="photoLightboxModal" hidden>
+    <div class="lightbox-stage" role="dialog" aria-modal="true" aria-label="Vista ampliada de fotografía">
+      <div class="lightbox-top">
+        <div id="lightboxAuthorInfo" class="feed-author-info"></div>
+        <button class="modal-close" id="lightboxCloseBtn" type="button" aria-label="Cerrar imagen">✕</button>
+      </div>
+      <div class="lightbox-media-wrap">
+        <img id="lightboxImage" src="favicon.svg" alt="Trabajo ampliado" />
+      </div>
+      <div class="lightbox-bottom">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
+        <div id="lightboxActions" class="inline-actions"></div>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="authSetupModal" hidden>

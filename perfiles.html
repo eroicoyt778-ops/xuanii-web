@@ -39,6 +39,7 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html" class="active">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -124,6 +125,7 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="para-ti.html">Para ti</a>
         <a href="perfiles.html">Talento y empleo</a>
         <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
@@ -147,6 +149,7 @@
         <div class="profile-meta-stack">
           <div class="profile-name-line">
             <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
             <span id="inspHandle" class="profile-handle mono">@usuario</span>
           </div>
           <div class="profile-role-line">
@@ -193,6 +196,23 @@
         <div id="inspReviewsList" style="display: grid; gap: 18px;"></div>
       </div>
     </aside>
+  </div>
+
+  <!-- VISOR DE FOTOGRAFÍAS A PANTALLA COMPLETA (LIGHTBOX) -->
+  <div class="lightbox-backdrop" id="photoLightboxModal" hidden>
+    <div class="lightbox-stage" role="dialog" aria-modal="true" aria-label="Vista ampliada de fotografía">
+      <div class="lightbox-top">
+        <div id="lightboxAuthorInfo" class="feed-author-info"></div>
+        <button class="modal-close" id="lightboxCloseBtn" type="button" aria-label="Cerrar imagen">✕</button>
+      </div>
+      <div class="lightbox-media-wrap">
+        <img id="lightboxImage" src="favicon.svg" alt="Trabajo ampliado" />
+      </div>
+      <div class="lightbox-bottom">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
+        <div id="lightboxActions" class="inline-actions"></div>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="authSetupModal" hidden>
