@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacidad y condiciones — Xuanii</title>
+  <meta name="description" content="Política de privacidad, uso de autenticación con Google y condiciones de servicio de Xuanii." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="stripe-guides" aria-hidden="true">
+    <div class="guides-inner">
+      <span class="guide-line"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line"></span>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="productos.html">Productos</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="cuenta.html">Cuenta</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
+          <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
+            <path fill="currentColor" d="M12.17 20.5c2.7 0 4.97-.9 6.62-2.43l-3.22-2.5c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.24v2.58A9.99 9.99 0 0 0 12.17 20.5z"/>
+            <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
+            <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
+          </svg>
+          <span>Iniciar sesión</span>
+        </button>
+
+        <div class="user-inline" id="navUserChip" hidden>
+          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <a href="cuenta.html" id="navUserName" class="user-name"></a>
+          <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="hero-copy">
+          <span class="open-eyebrow mono">INFORMACIÓN LEGAL</span>
+          <h1>
+            Privacidad y<br />
+            <span class="text-silver">condiciones de uso.</span>
+          </h1>
+          <p class="hero-lead">
+            Tratamiento claro y responsable de tu cuenta de Google, tus archivos de trabajo y los mensajes enviados en la plataforma.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-dark">
+      <div class="container">
+        <div class="legal-prose">
+          <div class="legal-block">
+            <h2>1. Acceso mediante Google OAuth</h2>
+            <p>
+              Cuando inicias sesión con Google, recibimos únicamente tu identificador básico de perfil (nombre visible, correo electrónico y fotografía de avatar). No solicitamos ni almacenamos contraseñas, ni accedemos a datos privados ajenos a la plataforma.
+            </p>
+          </div>
+
+          <div class="legal-block">
+            <h2>2. Sincronización de progreso y herramientas</h2>
+            <p>
+              Las preferencias de usuario y sesiones de trabajo en nuestras aplicaciones (como borradores de edición en PhotoStun) se sincronizan en servicios en la nube exclusivamente para que puedas retomar tu progreso desde cualquier navegador.
+            </p>
+          </div>
+
+          <div class="legal-block">
+            <h2>3. Mensajes, propuestas y lista de espera</h2>
+            <p>
+              Los datos proporcionados en el buzón de Contacto o en el registro de acceso anticipado se utilizan únicamente para revisar propuestas de desarrollo, responder consultas técnicas o notificar lanzamientos solicitados por el usuario. Nunca vendemos ni cedemos listas de correo a terceros.
+            </p>
+          </div>
+
+          <div class="legal-block">
+            <h2>4. Conteo de sesiones activas</h2>
+            <p>
+              El indicador en tiempo real de personas en línea registra señales efímeras de presencia para mostrar la actividad actual del servicio, eliminándose automáticamente al finalizar la sesión.
+            </p>
+          </div>
+
+          <div class="legal-block">
+            <h2>5. Control y eliminación de tus datos</h2>
+            <p>
+              Puedes desconectar tu sesión o borrar tu historial local en cualquier momento desde el apartado Cuenta, así como solicitar la baja definitiva de tus registros enviando un mensaje desde el apartado Contacto.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <span class="footer-copy mono">© 2026 Xuanii</span>
+
+      <div class="footer-links">
+        <a href="productos.html">Productos</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="cuenta.html">Cuenta</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="authSetupModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <div class="modal-head">
+        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <h3 id="authModalTitle">Activar acceso con Google</h3>
+      <p class="modal-desc">
+        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
+      </p>
+      <ol class="modal-steps mono">
+        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
+        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
+        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
+      </ol>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
