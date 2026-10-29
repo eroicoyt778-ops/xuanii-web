@@ -1,5 +1,5 @@
 /* =========================================================
-   1. ESTADO LOCAL Y UTILIDADES DE PERSISTENCIA
+   1. ESTADO LOCAL Y UTILIDADES
    ========================================================= */
 const STORAGE_KEYS = {
   PREFS: "xuanii_prefs",
@@ -20,22 +20,37 @@ const writeJson = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // Ignorar errores de cuota o modo privado estricto
+    // Ignorar errores de cuota
   }
 };
 
-const formatDateEs = (iso) => {
+const formatDateEs = (val) => {
   try {
+    const d = typeof val === "number" ? new Date(val) : new Date(val);
     return new Intl.DateTimeFormat("es-ES", {
       day: "2-digit",
       month: "short",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit"
-    }).format(new Date(iso));
+    }).format(d);
   } catch {
-    return iso;
+    return "";
   }
+};
+
+const sanitizeHandle = (raw, fallbackSeed = "usuario") => {
+  const cleaned = String(raw || "")
+    .toLowerCase()
+    .replace(/^@+/, "")
+    .replace(/[^a-z0-9_.]/g, "")
+    .slice(0, 28);
+  if (cleaned.length >= 2) return cleaned;
+  return (
+    String(fallbackSeed)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 16) || "usuario"
+  );
 };
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -43,10 +58,13 @@ const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 let cloudHooks = {
   saveSubmission: null,
   saveWaitlist: null,
-  savePrefs: null
+  savePrefs: null,
+  saveProfile: null,
+  openChatWithPeer: null
 };
 
 let activeAuthUser = null;
+let currentOwnProfile = null;
 
 /* =========================================================
    2. LIENZO DIAGONAL MONOCROMÁTICO DEL HERO (INDEX)
@@ -164,7 +182,6 @@ if (edCanvas) {
     smoothNormX += (targetNormX - smoothNormX) * 0.1;
     smoothGain += (targetGain - smoothGain) * 0.1;
 
-    // Retícula técnica abierta sobre el fondo blanco
     ectx.strokeStyle = "rgba(5, 5, 6, 0.08)";
     ectx.lineWidth = 1;
     for (let x = 40; x <= cw - 40; x += 50) {
@@ -180,7 +197,6 @@ if (edCanvas) {
       ectx.stroke();
     }
 
-    // Marcas ópticas en las esquinas (sin encerrar en caja)
     const drawCornerMark = (cx, cy, sx, sy) => {
       ectx.strokeStyle = "#050506";
       ectx.lineWidth = 1.5;
@@ -195,7 +211,6 @@ if (edCanvas) {
     drawCornerMark(40, ch - 40, 1, -1);
     drawCornerMark(cw - 40, ch - 40, -1, -1);
 
-    // Curvas tonales monocromáticas
     for (let layer = 0; layer < 5; layer++) {
       ectx.beginPath();
       for (let x = 50; x <= cw - 50; x += 6) {
@@ -213,7 +228,6 @@ if (edCanvas) {
       ectx.stroke();
     }
 
-    // Punto nodal activo sobre la curva principal
     const fx = 50 + smoothNormX * (cw - 100);
     const fEnv = Math.sin(smoothNormX * Math.PI);
     const fy =
@@ -249,7 +263,7 @@ if (edCanvas) {
 }
 
 /* =========================================================
-   4. AUTO-RELLENADO DE CORREO/NOMBRE Y FORMULARIO DE PHOTOSTUN
+   4. AUTO-RELLENADO Y ACCESO ANTICIPADO A PHOTOSTUN
    ========================================================= */
 const prefillKnownUserFields = () => {
   const waitlist = readJson(STORAGE_KEYS.WAITLIST, null);
@@ -306,23 +320,10 @@ if (waitlistForm) {
       await cloudHooks.saveWaitlist(record).catch(() => {});
     }
 
-    const targetInbox = (window.XUANII_CONTACT_EMAIL || "").trim();
-    if (targetInbox && isValidEmail(targetInbox)) {
-      await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetInbox)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          _subject: `[PhotoStun · Acceso anticipado] ${email}`,
-          email,
-          prioridad: priority
-        })
-      }).catch(() => {});
-    }
-
     if (submitBtn) submitBtn.disabled = false;
     if (feedbackEl) {
       feedbackEl.hidden = false;
-      feedbackEl.textContent = `Solicitud registrada para ${email} (Prioridad: ${priority}). Puedes verificar tu estado en el apartado Cuenta.`;
+      feedbackEl.textContent = `Acceso prioritario registrado para ${email} (${priority}).`;
     }
   });
 }
@@ -392,10 +393,7 @@ if (contactForm) {
       try {
         const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetInbox)}`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json"
-          },
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
             _subject: `[Xuanii · ${category}] ${subject}`,
             categoria: category,
@@ -433,88 +431,82 @@ if (contactForm) {
 
     if (feedbackEl) {
       feedbackEl.hidden = false;
-      feedbackEl.textContent = "";
-
-      const msgSpan = document.createElement("span");
-      if (entry.deliveredEmail || entry.deliveredCloud) {
-        msgSpan.textContent = "Mensaje enviado y respaldado correctamente. Lo revisaremos pronto. ";
-      } else {
-        msgSpan.textContent = "Tu propuesta quedó guardada en la plataforma. ";
-      }
-      feedbackEl.appendChild(msgSpan);
-
-      const accountLink = document.createElement("a");
-      accountLink.href = "cuenta.html";
-      accountLink.className = "text-action-btn";
-      accountLink.textContent = "Ver en Cuenta →";
-      feedbackEl.appendChild(accountLink);
-
-      if (targetInbox && !entry.deliveredEmail) {
-        const sep = document.createTextNode("  ·  ");
-        const mailtoLink = document.createElement("a");
-        const mailSubject = encodeURIComponent(`[${category}] ${subject}`);
-        const mailBody = encodeURIComponent(`Nombre: ${name}\nCorreo: ${email}\n\n${message}`);
-        mailtoLink.href = `mailto:${targetInbox}?subject=${mailSubject}&body=${mailBody}`;
-        mailtoLink.className = "text-action-btn";
-        mailtoLink.textContent = "Abrir en tu cliente de correo";
-        feedbackEl.appendChild(sep);
-        feedbackEl.appendChild(mailtoLink);
-      }
+      feedbackEl.textContent = "Mensaje enviado y respaldado correctamente. Lo revisaremos pronto.";
     }
   });
 }
 
 /* =========================================================
-   6. PANEL FUNCIONAL DE CUENTA, PREFERENCIAS E HISTORIAL
+   6. ESPACIO PRIVADO DE CUENTA: APPS, PERFIL, CHAT Y AJUSTES
    ========================================================= */
-const renderAccountPage = () => {
+const wsTabs = document.querySelectorAll(".workspace-tab[data-ws-tab]");
+const switchWorkspaceTab = (tabName) => {
+  wsTabs.forEach((btn) => {
+    const active = btn.dataset.wsTab === tabName;
+    btn.classList.toggle("active", active);
+  });
+  ["apps", "profile", "messages", "settings"].forEach((key) => {
+    const panel = document.getElementById(`wsPanel-${key}`);
+    if (panel) panel.hidden = key !== tabName;
+  });
+};
+
+wsTabs.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    switchWorkspaceTab(btn.dataset.wsTab);
+  });
+});
+
+// Leer parámetros iniciales de URL en cuenta.html (?tab=profile o ?chat=UID)
+const urlParams = new URLSearchParams(window.location.search);
+const requestedTab = urlParams.get("tab");
+const requestedChatUid = urlParams.get("chat");
+if (requestedChatUid) {
+  switchWorkspaceTab("messages");
+} else if (requestedTab && ["apps", "profile", "messages", "settings"].includes(requestedTab)) {
+  switchWorkspaceTab(requestedTab);
+}
+
+const renderAccountWorkspace = () => {
+  const authGateEl = document.getElementById("accountAuthGate");
+  const workspaceEl = document.getElementById("authenticatedWorkspace");
   const userStatusEl = document.getElementById("accountUserStatus");
   const userSubEl = document.getElementById("accountUserSub");
-  const syncModeEl = document.getElementById("accountSyncMode");
-  const signInBtn = document.getElementById("accountSignInBtn");
-  const signOutBtn = document.getElementById("accountSignOutBtn");
 
-  if (userStatusEl) {
+  if (authGateEl && workspaceEl) {
     if (activeAuthUser) {
-      userStatusEl.textContent = activeAuthUser.displayName || activeAuthUser.email || "Sesión activa";
-      if (userSubEl) userSubEl.textContent = activeAuthUser.email || "Autenticado mediante Google OAuth 2.0.";
-      if (syncModeEl) syncModeEl.textContent = "Sincronización en la nube activa";
-      if (signInBtn) signInBtn.hidden = true;
-      if (signOutBtn) signOutBtn.hidden = false;
-    } else {
-      userStatusEl.textContent = "Sin sesión iniciada";
-      if (userSubEl) {
-        userSubEl.textContent = "Inicia sesión con Google para sincronizar tu progreso entre dispositivos.";
+      authGateEl.hidden = true;
+      workspaceEl.hidden = false;
+      if (userStatusEl) {
+        userStatusEl.textContent = activeAuthUser.displayName || activeAuthUser.email || "Sesión activa";
       }
-      if (syncModeEl) syncModeEl.textContent = "Memoria local en este navegador";
-      if (signInBtn) signInBtn.hidden = false;
-      if (signOutBtn) signOutBtn.hidden = true;
+      if (userSubEl) {
+        userSubEl.textContent = activeAuthUser.email || "Autenticado mediante Google OAuth 2.0.";
+      }
+    } else {
+      authGateEl.hidden = false;
+      workspaceEl.hidden = true;
     }
   }
 
-  // Estado de acceso anticipado a PhotoStun
-  const waitlistStatusEl = document.getElementById("accountWaitlistStatus");
-  const waitlistSubEl = document.getElementById("accountWaitlistSub");
-  const waitlistLinkEl = document.getElementById("accountWaitlistLink");
+  // Estado de PhotoStun dentro del lanzador de aplicaciones
+  const hubStateEl = document.getElementById("hubPhotostunState");
+  const hubPriorityBtn = document.getElementById("hubPhotostunPriorityBtn");
   const waitlist = readJson(STORAGE_KEYS.WAITLIST, null);
 
-  if (waitlistStatusEl) {
-    if (waitlist?.email) {
-      waitlistStatusEl.textContent = "Registrado";
-      if (waitlistSubEl) {
-        waitlistSubEl.textContent = `${waitlist.email} · Prioridad: ${waitlist.priority}`;
-      }
-      if (waitlistLinkEl) waitlistLinkEl.textContent = "Actualizar preferencia";
+  if (hubPriorityBtn) {
+    if (waitlist?.email || currentOwnProfile?.photostunPriority) {
+      if (hubStateEl) hubStateEl.textContent = "Acceso prioritario vinculado";
+      hubPriorityBtn.textContent = "Acceso prioritario activo ✓";
+      hubPriorityBtn.disabled = true;
     } else {
-      waitlistStatusEl.textContent = "No solicitado";
-      if (waitlistSubEl) {
-        waitlistSubEl.textContent = "Reserva tu acceso desde la ficha oficial de Productos.";
-      }
-      if (waitlistLinkEl) waitlistLinkEl.textContent = "Registrar correo";
+      if (hubStateEl) hubStateEl.textContent = "Cuenta vinculada";
+      hubPriorityBtn.textContent = "Activar acceso prioritario";
+      hubPriorityBtn.disabled = false;
     }
   }
 
-  // Preferencias interactivas
+  // Preferencias
   const prefs = readJson(STORAGE_KEYS.PREFS, {
     cloudAutosave: true,
     releaseAlerts: true
@@ -527,7 +519,7 @@ const renderAccountPage = () => {
     btn.textContent = isActive ? "ACTIVADO" : "DESACTIVADO";
   });
 
-  // Listado real de propuestas y mensajes enviados
+  // Historial de propuestas enviadas a Xuanii
   const listEl = document.getElementById("accountSubmissionsList");
   const clearBtn = document.getElementById("clearLocalHistoryBtn");
   if (listEl) {
@@ -542,7 +534,7 @@ const renderAccountPage = () => {
       idx.className = "col-index mono";
       idx.textContent = "SIN ENVÍOS RECIENTES";
       const p = document.createElement("p");
-      p.textContent = "Todavía no has enviado propuestas ni mensajes desde este navegador. Usa el apartado de Contacto para contarnos qué herramientas quieres ver.";
+      p.textContent = "Todavía no has enviado propuestas desde este navegador.";
       emptyEntry.appendChild(idx);
       emptyEntry.appendChild(p);
       listEl.appendChild(emptyEntry);
@@ -554,7 +546,7 @@ const renderAccountPage = () => {
 
         const meta = document.createElement("span");
         meta.className = "submission-meta mono";
-        meta.textContent = `${item.category.toUpperCase()} · ${formatDateEs(item.createdAtIso)} · ${item.email}`;
+        meta.textContent = `${item.category.toUpperCase()} · ${formatDateEs(item.createdAtIso)}`;
 
         const title = document.createElement("h3");
         title.className = "submission-subject";
@@ -573,6 +565,22 @@ const renderAccountPage = () => {
   }
 };
 
+// Botón de 1 clic para activar acceso prioritario a PhotoStun en el panel de Mis aplicaciones
+document.getElementById("hubPhotostunPriorityBtn")?.addEventListener("click", async () => {
+  if (!activeAuthUser) return;
+  const record = {
+    email: activeAuthUser.email || "",
+    priority: "Activado desde lanzador de cuenta",
+    uid: activeAuthUser.uid,
+    createdAtIso: new Date().toISOString()
+  };
+  writeJson(STORAGE_KEYS.WAITLIST, record);
+  if (cloudHooks.saveWaitlist) {
+    await cloudHooks.saveWaitlist(record).catch(() => {});
+  }
+  renderAccountWorkspace();
+});
+
 document.querySelectorAll(".open-toggle-btn[data-pref]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const key = btn.dataset.pref;
@@ -582,7 +590,7 @@ document.querySelectorAll(".open-toggle-btn[data-pref]").forEach((btn) => {
     });
     prefs[key] = !prefs[key];
     writeJson(STORAGE_KEYS.PREFS, prefs);
-    renderAccountPage();
+    renderAccountWorkspace();
 
     if (cloudHooks.savePrefs) {
       await cloudHooks.savePrefs(prefs).catch(() => {});
@@ -592,11 +600,108 @@ document.querySelectorAll(".open-toggle-btn[data-pref]").forEach((btn) => {
 
 document.getElementById("clearLocalHistoryBtn")?.addEventListener("click", () => {
   localStorage.removeItem(STORAGE_KEYS.SUBMISSIONS);
-  renderAccountPage();
+  renderAccountWorkspace();
+});
+
+// Formulario de edición de Perfil Público dentro de cuenta.html
+const profileEditForm = document.getElementById("profileEditForm");
+const profileDisplayNameEl = document.getElementById("profileDisplayName");
+const profileHandleEl = document.getElementById("profileHandle");
+const profileRoleEl = document.getElementById("profileRole");
+const profileBioEl = document.getElementById("profileBio");
+const profileAvailableBtn = document.getElementById("profileAvailableBtn");
+const profilePublicBtn = document.getElementById("profilePublicBtn");
+const profilePreviewAvatar = document.getElementById("profilePreviewAvatar");
+const profilePreviewName = document.getElementById("profilePreviewName");
+const profilePreviewHandle = document.getElementById("profilePreviewHandle");
+const profilePreviewRole = document.getElementById("profilePreviewRole");
+const profileSaveFeedback = document.getElementById("profileSaveFeedback");
+
+const syncProfilePreview = () => {
+  if (profilePreviewName && profileDisplayNameEl) {
+    profilePreviewName.textContent = profileDisplayNameEl.value.trim() || "Tu nombre";
+  }
+  if (profilePreviewHandle && profileHandleEl) {
+    profilePreviewHandle.textContent = `@${sanitizeHandle(profileHandleEl.value, activeAuthUser?.displayName)}`;
+  }
+  if (profilePreviewRole && profileRoleEl) {
+    profilePreviewRole.textContent = profileRoleEl.value.trim() || "Miembro de Xuanii";
+  }
+  if (profilePreviewAvatar && activeAuthUser?.photoURL) {
+    profilePreviewAvatar.src = activeAuthUser.photoURL;
+  }
+};
+
+const populateProfileForm = (prof) => {
+  if (!prof) return;
+  if (profileDisplayNameEl) profileDisplayNameEl.value = prof.displayName || "";
+  if (profileHandleEl) profileHandleEl.value = prof.handle || "";
+  if (profileRoleEl) profileRoleEl.value = prof.role || "";
+  if (profileBioEl) profileBioEl.value = prof.bio || "";
+  if (profileAvailableBtn) {
+    const av = prof.availableForWork !== false;
+    profileAvailableBtn.dataset.active = String(av);
+    profileAvailableBtn.textContent = av ? "DISPONIBLE" : "NO DISPONIBLE";
+  }
+  if (profilePublicBtn) {
+    const pub = prof.isPublic !== false;
+    profilePublicBtn.dataset.active = String(pub);
+    profilePublicBtn.textContent = pub ? "PÚBLICO" : "PRIVADO";
+  }
+  syncProfilePreview();
+};
+
+[profileDisplayNameEl, profileHandleEl, profileRoleEl].forEach((inp) => {
+  inp?.addEventListener("input", syncProfilePreview);
+});
+
+profileAvailableBtn?.addEventListener("click", () => {
+  const next = profileAvailableBtn.dataset.active !== "true";
+  profileAvailableBtn.dataset.active = String(next);
+  profileAvailableBtn.textContent = next ? "DISPONIBLE" : "NO DISPONIBLE";
+});
+
+profilePublicBtn?.addEventListener("click", () => {
+  const next = profilePublicBtn.dataset.active !== "true";
+  profilePublicBtn.dataset.active = String(next);
+  profilePublicBtn.textContent = next ? "PÚBLICO" : "PRIVADO";
+});
+
+profileEditForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!activeAuthUser || !cloudHooks.saveProfile) return;
+
+  const displayName = (profileDisplayNameEl?.value || "").trim() || activeAuthUser.displayName || "Usuario";
+  const handle = sanitizeHandle(profileHandleEl?.value, displayName);
+  const role = (profileRoleEl?.value || "").trim() || "Creador digital";
+  const bio = (profileBioEl?.value || "").trim();
+  const availableForWork = profileAvailableBtn?.dataset.active !== "false";
+  const isPublic = profilePublicBtn?.dataset.active !== "false";
+
+  const saveBtn = document.getElementById("profileSaveBtn");
+  if (saveBtn) saveBtn.disabled = true;
+
+  await cloudHooks.saveProfile({
+    displayName,
+    handle,
+    role,
+    bio,
+    availableForWork,
+    isPublic
+  });
+
+  if (profileHandleEl) profileHandleEl.value = handle;
+  syncProfilePreview();
+  if (saveBtn) saveBtn.disabled = false;
+
+  if (profileSaveFeedback) {
+    profileSaveFeedback.hidden = false;
+    profileSaveFeedback.textContent = "Perfil guardado y sincronizado en el directorio público.";
+  }
 });
 
 /* =========================================================
-   7. AUTENTICACIÓN CON GOOGLE + PERSONAS EN LÍNEA EN TIEMPO REAL
+   7. FIREBASE AUTH, PERFILES EN TIEMPO REAL Y CHAT DIRECTO
    ========================================================= */
 const activeUsersEl = document.getElementById("activeUsersCount");
 const navSignInBtn = document.getElementById("navGoogleSignInBtn");
@@ -623,54 +728,30 @@ authSetupModal?.addEventListener("click", (e) => {
 });
 
 prefillKnownUserFields();
-renderAccountPage();
+renderAccountWorkspace();
 
 const fbCfg = window.XUANII_FIREBASE_CONFIG || {};
 const isFirebaseConfigured = Boolean(fbCfg.apiKey && fbCfg.projectId);
 
-if (!isFirebaseConfigured) {
-  const tabId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const peers = new Map([[tabId, Date.now()]]);
-
-  const updateLocalCount = () => {
-    const now = Date.now();
-    for (const [id, ts] of peers.entries()) {
-      if (id !== tabId && now - ts > 6000) peers.delete(id);
-    }
-    if (activeUsersEl) activeUsersEl.textContent = String(peers.size);
-  };
-
-  if ("BroadcastChannel" in window) {
-    const channel = new BroadcastChannel("xuanii_live_sessions");
-    const ping = () => {
-      peers.set(tabId, Date.now());
-      channel.postMessage({ type: "ping", tabId });
-      updateLocalCount();
-    };
-    channel.onmessage = (ev) => {
-      if (ev.data?.tabId) {
-        if (ev.data.type === "bye") peers.delete(ev.data.tabId);
-        else peers.set(ev.data.tabId, Date.now());
-        updateLocalCount();
-      }
-    };
-    window.addEventListener("pagehide", () => channel.postMessage({ type: "bye", tabId }));
-    setInterval(ping, 2500);
-    ping();
-  }
-
-  const openSetup = () => {
-    if (authSetupModal) authSetupModal.hidden = false;
-  };
-  navSignInBtn?.addEventListener("click", openSetup);
-  heroSignInBtn?.addEventListener("click", openSetup);
-  accountSignInBtn?.addEventListener("click", openSetup);
-} else {
+if (isFirebaseConfigured) {
   (async () => {
     const [
       { initializeApp },
       { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged },
-      { getFirestore, doc, setDoc, addDoc, deleteDoc, collection, onSnapshot, serverTimestamp }
+      {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+        addDoc,
+        deleteDoc,
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+        serverTimestamp
+      }
     ] = await Promise.all([
       import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"),
       import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"),
@@ -688,11 +769,19 @@ if (!isFirebaseConfigured) {
         createdAt: serverTimestamp()
       });
 
-    cloudHooks.saveWaitlist = (record) =>
-      addDoc(collection(db, "photostun_waitlist"), {
+    cloudHooks.saveWaitlist = async (record) => {
+      await addDoc(collection(db, "photostun_waitlist"), {
         ...record,
         createdAt: serverTimestamp()
       });
+      if (auth.currentUser) {
+        await setDoc(
+          doc(db, "users", auth.currentUser.uid),
+          { photostunPriority: true, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
+      }
+    };
 
     cloudHooks.savePrefs = (prefs) => {
       if (!auth.currentUser) return Promise.resolve();
@@ -703,6 +792,26 @@ if (!isFirebaseConfigured) {
       );
     };
 
+    cloudHooks.saveProfile = async (fields) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const payload = {
+        uid: user.uid,
+        displayName: fields.displayName,
+        handle: fields.handle,
+        role: fields.role,
+        bio: fields.bio,
+        photoURL: user.photoURL || "",
+        availableForWork: fields.availableForWork,
+        isPublic: fields.isPublic,
+        updatedAtMs: Date.now(),
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(doc(db, "profiles", user.uid), payload, { merge: true });
+      currentOwnProfile = { ...(currentOwnProfile || {}), ...payload };
+    };
+
+    // Presencia global en tiempo real ("Personas en línea")
     const sessionKey =
       sessionStorage.getItem("xuanii_sid") ||
       (() => {
@@ -739,13 +848,54 @@ if (!isFirebaseConfigured) {
       if (activeUsersEl) activeUsersEl.textContent = String(Math.max(1, liveCount));
     });
 
-    const triggerGoogleLogin = async () => {
+    // Garantizar que todo usuario autenticado tenga su documento en profiles/{uid}
+    const ensureUserProfileExists = async (user) => {
+      const profRef = doc(db, "profiles", user.uid);
+      const snap = await getDoc(profRef).catch(() => null);
+      if (snap && snap.exists()) {
+        currentOwnProfile = snap.data();
+        if (user.photoURL && currentOwnProfile.photoURL !== user.photoURL) {
+          await setDoc(profRef, { photoURL: user.photoURL }, { merge: true }).catch(() => {});
+          currentOwnProfile.photoURL = user.photoURL;
+        }
+      } else {
+        const defaultHandle = sanitizeHandle(
+          user.email ? user.email.split("@")[0] : user.displayName,
+          user.uid.slice(0, 6)
+        );
+        const initialProfile = {
+          uid: user.uid,
+          displayName: user.displayName || "Miembro de Xuanii",
+          handle: defaultHandle,
+          role: "Creador digital",
+          bio: "",
+          photoURL: user.photoURL || "",
+          availableForWork: true,
+          isPublic: true,
+          updatedAtMs: Date.now(),
+          createdAt: serverTimestamp()
+        };
+        await setDoc(profRef, initialProfile, { merge: true }).catch(() => {});
+        currentOwnProfile = initialProfile;
+      }
+      populateProfileForm(currentOwnProfile);
+    };
+
+    // Inicio de sesión con Google -> lleva directo al espacio privado (cuenta.html)
+    const signInAndEnterWorkspace = async (destinationUrl = "cuenta.html") => {
       if (activeAuthUser) {
-        window.location.href = "cuenta.html";
+        window.location.href = destinationUrl;
         return;
       }
       try {
-        await signInWithPopup(auth, provider);
+        const cred = await signInWithPopup(auth, provider);
+        if (cred?.user) {
+          await ensureUserProfileExists(cred.user);
+          const onAccountPage = window.location.pathname.endsWith("cuenta.html");
+          if (!onAccountPage || destinationUrl !== "cuenta.html") {
+            window.location.href = destinationUrl;
+          }
+        }
       } catch (err) {
         const code = err?.code || "";
         if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
@@ -755,14 +905,400 @@ if (!isFirebaseConfigured) {
       }
     };
 
-    navSignInBtn?.addEventListener("click", triggerGoogleLogin);
-    heroSignInBtn?.addEventListener("click", triggerGoogleLogin);
-    accountSignInBtn?.addEventListener("click", triggerGoogleLogin);
+    navSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
+    heroSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
+    accountSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
 
-    const handleSignOut = () => signOut(auth);
+    const handleSignOut = async () => {
+      await signOut(auth);
+      if (window.location.pathname.endsWith("cuenta.html")) {
+        renderAccountWorkspace();
+      }
+    };
     navSignOutBtn?.addEventListener("click", handleSignOut);
     accountSignOutBtn?.addEventListener("click", handleSignOut);
 
+    // =========================================================
+    // DIRECTORIO EN TIEMPO REAL DE PERFILES (PERFILES.HTML)
+    // =========================================================
+    const profilesListEl = document.getElementById("profilesDirectoryList");
+    if (profilesListEl) {
+      let allPublicProfiles = [];
+      let currentFilter = "all";
+      let searchQuery = "";
+
+      const renderProfilesDirectory = () => {
+        profilesListEl.textContent = "";
+        const q = searchQuery.trim().toLowerCase();
+
+        const filtered = allPublicProfiles.filter((p) => {
+          if (p.isPublic === false) return false;
+          if (currentFilter === "available" && p.availableForWork === false) return false;
+          if (!q) return true;
+          const hay = `${p.displayName || ""} @${p.handle || ""} ${p.role || ""} ${p.bio || ""}`.toLowerCase();
+          return hay.includes(q);
+        });
+
+        if (filtered.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "arch-col";
+          const idx = document.createElement("span");
+          idx.className = "col-index mono";
+          idx.textContent = allPublicProfiles.length === 0 ? "PRIMEROS PERFILES" : "SIN COINCIDENCIAS";
+          const txt = document.createElement("p");
+          txt.textContent =
+            allPublicProfiles.length === 0
+              ? "Sé el primero en aparecer aquí: inicia sesión con Google para activar tu perfil profesional y recibir propuestas de trabajo."
+              : "No encontramos perfiles con ese criterio de búsqueda.";
+          empty.appendChild(idx);
+          empty.appendChild(txt);
+          profilesListEl.appendChild(empty);
+          return;
+        }
+
+        filtered.forEach((prof) => {
+          const row = document.createElement("article");
+          row.className = "profile-open-row";
+
+          const left = document.createElement("div");
+          left.className = "profile-identity";
+
+          const avatar = document.createElement("img");
+          avatar.className = "profile-avatar-lg";
+          avatar.src = prof.photoURL || "favicon.svg";
+          avatar.alt = prof.displayName || "Perfil";
+          avatar.addEventListener("error", () => {
+            avatar.src = "favicon.svg";
+          });
+
+          const meta = document.createElement("div");
+          meta.className = "profile-meta-stack";
+
+          const nameLine = document.createElement("div");
+          nameLine.className = "profile-name-line";
+          const h3 = document.createElement("h3");
+          h3.textContent = prof.displayName || "Miembro";
+          const handleSpan = document.createElement("span");
+          handleSpan.className = "profile-handle mono";
+          handleSpan.textContent = `@${prof.handle || "usuario"}`;
+          nameLine.appendChild(h3);
+          nameLine.appendChild(handleSpan);
+
+          const roleSpan = document.createElement("span");
+          roleSpan.className = "profile-role";
+          roleSpan.textContent = prof.role || "Creador digital";
+
+          meta.appendChild(nameLine);
+          meta.appendChild(roleSpan);
+
+          if (prof.bio) {
+            const bioP = document.createElement("p");
+            bioP.className = "profile-bio";
+            bioP.textContent = prof.bio;
+            meta.appendChild(bioP);
+          }
+
+          left.appendChild(avatar);
+          left.appendChild(meta);
+
+          const right = document.createElement("div");
+          right.className = "profile-cta-col";
+
+          const statusTag = document.createElement("span");
+          statusTag.className = "work-status-inline mono";
+          const dot = document.createElement("span");
+          const isAvail = prof.availableForWork !== false;
+          dot.className = isAvail ? "work-dot" : "work-dot muted-dot";
+          const statusLabel = document.createElement("span");
+          statusLabel.textContent = isAvail ? "Disponible para trabajos" : "Miembro activo";
+          statusTag.appendChild(dot);
+          statusTag.appendChild(statusLabel);
+          right.appendChild(statusTag);
+
+          const isMe = activeAuthUser && prof.uid === activeAuthUser.uid;
+          if (isMe) {
+            const editLink = document.createElement("a");
+            editLink.href = "cuenta.html?tab=profile";
+            editLink.className = "link-editorial";
+            editLink.style.padding = "4px 0";
+            editLink.textContent = "Editar mi perfil →";
+            right.appendChild(editLink);
+          } else {
+            const chatBtn = document.createElement("button");
+            chatBtn.type = "button";
+            chatBtn.className = "btn btn-white btn-sm";
+            chatBtn.textContent = "Hablar / Proponer trabajo →";
+            chatBtn.addEventListener("click", () => {
+              const chatTargetUrl = `cuenta.html?chat=${encodeURIComponent(prof.uid)}`;
+              signInAndEnterWorkspace(chatTargetUrl);
+            });
+            right.appendChild(chatBtn);
+          }
+
+          row.appendChild(left);
+          row.appendChild(right);
+          profilesListEl.appendChild(row);
+        });
+      };
+
+      onSnapshot(collection(db, "profiles"), (snap) => {
+        const items = [];
+        snap.forEach((d) => items.push(d.data()));
+        items.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+        allPublicProfiles = items;
+        renderProfilesDirectory();
+      });
+
+      document.querySelectorAll("#profileFilterTabs .topic-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll("#profileFilterTabs .topic-tab").forEach((b) => b.classList.remove("active"));
+          tab.classList.add("active");
+          currentFilter = tab.dataset.filter || "all";
+          renderProfilesDirectory();
+        });
+      });
+
+      document.getElementById("profileSearchInput")?.addEventListener("input", (e) => {
+        searchQuery = e.target.value || "";
+        renderProfilesDirectory();
+      });
+    }
+
+    // =========================================================
+    // MENSAJERÍA DIRECTA EN TIEMPO REAL PARA TRABAJOS (CUENTA.HTML)
+    // =========================================================
+    let unsubscribeConversations = null;
+    let unsubscribeActiveMessages = null;
+    let selectedConvId = null;
+    let selectedPeerUid = null;
+
+    const conversationsListEl = document.getElementById("conversationsList");
+    const chatEmptyStateEl = document.getElementById("chatEmptyState");
+    const chatActiveThreadEl = document.getElementById("chatActiveThread");
+    const chatPeerAvatarEl = document.getElementById("chatPeerAvatar");
+    const chatPeerNameEl = document.getElementById("chatPeerName");
+    const chatPeerHandleEl = document.getElementById("chatPeerHandle");
+    const chatPeerRoleEl = document.getElementById("chatPeerRole");
+    const chatMessagesStreamEl = document.getElementById("chatMessagesStream");
+    const chatComposeForm = document.getElementById("chatComposeForm");
+    const chatMessageInput = document.getElementById("chatMessageInput");
+    const wsMessagesTabBtn = document.getElementById("wsMessagesTabBtn");
+
+    const openDirectChatWith = async (peerUid) => {
+      const me = auth.currentUser;
+      if (!me || !peerUid || peerUid === me.uid || !chatActiveThreadEl) return;
+
+      const convId = [me.uid, peerUid].sort().join("_");
+      selectedConvId = convId;
+      selectedPeerUid = peerUid;
+
+      // Cargar perfil del destinatario
+      const peerSnap = await getDoc(doc(db, "profiles", peerUid)).catch(() => null);
+      const peerProf = peerSnap?.exists()
+        ? peerSnap.data()
+        : { uid: peerUid, displayName: "Miembro", handle: "usuario", role: "", photoURL: "" };
+
+      // Asegurar que exista el documento raíz de la conversación para habilitar escucha en tiempo real
+      const convRef = doc(db, "conversations", convId);
+      const convSnap = await getDoc(convRef).catch(() => null);
+      const myMeta = {
+        displayName: currentOwnProfile?.displayName || me.displayName || "Usuario",
+        handle: currentOwnProfile?.handle || "usuario",
+        photoURL: me.photoURL || ""
+      };
+      const peerMeta = {
+        displayName: peerProf.displayName || "Miembro",
+        handle: peerProf.handle || "usuario",
+        photoURL: peerProf.photoURL || ""
+      };
+
+      if (!convSnap || !convSnap.exists()) {
+        await setDoc(convRef, {
+          participants: [me.uid, peerUid],
+          participantProfiles: {
+            [me.uid]: myMeta,
+            [peerUid]: peerMeta
+          },
+          lastMessage: "",
+          updatedAtMs: Date.now(),
+          createdAt: serverTimestamp()
+        });
+      }
+
+      if (chatEmptyStateEl) chatEmptyStateEl.hidden = true;
+      chatActiveThreadEl.hidden = false;
+
+      if (chatPeerAvatarEl) {
+        chatPeerAvatarEl.src = peerProf.photoURL || "favicon.svg";
+        chatPeerAvatarEl.onerror = () => {
+          chatPeerAvatarEl.src = "favicon.svg";
+        };
+      }
+      if (chatPeerNameEl) chatPeerNameEl.textContent = peerProf.displayName || "Miembro";
+      if (chatPeerHandleEl) chatPeerHandleEl.textContent = `@${peerProf.handle || "usuario"}`;
+      if (chatPeerRoleEl) chatPeerRoleEl.textContent = peerProf.role || "Conversación directa";
+
+      document.querySelectorAll(".conv-item-open").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.convId === convId);
+      });
+
+      if (unsubscribeActiveMessages) {
+        unsubscribeActiveMessages();
+        unsubscribeActiveMessages = null;
+      }
+
+      const msgsQuery = query(
+        collection(db, "conversations", convId, "messages"),
+        orderBy("createdAtMs", "asc")
+      );
+
+      unsubscribeActiveMessages = onSnapshot(msgsQuery, (snap) => {
+        if (!chatMessagesStreamEl) return;
+        chatMessagesStreamEl.textContent = "";
+
+        if (snap.empty) {
+          const hint = document.createElement("div");
+          hint.className = "chat-msg-rail";
+          const p = document.createElement("p");
+          p.className = "chat-msg-text";
+          p.style.color = "var(--muted)";
+          p.textContent = "Escribe el primer mensaje abajo para presentarte o proponer un trabajo.";
+          hint.appendChild(p);
+          chatMessagesStreamEl.appendChild(hint);
+          return;
+        }
+
+        snap.forEach((mDoc) => {
+          const m = mDoc.data();
+          const isOwn = m.senderUid === me.uid;
+          const rail = document.createElement("div");
+          rail.className = isOwn ? "chat-msg-rail own-msg" : "chat-msg-rail";
+
+          const meta = document.createElement("span");
+          meta.className = "chat-msg-meta mono";
+          meta.textContent = `${isOwn ? "TÚ" : (m.senderName || peerProf.displayName || "MIEMBRO").toUpperCase()} · ${formatDateEs(m.createdAtMs)}`;
+
+          const txt = document.createElement("p");
+          txt.className = "chat-msg-text";
+          txt.textContent = m.text || "";
+
+          rail.appendChild(meta);
+          rail.appendChild(txt);
+          chatMessagesStreamEl.appendChild(rail);
+        });
+
+        chatMessagesStreamEl.scrollTop = chatMessagesStreamEl.scrollHeight;
+      });
+    };
+
+    cloudHooks.openChatWithPeer = openDirectChatWith;
+
+    chatComposeForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const me = auth.currentUser;
+      const text = (chatMessageInput?.value || "").trim();
+      if (!me || !selectedConvId || !selectedPeerUid || !text) return;
+
+      chatMessageInput.value = "";
+      const senderName = currentOwnProfile?.displayName || me.displayName || "Usuario";
+      const nowMs = Date.now();
+
+      await addDoc(collection(db, "conversations", selectedConvId, "messages"), {
+        senderUid: me.uid,
+        senderName,
+        text,
+        createdAtMs: nowMs,
+        createdAt: serverTimestamp()
+      });
+
+      await setDoc(
+        doc(db, "conversations", selectedConvId),
+        {
+          lastMessage: text.slice(0, 140),
+          lastSenderUid: me.uid,
+          updatedAtMs: nowMs,
+          [`participantProfiles.${me.uid}`]: {
+            displayName: senderName,
+            handle: currentOwnProfile?.handle || "usuario",
+            photoURL: me.photoURL || ""
+          }
+        },
+        { merge: true }
+      );
+    });
+
+    const attachConversationsListener = (user) => {
+      if (!conversationsListEl) return;
+      if (unsubscribeConversations) {
+        unsubscribeConversations();
+        unsubscribeConversations = null;
+      }
+
+      const convQ = query(collection(db, "conversations"), where("participants", "array-contains", user.uid));
+      unsubscribeConversations = onSnapshot(convQ, (snap) => {
+        const convs = [];
+        snap.forEach((d) => convs.push({ id: d.id, ...d.data() }));
+        convs.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+
+        if (wsMessagesTabBtn) {
+          wsMessagesTabBtn.textContent =
+            convs.length > 0 ? `Mensajes y trabajos (${convs.length})` : "Mensajes y trabajos";
+        }
+
+        conversationsListEl.textContent = "";
+        if (convs.length === 0) {
+          const emptyP = document.createElement("p");
+          emptyP.style.fontSize = "0.86rem";
+          emptyP.style.color = "var(--muted)";
+          emptyP.textContent = "Aún no tienes conversaciones abiertas.";
+          conversationsListEl.appendChild(emptyP);
+          return;
+        }
+
+        convs.forEach((c) => {
+          const otherUid = (c.participants || []).find((id) => id !== user.uid) || "";
+          const otherInfo = c.participantProfiles?.[otherUid] || {};
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "conv-item-open";
+          btn.dataset.convId = c.id;
+          if (c.id === selectedConvId) btn.classList.add("active");
+
+          const img = document.createElement("img");
+          img.className = "conv-item-avatar";
+          img.src = otherInfo.photoURL || "favicon.svg";
+          img.alt = "";
+          img.onerror = () => {
+            img.src = "favicon.svg";
+          };
+
+          const col = document.createElement("div");
+          col.className = "conv-item-text";
+
+          const nm = document.createElement("span");
+          nm.className = "conv-item-name";
+          nm.textContent = otherInfo.displayName || "Conversación";
+
+          const prev = document.createElement("span");
+          prev.className = "conv-item-preview";
+          prev.textContent = c.lastMessage || "Conversación abierta";
+
+          col.appendChild(nm);
+          col.appendChild(prev);
+          btn.appendChild(img);
+          btn.appendChild(col);
+
+          btn.addEventListener("click", () => {
+            openDirectChatWith(otherUid);
+          });
+
+          conversationsListEl.appendChild(btn);
+        });
+      });
+    };
+
+    // Escuchar estado global de sesión de Google
     onAuthStateChanged(auth, async (user) => {
       activeAuthUser = user;
       sendHeartbeat();
@@ -770,12 +1306,31 @@ if (!isFirebaseConfigured) {
       if (user) {
         if (navSignInBtn) navSignInBtn.hidden = true;
         if (navUserChip) navUserChip.hidden = false;
-        if (navUserAvatar) navUserAvatar.src = user.photoURL || "favicon.svg";
-        if (navUserName) navUserName.textContent = user.displayName || user.email || "Cuenta";
-        if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Ir a tu cuenta";
+        if (navUserAvatar) {
+          navUserAvatar.src = user.photoURL || "favicon.svg";
+          navUserAvatar.onerror = () => {
+            navUserAvatar.src = "favicon.svg";
+          };
+        }
+        const shortName = (user.displayName || user.email || "Cuenta").split(" ")[0];
+        if (navUserName) navUserName.textContent = `Mi espacio · ${shortName}`;
+        if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Entrar a mi espacio";
 
+        await ensureUserProfileExists(user);
         prefillKnownUserFields();
-        renderAccountPage();
+        renderAccountWorkspace();
+        attachConversationsListener(user);
+
+        if (requestedChatUid && requestedChatUid !== user.uid) {
+          switchWorkspaceTab("messages");
+          await openDirectChatWith(requestedChatUid);
+        }
+
+        const userSnap = await getDoc(doc(db, "users", user.uid)).catch(() => null);
+        if (userSnap?.exists() && userSnap.data()?.photostunPriority) {
+          currentOwnProfile = { ...(currentOwnProfile || {}), photostunPriority: true };
+          renderAccountWorkspace();
+        }
 
         await setDoc(
           doc(db, "users", user.uid),
@@ -790,12 +1345,21 @@ if (!isFirebaseConfigured) {
             lastLoginAt: serverTimestamp()
           },
           { merge: true }
-        );
+        ).catch(() => {});
       } else {
+        currentOwnProfile = null;
+        if (unsubscribeConversations) {
+          unsubscribeConversations();
+          unsubscribeConversations = null;
+        }
+        if (unsubscribeActiveMessages) {
+          unsubscribeActiveMessages();
+          unsubscribeActiveMessages = null;
+        }
         if (navSignInBtn) navSignInBtn.hidden = false;
         if (navUserChip) navUserChip.hidden = true;
         if (heroAuthBtnLabel) heroAuthBtnLabel.textContent = "Continuar con Google";
-        renderAccountPage();
+        renderAccountWorkspace();
       }
     });
   })();

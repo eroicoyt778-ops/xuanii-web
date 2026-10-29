@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cuenta — Xuanii</title>
-  <meta name="description" content="Gestiona tu sesión con Google, tus preferencias de sincronización en la nube y tus propuestas enviadas." />
+  <title>Mi espacio — Xuanii</title>
+  <meta name="description" content="Accede a tus aplicaciones vinculadas, configura tu perfil profesional y conversa en tiempo real para trabajos y proyectos." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,9 +35,9 @@
 
       <nav class="nav-links" aria-label="Navegación principal">
         <a href="productos.html">Productos</a>
+        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
-        <a href="cuenta.html" class="active">Cuenta</a>
       </nav>
 
       <div class="nav-actions">
@@ -53,7 +53,7 @@
 
         <div class="user-inline" id="navUserChip" hidden>
           <img id="navUserAvatar" src="" alt="" class="user-avatar" />
-          <a href="cuenta.html" id="navUserName" class="user-name"></a>
+          <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link active"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
       </div>
@@ -64,110 +64,307 @@
     <section class="page-hero">
       <div class="container">
         <div class="hero-copy">
-          <span class="open-eyebrow mono">CUENTA Y PROGRESO</span>
-          <h1>
-            Tu identidad y datos<br />
-            <span class="text-silver">sincronizados en un solo lugar.</span>
+          <span class="open-eyebrow mono" id="workspaceEyebrow">ESPACIO DE CUENTA</span>
+          <h1 id="workspaceHeading">
+            Tus aplicaciones,<br />
+            <span class="text-silver">perfil y mensajes.</span>
           </h1>
-          <p class="hero-lead">
-            Administra tu sesión de Google, tus preferencias de respaldo automático para herramientas como PhotoStun y el historial de propuestas que nos has enviado.
+          <p class="hero-lead" id="workspaceLead">
+            Panel privado vinculado a tu cuenta de Google. Entra a tus aplicaciones oficiales, personaliza tu perfil público para trabajos y responde conversaciones directas.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- ESTADO DE SESIÓN Y PREFERENCIAS FUNCIONALES -->
     <section class="section-dark">
       <div class="container">
-        <div class="infra-head">
-          <span class="open-eyebrow mono">PERFIL Y NUBE</span>
-          <h2>Estado de tu sesión</h2>
-        </div>
-
-        <div class="open-rows">
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Cuenta vinculada</span>
-              <span class="open-row-sub" id="accountUserSub">Inicia sesión con Google para sincronizar tu progreso entre dispositivos.</span>
-            </div>
-            <div class="inline-actions">
-              <span class="open-row-val mono" id="accountUserStatus">Sin sesión iniciada</span>
-              <button class="btn btn-white btn-sm" id="accountSignInBtn" type="button">
-                Continuar con Google
-              </button>
-              <button class="text-action-btn" id="accountSignOutBtn" type="button" hidden>
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
-
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Respaldo de progreso</span>
-              <span class="open-row-sub">Guarda borradores y preferencias automáticamente sin servidores propios.</span>
-            </div>
-            <span class="open-row-val mono" id="accountSyncMode">Memoria local activa</span>
-          </div>
-
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Acceso anticipado a PhotoStun</span>
-              <span class="open-row-sub" id="accountWaitlistSub">Reserva tu acceso desde la ficha oficial de Productos.</span>
-            </div>
-            <div class="inline-actions">
-              <span class="open-row-val mono" id="accountWaitlistStatus">No solicitado</span>
-              <a href="productos.html#acceso-photostun" class="text-action-btn" id="accountWaitlistLink">Registrar correo</a>
-            </div>
-          </div>
-
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Guardado automático en aplicaciones</span>
-              <span class="open-row-sub">Sincronizar sesiones de edición y ajustes al cambiar de herramienta.</span>
-            </div>
-            <button type="button" class="open-toggle-btn" id="prefCloudAutosaveBtn" data-pref="cloudAutosave" data-active="true">
-              ACTIVADO
+        <!-- BLOQUEO DE ACCESO CUANDO NO HAY SESIÓN INICIADA -->
+        <div id="accountAuthGate" class="auth-gate-open">
+          <span class="open-eyebrow mono" style="margin-bottom: 0;">AUTENTICACIÓN REQUERIDA</span>
+          <h2>Inicia sesión con Google para desbloquear tu espacio.</h2>
+          <p>
+            Al entrar con tu cuenta tendrás acceso directo al panel donde viven nuestras aplicaciones oficiales, podrás activar tu perfil público para trabajos y chatear en tiempo real con otros miembros.
+          </p>
+          <div class="inline-actions" style="margin-top: 8px;">
+            <button class="btn btn-white" id="accountSignInBtn" type="button">
+              <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
+                <path fill="currentColor" d="M12.17 20.5c2.7 0 4.97-.9 6.62-2.43l-3.22-2.5c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.24v2.58A9.99 9.99 0 0 0 12.17 20.5z"/>
+                <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
+                <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
+              </svg>
+              <span>Continuar con Google</span>
             </button>
-          </div>
-
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Avisos de nuevos lanzamientos</span>
-              <span class="open-row-sub">Recibir notificación cuando PhotoStun o una nueva utilidad esté disponible.</span>
-            </div>
-            <button type="button" class="open-toggle-btn" id="prefReleaseAlertsBtn" data-pref="releaseAlerts" data-active="true">
-              ACTIVADO
-            </button>
-          </div>
-
-          <div class="open-row">
-            <div>
-              <span class="open-row-title">Personas en línea ahora mismo</span>
-              <span class="open-row-sub">Sesiones activas en tiempo real en la web y servicios en la nube.</span>
-            </div>
-            <span class="open-row-val mono"><strong id="activeUsersCount">1</strong> en línea</span>
+            <a href="perfiles.html" class="link-editorial">
+              Explorar perfiles públicos <span class="arrow">→</span>
+            </a>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- HISTORIAL REAL DE PROPUESTAS Y MENSAJES ENVIADOS POR EL USUARIO -->
-    <section class="section-dark section-divider-top">
-      <div class="container">
-        <div class="infra-head">
-          <span class="open-eyebrow mono">ACTIVIDAD ENVIADA</span>
-          <h2>Tus mensajes y propuestas</h2>
-        </div>
+        <!-- ESPACIO DESBLOQUEADO SOLO AL INICIAR SESIÓN CON GOOGLE -->
+        <div id="authenticatedWorkspace" hidden>
+          <div class="workspace-nav-bar" role="tablist" aria-label="Secciones de tu espacio">
+            <button type="button" class="workspace-tab active" data-ws-tab="apps">Mis aplicaciones</button>
+            <button type="button" class="workspace-tab" data-ws-tab="profile">Mi perfil</button>
+            <button type="button" class="workspace-tab" data-ws-tab="messages" id="wsMessagesTabBtn">Mensajes y trabajos</button>
+            <button type="button" class="workspace-tab" data-ws-tab="settings">Ajustes y envíos</button>
+          </div>
 
-        <div id="accountSubmissionsList" class="submission-list"></div>
+          <!-- 1. MIS APLICACIONES -->
+          <div id="wsPanel-apps" class="workspace-panel">
+            <div class="infra-head" style="margin-bottom: 24px;">
+              <span class="open-eyebrow mono">LANZADOR DE APLICACIONES</span>
+              <h2>Herramientas conectadas a tu cuenta</h2>
+            </div>
 
-        <div class="inline-actions" style="margin-top: 36px;">
-          <a href="contacto.html" class="btn btn-white">
-            Enviar nueva propuesta <span class="arrow">→</span>
-          </a>
-          <button type="button" class="text-action-btn" id="clearLocalHistoryBtn" hidden>
-            Limpiar historial local
-          </button>
+            <div class="app-hub-list">
+              <article class="app-hub-row">
+                <div class="app-hub-main">
+                  <span class="app-hub-kicker mono">EDICIÓN FOTOGRÁFICA · EN DESARROLLO</span>
+                  <h3>PhotoStun</h3>
+                  <p>
+                    Estudio fotográfico de alta precisión en el navegador con curvas tonales, flujo no destructivo y respaldo automático de proyectos en tu espacio en la nube.
+                  </p>
+                </div>
+                <div class="app-hub-actions">
+                  <span class="work-status-inline mono">
+                    <span class="work-dot"></span>
+                    <span id="hubPhotostunState">Cuenta vinculada</span>
+                  </span>
+                  <button type="button" class="btn btn-white btn-sm" id="hubPhotostunPriorityBtn">
+                    Activar acceso prioritario
+                  </button>
+                  <a href="productos.html" class="text-action-btn">Ver especificaciones</a>
+                </div>
+              </article>
+
+              <article class="app-hub-row">
+                <div class="app-hub-main secondary-rail">
+                  <span class="app-hub-kicker mono">ECOSISTEMA · PRÓXIMOS MÓDULOS</span>
+                  <h3>Nuevas aplicaciones independientes</h3>
+                  <p>
+                    Todas las herramientas oficiales que vayamos lanzando aparecerán desbloqueadas directamente aquí, listas para abrirse en 1 clic con tu sesión actual.
+                  </p>
+                </div>
+                <div class="app-hub-actions">
+                  <a href="contacto.html" class="link-editorial" style="padding-right: 0;">
+                    Proponer próxima aplicación <span class="arrow">→</span>
+                  </a>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- 2. MI PERFIL PÚBLICO -->
+          <div id="wsPanel-profile" class="workspace-panel" hidden>
+            <div class="split-editorial">
+              <div class="editorial-stack">
+                <div>
+                  <span class="open-eyebrow mono">IDENTIDAD PÚBLICA</span>
+                  <h2>Tu perfil para trabajos</h2>
+                </div>
+                <p class="hero-lead" style="margin-bottom: 0;">
+                  Configura cómo apareces en el apartado de Perfiles para que otros usuarios o clientes puedan conocer tu especialidad y hablarte directamente.
+                </p>
+
+                <div class="arch-col">
+                  <span class="col-index mono">VISTA PREVIA</span>
+                  <div class="profile-identity" style="margin-top: 10px;">
+                    <img id="profilePreviewAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" />
+                    <div class="profile-meta-stack">
+                      <div class="profile-name-line">
+                        <h3 id="profilePreviewName">Tu nombre</h3>
+                        <span id="profilePreviewHandle" class="profile-handle mono">@usuario</span>
+                      </div>
+                      <span id="profilePreviewRole" class="profile-role">Miembro de Xuanii</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <a href="perfiles.html" class="link-editorial" style="padding-left: 0;">
+                    Abrir directorio público de Perfiles <span class="arrow">→</span>
+                  </a>
+                </div>
+              </div>
+
+              <form class="open-form" id="profileEditForm" novalidate>
+                <div class="field-line">
+                  <label for="profileDisplayName" class="mono">NOMBRE VISIBLE</label>
+                  <input type="text" id="profileDisplayName" class="line-input" maxlength="80" placeholder="Tu nombre o marca" required />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileHandle" class="mono">USUARIO (@ALIAS)</label>
+                  <input type="text" id="profileHandle" class="line-input mono" maxlength="32" placeholder="ej. xuanii" required />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileRole" class="mono">ESPECIALIDAD O ROL</label>
+                  <input type="text" id="profileRole" class="line-input" maxlength="80" placeholder="Ej. Editor visual, Desarrollador, Fotógrafo, Diseñador..." />
+                </div>
+
+                <div class="field-line">
+                  <label for="profileBio" class="mono">PRESENTACIÓN Y TRABAJOS QUE REALIZAS</label>
+                  <textarea id="profileBio" class="line-textarea" maxlength="500" placeholder="Describe en qué proyectos trabajas, tus habilidades o cómo puedes colaborar con otros..."></textarea>
+                </div>
+
+                <div class="open-rows">
+                  <div class="open-row">
+                    <div>
+                      <span class="open-row-title">Disponible para trabajos y proyectos</span>
+                      <span class="open-row-sub">Muestra un indicador activo en tu perfil para recibir encargos o colaboraciones.</span>
+                    </div>
+                    <button type="button" class="open-toggle-btn" id="profileAvailableBtn" data-active="true">
+                      DISPONIBLE
+                    </button>
+                  </div>
+
+                  <div class="open-row">
+                    <div>
+                      <span class="open-row-title">Visibilidad en el directorio</span>
+                      <span class="open-row-sub">Permite que otros visitantes encuentren tu perfil en el apartado Perfiles.</span>
+                    </div>
+                    <button type="button" class="open-toggle-btn" id="profilePublicBtn" data-active="true">
+                      PÚBLICO
+                    </button>
+                  </div>
+                </div>
+
+                <div class="inline-actions">
+                  <button type="submit" class="btn btn-white" id="profileSaveBtn">
+                    Guardar cambios del perfil <span class="arrow">→</span>
+                  </button>
+                </div>
+
+                <div class="form-feedback" id="profileSaveFeedback" hidden></div>
+              </form>
+            </div>
+          </div>
+
+          <!-- 3. MENSAJES DIRECTOS Y TRABAJOS -->
+          <div id="wsPanel-messages" class="workspace-panel" hidden>
+            <div class="chat-split-open">
+              <aside class="conv-list-open">
+                <span class="open-eyebrow mono" style="margin-bottom: 10px;">CONVERSACIONES</span>
+                <div id="conversationsList"></div>
+                <a href="perfiles.html" class="link-editorial" style="margin-top: 16px; padding-left: 0; font-size: 0.86rem;">
+                  Explorar perfiles <span class="arrow">→</span>
+                </a>
+              </aside>
+
+              <div class="chat-thread-open">
+                <div id="chatEmptyState" class="arch-col" style="align-self: start;">
+                  <span class="col-index mono">BANDEJA DIRECTA</span>
+                  <h3>Habla con otros miembros para trabajos</h3>
+                  <p>
+                    Selecciona una conversación en la columna izquierda o entra al apartado Perfiles y pulsa «Hablar / Proponer trabajo» sobre cualquier persona para conversar en tiempo real.
+                  </p>
+                </div>
+
+                <div id="chatActiveThread" class="chat-active-thread" hidden>
+                  <div class="chat-thread-header">
+                    <div class="chat-peer-info">
+                      <img id="chatPeerAvatar" src="favicon.svg" alt="" class="conv-item-avatar" />
+                      <div>
+                        <div class="profile-name-line">
+                          <h3 id="chatPeerName" style="font-size: 1.05rem;">Usuario</h3>
+                          <span id="chatPeerHandle" class="profile-handle mono"></span>
+                        </div>
+                        <span id="chatPeerRole" class="open-row-sub" style="margin-top: 0;"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="chatMessagesStream" class="chat-stream-open"></div>
+
+                  <form id="chatComposeForm" class="chat-compose-open" novalidate>
+                    <input
+                      type="text"
+                      id="chatMessageInput"
+                      class="line-input"
+                      maxlength="2000"
+                      placeholder="Escribe un mensaje sobre un trabajo, encargo o colaboración..."
+                      autocomplete="off"
+                      required
+                    />
+                    <button type="submit" class="btn btn-white btn-sm" id="chatSendBtn">
+                      Enviar <span class="arrow">→</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. AJUSTES DE CUENTA Y PROPUESTAS ENVIADAS -->
+          <div id="wsPanel-settings" class="workspace-panel" hidden>
+            <div class="infra-head" style="margin-bottom: 24px;">
+              <span class="open-eyebrow mono">SESIÓN Y SINCRONIZACIÓN</span>
+              <h2>Ajustes de tu cuenta</h2>
+            </div>
+
+            <div class="open-rows">
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Sesión de Google activa</span>
+                  <span class="open-row-sub" id="accountUserSub">Autenticado mediante Google OAuth 2.0.</span>
+                </div>
+                <div class="inline-actions">
+                  <span class="open-row-val mono" id="accountUserStatus">Conectado</span>
+                  <button class="text-action-btn" id="accountSignOutBtn" type="button">
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Guardado automático en aplicaciones</span>
+                  <span class="open-row-sub">Sincronizar proyectos y preferencias en la nube al cambiar de herramienta.</span>
+                </div>
+                <button type="button" class="open-toggle-btn" id="prefCloudAutosaveBtn" data-pref="cloudAutosave" data-active="true">
+                  ACTIVADO
+                </button>
+              </div>
+
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Avisos de nuevos lanzamientos</span>
+                  <span class="open-row-sub">Recibir notificación cuando PhotoStun o una nueva aplicación esté disponible.</span>
+                </div>
+                <button type="button" class="open-toggle-btn" id="prefReleaseAlertsBtn" data-pref="releaseAlerts" data-active="true">
+                  ACTIVADO
+                </button>
+              </div>
+
+              <div class="open-row">
+                <div>
+                  <span class="open-row-title">Personas en línea ahora mismo</span>
+                  <span class="open-row-sub">Sesiones activas en tiempo real en la plataforma y servicios en la nube.</span>
+                </div>
+                <span class="open-row-val mono"><strong id="activeUsersCount">1</strong> en línea</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 72px;">
+              <div class="infra-head" style="margin-bottom: 24px;">
+                <span class="open-eyebrow mono">BUZÓN DE PLATAFORMA</span>
+                <h2>Tus propuestas enviadas a Xuanii</h2>
+              </div>
+
+              <div id="accountSubmissionsList" class="submission-list"></div>
+
+              <div class="inline-actions" style="margin-top: 32px;">
+                <a href="contacto.html" class="btn btn-white btn-sm">
+                  Enviar propuesta a Xuanii <span class="arrow">→</span>
+                </a>
+                <button type="button" class="text-action-btn" id="clearLocalHistoryBtn" hidden>
+                  Limpiar historial local
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -188,9 +385,9 @@
 
       <div class="footer-links">
         <a href="productos.html">Productos</a>
+        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
-        <a href="cuenta.html">Cuenta</a>
         <a href="privacidad.html">Privacidad</a>
         <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
@@ -203,17 +400,12 @@
         <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
+      <h3 id="authModalTitle">Acceso con Google</h3>
       <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
+        Permite las ventanas emergentes en tu navegador para completar el inicio de sesión seguro con tu cuenta de Google.
       </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
       <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
+        Entendido
       </button>
     </div>
   </div>

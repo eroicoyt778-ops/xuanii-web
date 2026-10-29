@@ -9,13 +9,14 @@
 ## 2. Arquitectura Multi-Página del Portal Xuanii
 - **`xuanii.com` es exclusivamente el portal oficial y central de la marca.**
 - Las herramientas reales (como el editor fotográfico **PhotoStun**) **NO** se amontonan dentro de la portada principal: cada aplicación vivirá en su propio espacio/subdominio dedicado conectado a este portal.
-- El portal oficial cuenta con navegación multi-página real (sin enlaces ancla falsos de una sola página):
+- El portal oficial cuenta con navegación multi-página real y espacio privado desbloqueable con Google:
   - `index.html` — Portada principal con métrica abierta en vivo de *Personas en línea* y presentación general.
-  - `productos.html` — Ficha oficial de **PhotoStun** (con esquema interactivo de curva tonal y registro funcional de acceso anticipado / prioridad de funciones).
+  - `productos.html` — Ficha oficial de **PhotoStun** (con esquema interactivo de curva tonal y registro funcional de acceso anticipado).
+  - `perfiles.html` — Directorio público en tiempo real de miembros reales de la plataforma disponibles para trabajos, encargos y proyectos.
   - `novedades.html` — Línea de tiempo abierta con avances y hoja de ruta reales.
-  - `contacto.html` — Buzón funcional de propuestas, ideas de herramientas y mensajes directos por correo.
-  - `cuenta.html` — Panel de sesión con Google, preferencias sincronizadas e historial real de propuestas enviadas.
-  - `privacidad.html` — Política de privacidad y condiciones de uso (requerida para verificación de Google OAuth).
+  - `contacto.html` — Buzón funcional de propuestas, ideas de herramientas y mensajes directos por correo (`thexsactc@gmail.com`).
+  - `cuenta.html` (*Mi espacio*, protegido tras login con Google) — Al iniciar sesión redirige automáticamente aquí y desbloquea: **Mis aplicaciones** (lanzador conectado a **PhotoStun** y futuras apps), **Mi perfil** (editor público con `@alias`, especialidad y disponibilidad para trabajos), **Mensajes y trabajos** (chat directo en tiempo real entre miembros vía Firestore) y **Ajustes**.
+  - `privacidad.html` — Política de privacidad y condiciones de uso.
 
 ## 3. Identidad Visual y Tono Editorial
 - **Logo:** Emblema geométrico vectorial original `X` de doble hoja con corte arquitectónico en espacio negativo (`favicon.svg` e inline `currentColor`).

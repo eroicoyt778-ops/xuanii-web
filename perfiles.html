@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfiles — Xuanii</title>
+  <meta name="description" content="Directorio real de perfiles en Xuanii. Conecta y habla directamente con otros miembros para trabajos, encargos y proyectos." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="stripe-guides" aria-hidden="true">
+    <div class="guides-inner">
+      <span class="guide-line"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line dashed"></span>
+      <span class="guide-line"></span>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="productos.html">Productos</a>
+        <a href="perfiles.html" class="active">Perfiles</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
+          <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
+            <path fill="currentColor" d="M12.17 20.5c2.7 0 4.97-.9 6.62-2.43l-3.22-2.5c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.24v2.58A9.99 9.99 0 0 0 12.17 20.5z"/>
+            <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
+            <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
+          </svg>
+          <span>Iniciar sesión</span>
+        </button>
+
+        <div class="user-inline" id="navUserChip" hidden>
+          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
+          <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="hero-copy">
+          <span class="open-eyebrow mono">RED DE PERFILES</span>
+          <h1>
+            Conecta con miembros<br />
+            <span class="text-silver">para trabajos y proyectos.</span>
+          </h1>
+          <p class="hero-lead">
+            Directorio en tiempo real de las personas registradas en la plataforma. Inicia sesión con Google para publicar tu perfil profesional y hablar directamente con otros usuarios.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-dark">
+      <div class="container">
+        <div class="directory-toolbar">
+          <div class="topic-tabs" id="profileFilterTabs" role="tablist" aria-label="Filtrar perfiles">
+            <button type="button" class="topic-tab active" data-filter="all">Todos los perfiles</button>
+            <button type="button" class="topic-tab" data-filter="available">Disponibles para trabajos</button>
+          </div>
+
+          <div class="directory-search-wrap">
+            <input
+              type="search"
+              id="profileSearchInput"
+              class="line-input"
+              placeholder="Buscar por nombre, @usuario o especialidad..."
+              aria-label="Buscar perfiles"
+            />
+          </div>
+        </div>
+
+        <div id="profilesDirectoryList" class="profiles-open-list">
+          <div class="arch-col">
+            <span class="col-index mono">CARGANDO DIRECTORIO</span>
+            <p>Sincronizando perfiles reales desde la nube...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
+          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
+          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+        </svg>
+        <span class="brand-text">xuanii</span>
+      </a>
+
+      <span class="footer-copy mono">© 2026 Xuanii</span>
+
+      <div class="footer-links">
+        <a href="productos.html">Productos</a>
+        <a href="perfiles.html">Perfiles</a>
+        <a href="novedades.html">Novedades</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="authSetupModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <div class="modal-head">
+        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">
+        Permite las ventanas emergentes en tu navegador para completar el inicio de sesión seguro con tu cuenta de Google.
+      </p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
