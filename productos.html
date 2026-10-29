@@ -4,15 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Productos — Xuanii</title>
-  <meta name="description" content="Conoce PhotoStun, el editor fotográfico en navegador en desarrollo, y regístrate para el acceso anticipado." />
+  <meta name="description" content="Conoce PhotoStun, el estudio de edición fotográfica en navegador conectado a tu cuenta profesional de Xuanii." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -35,20 +39,14 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html" class="active">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"></circle>
-            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
-          </svg>
-        </button>
-
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -56,11 +54,11 @@
             <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
             <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
           </svg>
-          <span>Iniciar sesión</span>
+          <span>Entrar con Google</span>
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -69,107 +67,85 @@
   </header>
 
   <main>
-    <!-- ENCABEZADO EDITORIAL ABIERTO -->
     <section class="page-hero">
       <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono">PRODUCTOS OFICIALES</span>
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">SOFTWARE PROPIO</span>
           <h1>
-            Herramientas enfocadas,<br />
-            <span class="text-silver">sin ruido innecesario.</span>
+            Herramientas creativas<br />
+            <span class="text-silver">conectadas a tu perfil.</span>
           </h1>
           <p class="hero-lead">
-            Cada aplicación se desarrolla como un espacio independiente de alto rendimiento, conectado automáticamente a tu cuenta para respaldar tu trabajo en la nube.
+            Cada aplicación se desarrolla como un entorno de alto rendimiento en el navegador, integrado directamente con tu cuenta y nube personal de la red.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- FICHA ABIERTA DE PHOTOSTUN SOBRE FONDO BLANCO CON GUÍAS DE REJILLA -->
-    <section class="section-white-flat">
-      <div class="white-guides" aria-hidden="true">
-        <div class="guides-inner">
-          <span class="guide-line-dark"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark"></span>
-        </div>
-      </div>
-
+    <section class="section-obsidian-fade">
       <div class="container">
         <div class="editorial-showcase">
-          <div class="showcase-copy">
-            <span class="eyebrow-dark mono">EDICIÓN FOTOGRÁFICA · EN DESARROLLO</span>
+          <div class="showcase-copy" data-reveal>
+            <span class="open-eyebrow mono">EDICIÓN FOTOGRÁFICA · EN DESARROLLO</span>
             <h2>PhotoStun</h2>
             <p class="showcase-lead">
-              Un estudio de edición fotográfica directo en el navegador. Diseñado para ofrecer precisión tonal, flujo de trabajo limpio por capas y continuidad instantánea desde cualquier equipo.
+              Un estudio de edición fotográfica en el navegador pensado para precisión tonal, flujo limpio por capas y publicación directa en tu portafolio profesional.
             </p>
 
             <div class="open-callouts">
               <div class="callout-rail">
                 <span class="mono callout-domain">MOTOR ÓPTICO</span>
                 <h3>Curvas y luz en tiempo real</h3>
-                <p>Control fino de exposición, contraste y balance tonal sin tiempos de espera ni instalaciones pesadas.</p>
+                <p>Control fino de exposición, contraste y balance tonal sin instalaciones pesadas.</p>
               </div>
               <div class="callout-rail">
                 <span class="mono callout-domain">NUBE UNIFICADA</span>
                 <h3>Sesiones sincronizadas</h3>
-                <p>Inicia una edición, cierra el navegador y retómala exactamente donde quedaste con tu cuenta de Google.</p>
+                <p>Inicia una edición, cierra el navegador y retómala desde cualquier equipo con tu cuenta de Google.</p>
               </div>
             </div>
           </div>
 
-          <!-- Lienzo interactivo: mueve el cursor sobre las curvas tonales de PhotoStun -->
-          <div class="showcase-visual">
-            <canvas id="editorialPreviewCanvas" width="540" height="400" aria-label="Vista esquemática interactiva de curvas tonales de PhotoStun"></canvas>
+          <div class="showcase-visual" data-reveal style="--reveal-delay: 130ms;">
+            <canvas id="editorialPreviewCanvas" width="540" height="400" aria-label="Esquema interactivo de curvas tonales de PhotoStun"></canvas>
           </div>
         </div>
 
-        <!-- 3 PILARES ARQUITECTÓNICOS ABIERTOS -->
-        <div class="columns-3-open section-white-divider">
-          <div class="arch-col-dark">
+        <div class="columns-3-open section-soft-divider">
+          <div class="arch-col" data-reveal style="--reveal-delay: 40ms;">
             <span class="col-index mono">01 / PROCESADO</span>
             <h3>Edición no destructiva</h3>
-            <p>Modifica ajustes tonales, recortes y niveles en cualquier momento conservando intacta la fotografía original.</p>
+            <p>Modifica ajustes tonales, recortes y niveles conservando intacta la fotografía original.</p>
           </div>
-          <div class="arch-col-dark">
+          <div class="arch-col" data-reveal style="--reveal-delay: 110ms;">
             <span class="col-index mono">02 / FLUJO</span>
             <h3>Exportación inmediata</h3>
-            <p>Generación optimizada para web y alta resolución directamente desde la memoria local de tu navegador.</p>
+            <p>Generación optimizada para portafolio web y alta resolución directamente desde tu navegador.</p>
           </div>
-          <div class="arch-col-dark">
-            <span class="col-index mono">03 / IDENTIDAD</span>
-            <h3>Espacio dedicado</h3>
-            <p>PhotoStun contará con su propio entorno independiente conectado a tu perfil central de la plataforma.</p>
+          <div class="arch-col" data-reveal style="--reveal-delay: 180ms;">
+            <span class="col-index mono">03 / RED SOCIAL</span>
+            <h3>Vínculo con tu portafolio</h3>
+            <p>Publica tus resultados terminados en tu perfil profesional para atraer nuevos encargos y clientes.</p>
           </div>
         </div>
 
-        <!-- REGISTRO ABIERTO DE ACCESO ANTICIPADO Y VOTACIÓN DE PRIORIDAD -->
-        <div class="split-editorial section-white-divider" id="acceso-photostun">
-          <div>
-            <span class="eyebrow-dark mono">ACCESO ANTICIPADO</span>
+        <div class="split-editorial section-soft-divider" id="acceso-photostun">
+          <div data-reveal>
+            <span class="open-eyebrow mono">ACCESO ANTICIPADO</span>
             <h2>Reserva tu lugar para PhotoStun.</h2>
             <p class="showcase-lead" style="margin-bottom: 0;">
-              Déjanos tu correo y elige qué herramienta de edición te interesa probar primero cuando abramos la primera versión pública.
+              Registra tu correo y elige qué herramienta de edición quieres probar primero en el lanzamiento inicial.
             </p>
           </div>
 
-          <form class="open-form" id="photostunWaitlistForm" novalidate>
+          <form class="open-form" id="photostunWaitlistForm" novalidate data-reveal style="--reveal-delay: 120ms;">
             <div class="field-line">
               <label for="waitlistEmail" class="mono">CORREO ELECTRÓNICO</label>
-              <input
-                type="email"
-                id="waitlistEmail"
-                name="email"
-                class="line-input"
-                placeholder="nombre@correo.com"
-                required
-              />
+              <input type="email" id="waitlistEmail" name="email" class="line-input" placeholder="nombre@correo.com" required />
             </div>
 
             <div class="field-line">
-              <label for="waitlistPriority" class="mono">FUNCIÓN QUE MÁS TE INTERESA</label>
+              <label for="waitlistPriority" class="mono">FUNCIÓN PRIORITARIA</label>
               <select id="waitlistPriority" name="priority" class="line-select">
                 <option value="Curvas tonales y control de iluminación">Curvas tonales y control de iluminación</option>
                 <option value="Edición por capas no destructiva">Edición por capas no destructiva</option>
@@ -179,36 +155,13 @@
             </div>
 
             <div class="inline-actions">
-              <button type="submit" class="btn btn-black" id="waitlistSubmitBtn">
-                Solicitar acceso anticipado <span class="arrow">→</span>
+              <button type="submit" class="btn btn-white" id="waitlistSubmitBtn">
+                Solicitar acceso prioritario <span class="arrow">→</span>
               </button>
             </div>
 
             <div class="form-feedback" id="waitlistFeedback" hidden></div>
           </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- INVITACIÓN ABIERTA A PROPONER PRÓXIMOS PROYECTOS -->
-    <section class="section-dark">
-      <div class="container split-editorial">
-        <div>
-          <span class="open-eyebrow mono">PRÓXIMAS APLICACIONES</span>
-          <h2>Construimos lo que realmente necesitas.</h2>
-        </div>
-        <div class="editorial-stack">
-          <p class="hero-lead" style="margin-bottom: 0;">
-            No rellenamos la plataforma con experimentos genéricos. Si tienes en mente una herramienta puntual o una función especial para PhotoStun, envíanos tu propuesta directa.
-          </p>
-          <div class="inline-actions">
-            <a href="contacto.html" class="btn btn-white">
-              Proponer una herramienta <span class="arrow">→</span>
-            </a>
-            <a href="novedades.html" class="link-editorial">
-              Consultar avances actuales <span class="arrow">→</span>
-            </a>
-          </div>
         </div>
       </div>
     </section>
@@ -228,12 +181,12 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </footer>
@@ -241,21 +194,12 @@
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <div class="modal-head">
-        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
-      <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
-      </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
-      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
-      </button>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">Permite la ventana emergente en tu navegador para iniciar sesión de forma segura.</p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">Entendido</button>
     </div>
   </div>
 

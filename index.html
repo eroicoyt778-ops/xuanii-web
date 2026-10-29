@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Xuanii — Plataforma oficial</title>
-  <meta name="description" content="Portal oficial de Xuanii. Aplicaciones web independientes con cuenta unificada de Google y sincronización automática en la nube." />
+  <title>Xuanii — Red de talento digital, empleo y herramientas creativas</title>
+  <meta name="description" content="Conecta con editores de video, retocadores fotográficos, diseñadores y desarrolladores verificados. Consigue empleo digital, muestra tu portafolio real y chatea con cifrado extremo a extremo." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Guías arquitectónicas verticales de 4 columnas (ADN Stripe) -->
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -24,7 +23,6 @@
     </div>
   </div>
 
-  <!-- Navegación superior multi-página real -->
   <header class="navbar">
     <div class="container nav-inner">
       <a href="index.html" class="brand" aria-label="Xuanii Inicio">
@@ -37,20 +35,14 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"></circle>
-            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
-          </svg>
-        </button>
-
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -58,11 +50,11 @@
             <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
             <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
           </svg>
-          <span>Iniciar sesión</span>
+          <span>Entrar con Google</span>
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -71,7 +63,7 @@
   </header>
 
   <main>
-    <!-- HERO ABIERTO SOBRE LA REJILLA (CERO CAJAS) -->
+    <!-- HERO CON FONDO DE SEDA MONOCROMÁTICA FLUIDA Y DESVANECIDO ATMOSFÉRICO -->
     <section class="hero">
       <div class="hero-diagonal-wrap" aria-hidden="true">
         <canvas id="monochromeCanvas"></canvas>
@@ -79,16 +71,16 @@
       </div>
 
       <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono">PLATAFORMA DIGITAL</span>
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">RED PROFESIONAL DIGITAL · SEGURIDAD CIFRADA</span>
 
           <h1>
-            Infraestructura digital y<br />
-            <span class="text-silver">aplicaciones web independientes.</span>
+            Conecta con talento especializado<br />
+            <span class="text-silver">y consigue trabajo real.</span>
           </h1>
 
           <p class="hero-lead">
-            El portal central de Xuanii. Accede a nuestras herramientas especializadas con una sola cuenta de Google y mantén tu progreso sincronizado automáticamente en la nube.
+            La red social profesional para editores de video, retocadores de foto, diseñadores, programadores y creadores digitales. Muestra tus trabajos en foto, recibe calificaciones por estrellas y negocia encargos con mensajería cifrada en la nube.
           </p>
 
           <div class="hero-cta">
@@ -99,16 +91,15 @@
                 <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
                 <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
               </svg>
-              <span id="heroAuthBtnLabel">Continuar con Google</span>
+              <span id="heroAuthBtnLabel">Crear mi perfil con Google</span>
             </button>
-            <a href="productos.html" class="link-editorial">
-              Ver productos <span class="arrow">→</span>
+            <a href="perfiles.html" class="link-editorial">
+              Explorar especialistas y empleos <span class="arrow">→</span>
             </a>
           </div>
         </div>
 
-        <!-- MÉTRICA EN VIVO ABIERTA SOBRE LA LÍNEA DE REJILLA (SIN CAJA NI CÁPSULA) -->
-        <div class="hero-live-rail">
+        <div class="hero-live-rail" data-reveal style="--reveal-delay: 120ms;">
           <div class="rail-metric">
             <div class="rail-figure">
               <span class="live-dot" aria-hidden="true"></span>
@@ -116,118 +107,143 @@
             </div>
             <div class="rail-caption">
               <span class="rail-title">Personas en línea</span>
-              <span class="rail-sub">Activas ahora mismo en la web y en servicios en la nube</span>
+              <span class="rail-sub">Conectadas ahora mismo en la red y servicios en la nube</span>
+            </div>
+          </div>
+
+          <div class="rail-metric secondary-metric">
+            <div class="rail-figure">
+              <strong id="homeRegisteredCount" class="mono">—</strong>
+            </div>
+            <div class="rail-caption">
+              <span class="rail-title">Perfiles verificados</span>
+              <span class="rail-sub">Con ID único de seguridad y reputación por estrellas</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PRODUCTOS ABIERTOS ESTILO STRIPE (SECCIÓN BLANCA CON CORTE DIAGONAL Y CERO TARJETAS CERRADAS) -->
-    <section class="section-white-slant">
-      <div class="white-guides" aria-hidden="true">
-        <div class="guides-inner">
-          <span class="guide-line-dark"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark dashed"></span>
-          <span class="guide-line-dark"></span>
+    <!-- ARQUITECTURA DE CONFIANZA, REPUTACIÓN Y SEGURIDAD EN NEGRO CON DESVANECIDO SUAVE -->
+    <section class="section-obsidian-fade">
+      <div class="container">
+        <div class="infra-head" data-reveal>
+          <span class="open-eyebrow mono">EMPLEO DIGITAL Y CONFIANZA</span>
+          <h2>Diseñada para contratar sin humo y trabajar con máxima seguridad.</h2>
+        </div>
+
+        <div class="columns-4-open">
+          <div class="arch-col" data-reveal style="--reveal-delay: 40ms;">
+            <span class="col-index mono">01 · IDENTIDAD</span>
+            <h3>Perfil y portafolio visual</h3>
+            <p>Indica tu especialidad digital —edición de video, foto, diseño o programación—, si buscas empleo y sube muestras fotográficas reales a tu muro.</p>
+          </div>
+          <div class="arch-col" data-reveal style="--reveal-delay: 110ms;">
+            <span class="col-index mono">02 · REPUTACIÓN</span>
+            <h3>Valoración con estrellas</h3>
+            <p>Cada cliente o colaborador puede calificar de 1 a 5 estrellas cómo quedó el trabajo terminado, construyendo una reputación transparente.</p>
+          </div>
+          <div class="arch-col" data-reveal style="--reveal-delay: 180ms;">
+            <span class="col-index mono">03 · PRIVACIDAD</span>
+            <h3>Chat cifrado y filtro 1/1</h3>
+            <p>Mensajes cifrados extremo a extremo (AES-256-GCM). Si alguien no está en tus contactos, solo puede enviarte un mensaje hasta que aceptes hablar.</p>
+          </div>
+          <div class="arch-col" data-reveal style="--reveal-delay: 250ms;">
+            <span class="col-index mono">04 · PROTECCIÓN</span>
+            <h3>ID interno anti-estafas</h3>
+            <p>Toda cuenta recibe un código interno inalterable (<code>XN-...</code>) para reportes inmediatos y bloqueo permanente ante cualquier intento de fraude.</p>
+          </div>
         </div>
       </div>
+    </section>
 
+    <!-- ESPECIALIDADES Y COMUNIDADES ACTIVAS -->
+    <section class="section-dark">
+      <div class="container split-editorial">
+        <div data-reveal>
+          <span class="open-eyebrow mono">COMUNIDADES Y ESPECIALIDADES</span>
+          <h2>Un punto de encuentro para oficios digitales reales.</h2>
+          <p class="showcase-lead" style="margin-top: 16px; margin-bottom: 24px;">
+            Únete con tu cuenta de Google, elige tu nombre de usuario y participa en canales especializados para encontrar equipo, resolver dudas técnicas o publicar encargos.
+          </p>
+          <a href="cuenta.html?tab=communities" class="link-editorial">
+            Entrar a las comunidades <span class="arrow">→</span>
+          </a>
+        </div>
+
+        <div class="open-rows" data-reveal style="--reveal-delay: 120ms;">
+          <div class="open-row">
+            <div>
+              <span class="open-row-title">Edición de Video y Motion Graphics</span>
+              <span class="open-row-sub">Montaje para creadores, documental, publicidad, colorimetría y efectos visuales.</span>
+            </div>
+            <span class="open-row-val mono">#video-motion</span>
+          </div>
+          <div class="open-row">
+            <div>
+              <span class="open-row-title">Edición de Foto y Retoque Digital</span>
+              <span class="open-row-sub">Revelado RAW, corrección óptica, fotografía comercial y ecosistema PhotoStun.</span>
+            </div>
+            <span class="open-row-val mono">#foto-retoque</span>
+          </div>
+          <div class="open-row">
+            <div>
+              <span class="open-row-title">Diseño Gráfico, UI/UX y 3D</span>
+              <span class="open-row-sub">Identidad de marca, interfaces web/móvil, miniaturas, ilustración y modelado.</span>
+            </div>
+            <span class="open-row-val mono">#diseno-ui</span>
+          </div>
+          <div class="open-row">
+            <div>
+              <span class="open-row-title">Desarrollo Web, Software y Audio</span>
+              <span class="open-row-sub">Aplicaciones web, automatización, diseño sonoro y producción audiovisual.</span>
+            </div>
+            <span class="open-row-val mono">#desarrollo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ECOSISTEMA DE APLICACIONES PROPIAS EN NEGRO OBSIDIANA CON DESVANECIDO SUAVE -->
+    <section class="section-obsidian-fade">
       <div class="container">
         <div class="editorial-showcase">
-          <div class="showcase-copy">
-            <span class="eyebrow-dark mono">PRODUCTOS</span>
-            <h2>Aplicaciones propias, unidas a una sola cuenta.</h2>
+          <div class="showcase-copy" data-reveal>
+            <span class="open-eyebrow mono">HERRAMIENTAS PROPIAS INTEGRADAS</span>
+            <h2>Una misma cuenta para la red y nuestras aplicaciones.</h2>
             <p class="showcase-lead">
-              Construimos herramientas web enfocadas y ligeras. Cada proyecto tiene su propia identidad y espacio dedicado, conectado en tiempo real a tu perfil.
+              Además de conectar profesionales y clientes, desarrollamos software creativo ligero en el navegador vinculado directamente a tu perfil y nube personal.
             </p>
 
             <div class="open-callouts">
               <div class="callout-rail">
-                <span class="mono callout-domain">EDICIÓN VISUAL · PRÓXIMAMENTE</span>
+                <span class="mono callout-domain">ESTUDIO FOTOGRÁFICO · EN DESARROLLO</span>
                 <h3>PhotoStun</h3>
-                <p>Edición fotográfica de alta precisión en el navegador con flujo ágil y guardado automático de sesiones en la nube.</p>
+                <p>Edición fotográfica de precisión tonal en navegador con sesiones sincronizadas automáticamente en tu cuenta.</p>
               </div>
 
               <div class="callout-rail">
-                <span class="mono callout-domain">BUZÓN ABIERTO</span>
-                <h3>Nuevas herramientas</h3>
-                <p>Propón qué utilidades creativas independientes quieres ver construidas en el próximo lanzamiento.</p>
+                <span class="mono callout-domain">NUBE UNIFICADA</span>
+                <h3>Archivos siempre seguros</h3>
+                <p>Guarda referencias, muestras de portafolio y notas de clientes respaldadas en Google Cloud sin pasos extra.</p>
               </div>
             </div>
 
-            <a href="productos.html" class="link-editorial-dark">
-              Explorar PhotoStun y próximos lanzamientos <span class="arrow">→</span>
-            </a>
+            <div style="margin-top: 28px;">
+              <a href="productos.html" class="link-editorial">
+                Conocer PhotoStun y próximos lanzamientos <span class="arrow">→</span>
+              </a>
+            </div>
           </div>
 
-          <div class="showcase-visual" aria-hidden="true">
+          <div class="showcase-visual" aria-hidden="true" data-reveal style="--reveal-delay: 140ms;">
             <canvas id="editorialPreviewCanvas" width="540" height="400"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ARQUITECTURA ABIERTA SOBRE LAS 4 COLUMNAS DE LA REJILLA -->
-    <section class="section-dark">
-      <div class="container">
-        <div class="infra-head">
-          <span class="open-eyebrow mono">PLATAFORMA</span>
-          <h2>Una sola sesión en todas nuestras herramientas.</h2>
-        </div>
-
-        <div class="columns-4-open">
-          <div class="arch-col">
-            <span class="col-index mono">01</span>
-            <h3>Acceso con Google</h3>
-            <p>Inicio de sesión inmediato mediante OAuth 2.0 sin crear contraseñas nuevas.</p>
-          </div>
-          <div class="arch-col">
-            <span class="col-index mono">02</span>
-            <h3>Progreso en la nube</h3>
-            <p>Tus proyectos y ajustes se respaldan automáticamente sin servidores intermedios.</p>
-          </div>
-          <div class="arch-col">
-            <span class="col-index mono">03</span>
-            <h3>Módulos independientes</h3>
-            <p>Cada aplicación carga únicamente lo necesario para responder al instante.</p>
-          </div>
-          <div class="arch-col">
-            <span class="col-index mono">04</span>
-            <h3>Contacto directo</h3>
-            <p>Envía ideas o sugerencias por correo para priorizar las funciones que realmente usas.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LLAMADO EDITORIAL ABIERTO HACIA CONTACTO Y PROPUESTAS -->
-    <section class="section-dark section-divider-top">
-      <div class="container split-editorial">
-        <div>
-          <span class="open-eyebrow mono">PARTICIPA</span>
-          <h2>¿Qué herramienta quieres que creemos?</h2>
-        </div>
-        <div class="editorial-stack">
-          <p class="hero-lead" style="margin-bottom: 0;">
-            Revisamos personalmente cada mensaje para decidir nuevas aplicaciones web y mejoras para PhotoStun. Escríbenos directamente desde el buzón de contacto.
-          </p>
-          <div class="inline-actions">
-            <a href="contacto.html" class="btn btn-white">
-              Enviar propuesta o mensaje <span class="arrow">→</span>
-            </a>
-            <a href="novedades.html" class="link-editorial">
-              Ver hoja de ruta <span class="arrow">→</span>
-            </a>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- PIE DE PÁGINA ABIERTO Y MINIMALISTA -->
   <footer class="footer">
     <div class="container footer-inner">
       <a href="index.html" class="brand">
@@ -242,34 +258,28 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </footer>
 
-  <!-- MODAL PARA VINCULAR CREDENCIALES DE FIREBASE -->
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <div class="modal-head">
-        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
+      <h3 id="authModalTitle">Acceso con Google</h3>
       <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
+        Permite la ventana emergente de Google en tu navegador para iniciar sesión de forma segura.
       </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
       <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
+        Entendido
       </button>
     </div>
   </div>

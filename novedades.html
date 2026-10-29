@@ -4,15 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Novedades — Xuanii</title>
-  <meta name="description" content="Registro oficial de avances, arquitectura y hoja de ruta de Xuanii y PhotoStun." />
+  <meta name="description" content="Registro oficial de avances, arquitectura de seguridad y hoja de ruta de la red profesional Xuanii y PhotoStun." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -35,20 +39,14 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html" class="active">Novedades</a>
         <a href="contacto.html">Contacto</a>
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"></circle>
-            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
-          </svg>
-        </button>
-
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -56,11 +54,11 @@
             <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
             <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
           </svg>
-          <span>Iniciar sesión</span>
+          <span>Entrar con Google</span>
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -71,80 +69,59 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono">NOVEDADES Y HOJA DE RUTA</span>
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">REGISTRO DE AVANCES</span>
           <h1>
-            Registro oficial de<br />
-            <span class="text-silver">avances y lanzamientos.</span>
+            Evolución real,<br />
+            <span class="text-silver">paso a paso.</span>
           </h1>
           <p class="hero-lead">
-            Seguimiento transparente de lo que estamos construyendo ahora mismo, sin anuncios inflados ni proyectos de relleno.
+            Documentación transparente de las funciones lanzadas en la red profesional, protocolos de seguridad y avances en nuestras herramientas creativas.
           </p>
         </div>
       </div>
     </section>
 
     <section class="section-dark">
-      <div class="container">
-        <div class="open-timeline">
-          <article class="timeline-entry">
-            <div class="timeline-meta">
-              <span class="timeline-date mono">EN DESARROLLO</span>
-              <span class="timeline-tag mono">PHOTOSTUN</span>
-            </div>
-            <div class="timeline-body">
-              <h3>Arquitectura del editor fotográfico PhotoStun</h3>
-              <p>
-                Diseño del núcleo de edición no destructiva en el navegador, control interactivo de curvas tonales y sincronización directa de sesiones con la cuenta unificada. Ya está abierta la lista de acceso anticipado para priorizar las primeras herramientas del estudio.
-              </p>
-              <a href="productos.html#acceso-photostun" class="link-editorial" style="margin-top: 14px; padding-left: 0;">
-                Unirse al acceso anticipado de PhotoStun <span class="arrow">→</span>
-              </a>
-            </div>
-          </article>
+      <div class="container open-timeline">
+        <article class="timeline-entry" data-reveal>
+          <div class="timeline-meta">
+            <span class="timeline-date mono">ACTUALIZACIÓN ACTUAL</span>
+            <span class="timeline-tag mono">RED SOCIAL · CIFRADO</span>
+          </div>
+          <div class="timeline-body">
+            <h3>Red de empleo digital, estrellas, portafolio en fotos y chat cifrado</h3>
+            <p>
+              Lanzamiento de perfiles especializados por oficio digital con portafolio fotográfico integrado, calificación verificada de 1 a 5 estrellas, comunidades en vivo, mensajería cifrada AES-256-GCM con límite de 1 mensaje para desconocidos e identificador interno anti-estafas.
+            </p>
+          </div>
+        </article>
 
-          <article class="timeline-entry">
-            <div class="timeline-meta">
-              <span class="timeline-date mono">OCTUBRE 2026</span>
-              <span class="timeline-tag mono">COMUNIDAD Y CONTACTO</span>
-            </div>
-            <div class="timeline-body">
-              <h3>Apertura del buzón directo de propuestas</h3>
-              <p>
-                Habilitamos un apartado dedicado para recibir ideas de nuevas aplicaciones, sugerencias de flujo fotográfico y mensajes directos por correo, permitiendo que los usuarios influyan en los próximos desarrollos desde el primer día.
-              </p>
-              <a href="contacto.html" class="link-editorial" style="margin-top: 14px; padding-left: 0;">
-                Enviar una propuesta <span class="arrow">→</span>
-              </a>
-            </div>
-          </article>
+        <article class="timeline-entry" data-reveal style="--reveal-delay: 80ms;">
+          <div class="timeline-meta">
+            <span class="timeline-date mono">EN DESARROLLO</span>
+            <span class="timeline-tag mono">PHOTOSTUN</span>
+          </div>
+          <div class="timeline-body">
+            <h3>Motor óptico y curvas tonales de PhotoStun</h3>
+            <p>
+              Construcción del núcleo de edición fotográfica no destructiva en el navegador con guardado automático en tu cuenta unificada de Google.
+            </p>
+          </div>
+        </article>
 
-          <article class="timeline-entry">
-            <div class="timeline-meta">
-              <span class="timeline-date mono">OCTUBRE 2026</span>
-              <span class="timeline-tag mono">INFRAESTRUCTURA</span>
-            </div>
-            <div class="timeline-body">
-              <h3>Identidad unificada con Google y nube sin servidores</h3>
-              <p>
-                Integración de inicio de sesión mediante Google OAuth 2.0, panel de preferencias de cuenta y conteo en tiempo real de sesiones activas en la plataforma y servicios en la nube.
-              </p>
-            </div>
-          </article>
-
-          <article class="timeline-entry">
-            <div class="timeline-meta">
-              <span class="timeline-date mono">OCTUBRE 2026</span>
-              <span class="timeline-tag mono">PORTAL OFICIAL</span>
-            </div>
-            <div class="timeline-body">
-              <h3>Lanzamiento de la base visual de Xuanii</h3>
-              <p>
-                Publicación del portal central con identidad geométrica original y sistema editorial monocromático sobre rejilla arquitectónica de cuatro columnas.
-              </p>
-            </div>
-          </article>
-        </div>
+        <article class="timeline-entry" data-reveal style="--reveal-delay: 160ms;">
+          <div class="timeline-meta">
+            <span class="timeline-date mono">INFRAESTRUCTURA</span>
+            <span class="timeline-tag mono">GOOGLE CLOUD</span>
+          </div>
+          <div class="timeline-body">
+            <h3>Autenticación OAuth 2.0 y base de datos en tiempo real</h3>
+            <p>
+              Despliegue serverless con respaldo instantáneo en Cloud Firestore, reglas de seguridad criptográficas y presencia en vivo.
+            </p>
+          </div>
+        </article>
       </div>
     </section>
   </main>
@@ -163,12 +140,12 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </footer>
@@ -176,21 +153,12 @@
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <div class="modal-head">
-        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
-      <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
-      </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
-      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
-      </button>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">Permite la ventana emergente en tu navegador para iniciar sesión de forma segura.</p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">Entendido</button>
     </div>
   </div>
 

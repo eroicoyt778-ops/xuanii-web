@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contacto y propuestas — Xuanii</title>
-  <meta name="description" content="Envía propuestas de nuevas herramientas, sugerencias para PhotoStun o mensajes directos por correo." />
+  <title>Contacto y soporte — Xuanii</title>
+  <meta name="description" content="Envía propuestas de herramientas, reportes de seguridad o consultas directas al equipo de Xuanii." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -35,20 +39,14 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html" class="active">Contacto</a>
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"></circle>
-            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
-          </svg>
-        </button>
-
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -56,11 +54,11 @@
             <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
             <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
           </svg>
-          <span>Iniciar sesión</span>
+          <span>Entrar con Google</span>
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -71,14 +69,14 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono">BUZÓN DIRECTO</span>
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">CANAL DIRECTO</span>
           <h1>
-            Envíanos tu idea<br />
-            <span class="text-silver">o escríbenos por correo.</span>
+            Hablemos sobre ideas,<br />
+            <span class="text-silver">seguridad o nuevas herramientas.</span>
           </h1>
           <p class="hero-lead">
-            Cuéntanos qué herramientas te gustaría que construyamos, qué funciones quieres ver en PhotoStun o envíanos cualquier consulta técnica directamente.
+            Escríbenos para proponer funciones para la red profesional y PhotoStun, solicitar verificación o reportar cualquier incidencia.
           </p>
         </div>
       </div>
@@ -86,91 +84,48 @@
 
     <section class="section-dark">
       <div class="container split-editorial">
-        <!-- Columna izquierda informativa abierta sobre la rejilla -->
-        <div class="editorial-stack">
+        <div class="editorial-stack" data-reveal>
           <div class="arch-col">
-            <span class="col-index mono">01 / PROPUESTAS</span>
-            <h3>Nuevas herramientas web</h3>
-            <p>Si necesitas una utilidad puntual y bien hecha, descríbela aquí para evaluarla como próximo proyecto independiente.</p>
+            <span class="col-index mono">MODERACIÓN Y SEGURIDAD</span>
+            <h3>Protección por ID interno</h3>
+            <p>Si necesitas reportar a un usuario dentro de la plataforma, recuerda incluir su código <code>XN-...</code> o usar el panel directo de Seguridad en tu cuenta.</p>
           </div>
-
           <div class="arch-col">
-            <span class="col-index mono">02 / PHOTOSTUN</span>
-            <h3>Funciones del editor</h3>
-            <p>Sugiere controles fotográficos, formatos de archivo o flujos de edición que te gustaría utilizar en el lanzamiento.</p>
-          </div>
-
-          <div class="arch-col">
-            <span class="col-index mono">03 / SEGUIMIENTO</span>
-            <h3>Revisión directa</h3>
-            <p>Cada envío llega al buzón de correo y queda registrado en tu apartado de Cuenta para que puedas consultarlo cuando quieras.</p>
-          </div>
-
-          <div>
-            <a href="cuenta.html" class="link-editorial" style="padding-left: 0;">
-              Ver tus mensajes enviados <span class="arrow">→</span>
-            </a>
+            <span class="col-index mono">ECOSISTEMA</span>
+            <h3>Propuestas de producto</h3>
+            <p>Leemos cada sugerencia para priorizar las próximas herramientas y comunidades especializadas.</p>
           </div>
         </div>
 
-        <!-- Formulario abierto con líneas inferiores de 1px (cero cajas cerradas) -->
-        <form class="open-form" id="contactForm" novalidate>
-          <div class="field-line">
-            <label class="mono">TIPO DE MENSAJE</label>
-            <div class="topic-tabs" role="tablist" aria-label="Categoría del mensaje">
-              <button type="button" class="topic-tab active" data-topic="Propuesta de herramienta">Proponer herramienta</button>
-              <button type="button" class="topic-tab" data-topic="Sugerencia para PhotoStun">Idea para PhotoStun</button>
-              <button type="button" class="topic-tab" data-topic="Soporte o consulta">Soporte o consulta</button>
-              <button type="button" class="topic-tab" data-topic="Otro mensaje">Otro</button>
+        <form class="open-form" id="contactForm" novalidate data-reveal style="--reveal-delay: 120ms;">
+          <div>
+            <div class="topic-tabs" role="tablist" aria-label="Tipo de mensaje">
+              <button type="button" class="topic-tab active" data-topic="Propuesta de herramienta">Propuesta</button>
+              <button type="button" class="topic-tab" data-topic="Seguridad y moderación">Seguridad / ID</button>
+              <button type="button" class="topic-tab" data-topic="Sugerencia para PhotoStun">PhotoStun</button>
+              <button type="button" class="topic-tab" data-topic="Contacto general">General</button>
             </div>
-            <input type="hidden" id="contactCategory" name="category" value="Propuesta de herramienta" />
+            <input type="hidden" id="contactCategory" value="Propuesta de herramienta" />
           </div>
 
           <div class="field-line">
-            <label for="contactName" class="mono">NOMBRE</label>
-            <input
-              type="text"
-              id="contactName"
-              name="name"
-              class="line-input"
-              placeholder="Tu nombre"
-              required
-            />
+            <label for="contactName" class="mono">TU NOMBRE</label>
+            <input type="text" id="contactName" class="line-input" placeholder="Nombre o usuario" required />
           </div>
 
           <div class="field-line">
-            <label for="contactEmail" class="mono">CORREO ELECTRÓNICO DE RESPUESTA</label>
-            <input
-              type="email"
-              id="contactEmail"
-              name="email"
-              class="line-input"
-              placeholder="nombre@correo.com"
-              required
-            />
+            <label for="contactEmail" class="mono">CORREO DE RESPUESTA</label>
+            <input type="email" id="contactEmail" class="line-input" placeholder="nombre@correo.com" required />
           </div>
 
           <div class="field-line">
-            <label for="contactSubject" class="mono">ASUNTO O IDEA PRINCIPAL</label>
-            <input
-              type="text"
-              id="contactSubject"
-              name="subject"
-              class="line-input"
-              placeholder="Ej. Herramienta que me gustaría ver o mejora para PhotoStun"
-              required
-            />
+            <label for="contactSubject" class="mono">ASUNTO</label>
+            <input type="text" id="contactSubject" class="line-input" placeholder="Resumen breve de tu mensaje" required />
           </div>
 
           <div class="field-line">
-            <label for="contactMessage" class="mono">MENSAJE DETALLADO</label>
-            <textarea
-              id="contactMessage"
-              name="message"
-              class="line-textarea"
-              placeholder="Explica con detalle qué te gustaría que hagamos o el motivo de tu mensaje..."
-              required
-            ></textarea>
+            <label for="contactMessage" class="mono">MENSAJE</label>
+            <textarea id="contactMessage" class="line-textarea" placeholder="Escribe todos los detalles aquí..." required></textarea>
           </div>
 
           <div class="inline-actions">
@@ -199,12 +154,12 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </footer>
@@ -212,21 +167,12 @@
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <div class="modal-head">
-        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
-      <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
-      </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
-      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
-      </button>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">Permite la ventana emergente en tu navegador para iniciar sesión de forma segura.</p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">Entendido</button>
     </div>
   </div>
 

@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacidad y condiciones — Xuanii</title>
-  <meta name="description" content="Política de privacidad, uso de autenticación con Google y condiciones de servicio de Xuanii." />
+  <title>Privacidad y seguridad — Xuanii</title>
+  <meta name="description" content="Política de privacidad, cifrado extremo a extremo en mensajería, uso de ID interno anti-fraude y autenticación con Google en Xuanii." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
   <div class="stripe-guides" aria-hidden="true">
     <div class="guides-inner">
       <span class="guide-line"></span>
@@ -35,20 +39,14 @@
       </a>
 
       <nav class="nav-links" aria-label="Navegación principal">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-quick-btn" id="navThemeToggleBtn" type="button" title="Cambiar entre Blanco y Negro" aria-label="Cambiar tema de color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"></circle>
-            <path d="M12 4a8 8 0 0 0 0 16V4z" fill="currentColor"></path>
-          </svg>
-        </button>
-
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -56,11 +54,11 @@
             <path fill="currentColor" d="M6.56 12.4a5.98 5.98 0 0 1 0-3.8V6.02H3.24a10 10 0 0 0 0 8.96l3.32-2.58z"/>
             <path fill="currentColor" d="M12.17 6.47c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.13 3.47 14.87 2.5 12.17 2.5A9.99 9.99 0 0 0 3.24 6.02l3.32 2.58c.79-2.37 3-4.13 5.61-4.13z"/>
           </svg>
-          <span>Iniciar sesión</span>
+          <span>Entrar con Google</span>
         </button>
 
         <div class="user-inline" id="navUserChip" hidden>
-          <img id="navUserAvatar" src="" alt="" class="user-avatar" />
+          <img id="navUserAvatar" src="favicon.svg" alt="" class="user-avatar" />
           <a href="cuenta.html" id="navUserName" class="user-name workspace-pill-link"></a>
           <button class="btn-signout mono" id="navSignOutBtn" type="button">Salir</button>
         </div>
@@ -71,56 +69,47 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <div class="hero-copy">
-          <span class="open-eyebrow mono">INFORMACIÓN LEGAL</span>
+        <div class="hero-copy" data-reveal>
+          <span class="open-eyebrow mono">SEGURIDAD Y TRANSPARENCIA</span>
           <h1>
-            Privacidad y<br />
-            <span class="text-silver">condiciones de uso.</span>
+            Privacidad, cifrado y<br />
+            <span class="text-silver">reglas de convivencia.</span>
           </h1>
           <p class="hero-lead">
-            Tratamiento claro y responsable de tu cuenta de Google, tus archivos de trabajo y los mensajes enviados en la plataforma.
+            Cómo protegemos tu identidad, tus archivos y tus conversaciones dentro de la red profesional.
           </p>
         </div>
       </div>
     </section>
 
     <section class="section-dark">
-      <div class="container">
-        <div class="legal-prose">
-          <div class="legal-block">
-            <h2>1. Acceso mediante Google OAuth</h2>
-            <p>
-              Cuando inicias sesión con Google, recibimos únicamente tu identificador básico de perfil (nombre visible, correo electrónico y fotografía de avatar). No solicitamos ni almacenamos contraseñas, ni accedemos a datos privados ajenos a la plataforma.
-            </p>
-          </div>
+      <div class="container legal-prose">
+        <div class="legal-block" data-reveal>
+          <h2>1. Autenticación segura con Google</h2>
+          <p>
+            El acceso se realiza exclusivamente mediante Google OAuth 2.0. Nunca solicitamos ni almacenamos tu contraseña personal; solo asociamos tu identificador único para respaldar tu perfil y portafolio en Google Cloud.
+          </p>
+        </div>
 
-          <div class="legal-block">
-            <h2>2. Sincronización de progreso y herramientas</h2>
-            <p>
-              Las preferencias de usuario y sesiones de trabajo en nuestras aplicaciones (como borradores de edición en PhotoStun) se sincronizan en servicios en la nube exclusivamente para que puedas retomar tu progreso desde cualquier navegador.
-            </p>
-          </div>
+        <div class="legal-block" data-reveal style="--reveal-delay: 70ms;">
+          <h2>2. Mensajería cifrada y protección ante desconocidos</h2>
+          <p>
+            Los mensajes privados utilizan cifrado criptográfico WebCrypto (AES-256-GCM) en el navegador antes de almacenarse en la nube. Además, cuando dos personas no están conectadas como contactos, el remitente solo puede enviar un único mensaje de presentación hasta que el destinatario acepte la conversación.
+          </p>
+        </div>
 
-          <div class="legal-block">
-            <h2>3. Mensajes, propuestas y lista de espera</h2>
-            <p>
-              Los datos proporcionados en el buzón de Contacto o en el registro de acceso anticipado se utilizan únicamente para revisar propuestas de desarrollo, responder consultas técnicas o notificar lanzamientos solicitados por el usuario. Nunca vendemos ni cedemos listas de correo a terceros.
-            </p>
-          </div>
+        <div class="legal-block" data-reveal style="--reveal-delay: 140ms;">
+          <h2>3. Identificador interno y tolerancia cero ante fraudes</h2>
+          <p>
+            Cada cuenta registrada posee un identificador interno inmutable (<code>XN-...</code>). Cualquier intento de estafa, suplantación o abuso reportado y verificado conlleva la suspensión permanente de la cuenta a nivel de base de datos.
+          </p>
+        </div>
 
-          <div class="legal-block">
-            <h2>4. Conteo de sesiones activas</h2>
-            <p>
-              El indicador en tiempo real de personas en línea registra señales efímeras de presencia para mostrar la actividad actual del servicio, eliminándose automáticamente al finalizar la sesión.
-            </p>
-          </div>
-
-          <div class="legal-block">
-            <h2>5. Control y eliminación de tus datos</h2>
-            <p>
-              Puedes desconectar tu sesión o borrar tu historial local en cualquier momento desde el apartado Cuenta, así como solicitar la baja definitiva de tus registros enviando un mensaje desde el apartado Contacto.
-            </p>
-          </div>
+        <div class="legal-block" data-reveal style="--reveal-delay: 210ms;">
+          <h2>4. Propiedad y exportación de tus datos</h2>
+          <p>
+            Todas las fotografías de portafolio, notas privadas y ajustes que subas te pertenecen. Puedes eliminar cualquier publicación al instante o descargar un respaldo completo en formato JSON desde el apartado de Seguridad.
+          </p>
         </div>
       </div>
     </section>
@@ -140,12 +129,12 @@
       <span class="footer-copy mono">© 2026 Xuanii</span>
 
       <div class="footer-links">
+        <a href="perfiles.html">Talento y empleo</a>
+        <a href="cuenta.html?tab=communities">Comunidades</a>
         <a href="productos.html">Productos</a>
-        <a href="perfiles.html">Perfiles</a>
         <a href="novedades.html">Novedades</a>
         <a href="contacto.html">Contacto</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="https://github.com/eroicoyt778-ops" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </footer>
@@ -153,21 +142,12 @@
   <div class="modal-backdrop" id="authSetupModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <div class="modal-head">
-        <span class="mono modal-kicker">GOOGLE AUTH · SERVERLESS</span>
+        <span class="mono modal-kicker">GOOGLE AUTH · CIFRADO</span>
         <button class="modal-close" id="closeAuthModalBtn" type="button" aria-label="Cerrar">✕</button>
       </div>
-      <h3 id="authModalTitle">Activar acceso con Google</h3>
-      <p class="modal-desc">
-        La autenticación y sincronización en la nube funciona sobre <strong>Firebase</strong> (plan gratuito de Google, sin servidores propios).
-      </p>
-      <ol class="modal-steps mono">
-        <li>1. Crea un proyecto en <strong>console.firebase.google.com</strong></li>
-        <li>2. Activa <strong>Authentication → Google</strong> y <strong>Cloud Firestore</strong></li>
-        <li>3. Pega la configuración web en <strong>firebase-config.js</strong></li>
-      </ol>
-      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">
-        Cerrar
-      </button>
+      <h3 id="authModalTitle">Acceso con Google</h3>
+      <p class="modal-desc">Permite la ventana emergente en tu navegador para iniciar sesión de forma segura.</p>
+      <button class="btn btn-white btn-block" id="closeAuthModalAction" type="button">Entendido</button>
     </div>
   </div>
 
