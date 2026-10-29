@@ -10,7 +10,7 @@
   --line-dark: rgba(255, 255, 255, 0.08);
   --line-dark-strong: rgba(255, 255, 255, 0.22);
   --line-active: rgba(255, 255, 255, 0.88);
-  --container-w: 1160px;
+  --container-w: clamp(1200px, 94vw, 1840px);
   --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -49,6 +49,7 @@ main {
   flex: 1;
   position: relative;
   z-index: 2;
+  width: 100%;
 }
 
 .mono {
@@ -57,11 +58,24 @@ main {
 }
 
 .container {
+  width: 100%;
   max-width: var(--container-w);
   margin: 0 auto;
-  padding: 0 26px;
+  padding: 0 clamp(16px, 2.5vw, 40px);
   position: relative;
   z-index: 2;
+}
+
+/* Modos de Pantalla Completa Fluida para Apartados y Navbar */
+.container-full,
+.workspace-full-container,
+.foryou-full-container,
+.navbar .container,
+.navbar-zen .container {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: clamp(20px, 3.2vw, 56px) !important;
+  padding-right: clamp(20px, 3.2vw, 56px) !important;
 }
 
 [hidden] {
@@ -1049,7 +1063,8 @@ main {
   display: flex;
   align-items: flex-start;
   gap: 18px;
-  max-width: 700px;
+  max-width: 100%;
+  flex: 1;
 }
 
 .profile-avatar-lg {
@@ -1223,23 +1238,26 @@ main {
 
 .studio-shell {
   display: grid;
-  grid-template-columns: 256px 1fr;
-  min-height: calc(100vh - 68px);
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  max-width: 100%;
   position: relative;
   z-index: 2;
 }
 
 .studio-sidebar {
   border-right: 1px solid var(--line-dark);
-  padding: 28px 22px 36px 0;
+  padding: 28px 24px 36px 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
-  top: 68px;
-  height: calc(100vh - 68px);
+  top: 64px;
+  height: calc(100vh - 64px);
   overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .studio-user-head {
@@ -1376,8 +1394,14 @@ main {
 }
 
 .studio-stage {
-  padding: 36px 0 80px 48px;
+  padding: 32px 0 80px clamp(24px, 3.2vw, 56px);
   min-width: 0;
+  width: 100%;
+}
+
+.workspace-panel {
+  width: 100%;
+  max-width: 100%;
 }
 
 .workspace-panel:not([hidden]) {
@@ -1480,23 +1504,31 @@ main {
 }
 
 .feed-post-caption {
-  font-size: 0.96rem;
+  font-size: 0.98rem;
   color: var(--silver-bright);
   line-height: 1.62;
   white-space: pre-wrap;
-  max-width: 720px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.post-media-container {
+  width: 100%;
+  max-width: 100%;
 }
 
 .post-photo-frame {
-  max-width: 680px;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   border: 1px solid var(--line-dark-strong);
   background: #08080b;
+  border-radius: 4px;
 }
 
 .post-photo-frame img {
   width: 100%;
-  max-height: 460px;
+  max-height: clamp(520px, 68vh, 840px);
   object-fit: cover;
   display: block;
   transition: transform 0.6s var(--ease-apple);
@@ -1577,9 +1609,10 @@ main {
    ========================================================= */
 .chat-split-open {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
-  min-height: 470px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: clamp(24px, 2.5vw, 44px);
+  min-height: calc(100vh - 220px);
+  width: 100%;
 }
 
 .conv-list-open {
@@ -1704,9 +1737,11 @@ main {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-height: 370px;
+  height: calc(100vh - 380px);
+  min-height: 480px;
+  max-height: none;
   overflow-y: auto;
-  padding: 8px 8px 8px 0;
+  padding: 12px 14px 12px 0;
 }
 
 .chat-msg-rail {
@@ -1754,9 +1789,10 @@ main {
    ========================================================= */
 .comm-split-open {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 40px;
-  min-height: 460px;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: clamp(24px, 2.5vw, 44px);
+  min-height: 480px;
+  width: 100%;
 }
 
 .comm-channels-rail {
@@ -1806,9 +1842,10 @@ main {
    ========================================================= */
 .vault-grid-split {
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 48px;
+  grid-template-columns: minmax(360px, 480px) minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 48px);
   align-items: start;
+  width: 100%;
 }
 
 .vault-item-row {
@@ -1855,7 +1892,7 @@ main {
   font-size: 0.84rem;
   color: var(--silver);
   margin-top: 3px;
-  max-width: 460px;
+  max-width: 100%;
   white-space: pre-wrap;
 }
 
@@ -1878,7 +1915,8 @@ main {
 .app-hub-main {
   border-left: 1.5px solid var(--white);
   padding-left: 20px;
-  max-width: 620px;
+  max-width: 100%;
+  flex: 1;
 }
 
 .app-hub-kicker {
@@ -2417,7 +2455,8 @@ main {
   padding-left: 18px;
   display: grid;
   gap: 14px;
-  max-width: 680px;
+  max-width: 100%;
+  width: 100%;
   animation: appleItemIn 0.3s var(--ease-apple) both;
 }
 
@@ -2532,7 +2571,8 @@ main {
 .lightbox-caption {
   font-size: 0.92rem;
   color: var(--silver-bright);
-  max-width: 680px;
+  max-width: 100%;
+  flex: 1;
   line-height: 1.54;
 }
 
