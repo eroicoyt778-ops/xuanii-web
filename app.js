@@ -6,13 +6,15 @@ const STORAGE_KEYS = {
   SUBMISSIONS: "xuanii_submissions"
 };
 
-// Cuenta oficial única del Creador de Xuanii (reconocida por ID interno e inmutable: XN-35BE2545)
+// Cuentas oficiales del Creador de Xuanii (reconocidas por ID interno e inmutables: XN-35BE2545 y XN-7808897A)
 const CREATOR_UIDS = new Set([
-  "iHw8l7jKnzPp1JDCGsJ73C9I4z73"
+  "iHw8l7jKnzPp1JDCGsJ73C9I4z73",
+  "KVtoDRTJ7FUxZJelcicoSISSazA3"
 ]);
 
 const CREATOR_INTERNAL_IDS = new Set([
-  "XN-35BE2545"
+  "XN-35BE2545",
+  "XN-7808897A"
 ]);
 
 const CATEGORY_LABELS = {
@@ -1825,6 +1827,9 @@ try {
   const cachedJson = localStorage.getItem("xuanii_auth_session");
   if (cachedJson) {
     cachedAuthSession = JSON.parse(cachedJson);
+    if (cachedAuthSession && isCreatorAccount(cachedAuthSession.internalId, cachedAuthSession.uid)) {
+      cachedAuthSession.membershipTier = "creator";
+    }
   }
 } catch (e) {}
 
@@ -2082,6 +2087,8 @@ if (requestedChatUid) {
   switchWorkspaceTab("messages");
 } else if (requestedTab && ALL_WS_TABS.includes(requestedTab)) {
   switchWorkspaceTab(requestedTab);
+} else if (window.location.pathname.endsWith("cuenta.html")) {
+  switchWorkspaceTab("profile");
 }
 if (requestedUserUid) {
   setTimeout(() => renderInspectorContent(requestedUserUid), 350);
@@ -2743,24 +2750,27 @@ const renderMyRealProfile = () => {
   const panel = document.getElementById("wsPanel-profile");
   if (!panel) return;
 
-  const targetUid = activeAuthUser?.uid || currentOwnProfile?.uid;
+  const effectiveUser = activeAuthUser || cachedAuthSession;
+  const targetUid = effectiveUser?.uid || currentOwnProfile?.uid;
   if (!targetUid) return;
 
-  const prof = currentOwnProfile || profilesByUid.get(targetUid) || {
-    displayName: activeAuthUser?.displayName || "Mi perfil",
-    photoURL: activeAuthUser?.photoURL || "favicon.svg",
-    handle: sanitizeHandle(activeAuthUser?.email?.split("@")[0] || "usuario")
+  const prof = currentOwnProfile || (targetUid ? profilesByUid.get(targetUid) : null) || {
+    uid: targetUid,
+    displayName: effectiveUser?.displayName || "Mi perfil",
+    photoURL: effectiveUser?.photoURL || "favicon.svg",
+    handle: effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "usuario"),
+    internalId: effectiveUser?.internalId || deriveInternalId(targetUid)
   };
 
-  const internalId = prof.internalId || deriveInternalId(targetUid);
+  const internalId = prof.internalId || effectiveUser?.internalId || deriveInternalId(targetUid);
   const isTargetCreator = isCreatorAccount(internalId, targetUid);
-  const myTier = isTargetCreator ? "creator" : (prof.membershipTier || "standard");
+  const myTier = isTargetCreator ? "creator" : (prof.membershipTier || effectiveUser?.membershipTier || "standard");
   const stats = getRatingStats(targetUid);
 
   // Avatar
   const avatarEl = document.getElementById("myProfileAvatar");
   if (avatarEl) {
-    avatarEl.src = prof.photoURL || activeAuthUser?.photoURL || "favicon.svg";
+    avatarEl.src = prof.photoURL || effectiveUser?.photoURL || "favicon.svg";
     avatarEl.className = isTargetCreator
       ? "profile-tiktok-avatar creator-avatar-ring"
       : "profile-tiktok-avatar";
@@ -2769,13 +2779,13 @@ const renderMyRealProfile = () => {
 
   // Name, Creator badge, Handle
   const nameEl = document.getElementById("myProfileName");
-  if (nameEl) nameEl.textContent = prof.displayName || activeAuthUser?.displayName || "Mi perfil";
+  if (nameEl) nameEl.textContent = prof.displayName || effectiveUser?.displayName || "Mi perfil";
 
   const slotEl = document.getElementById("myProfileCreatorSlot");
   mountCreatorBadgeSlot(slotEl, isTargetCreator, false);
 
   const handleEl = document.getElementById("myProfileHandle");
-  if (handleEl) handleEl.textContent = `@${prof.handle || sanitizeHandle(activeAuthUser?.email?.split("@")[0] || "usuario")}`;
+  if (handleEl) handleEl.textContent = `@${prof.handle || effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "usuario")}`;
 
   // Role, Situation, Conduct, ID
   const roleEl = document.getElementById("myProfileRole");
@@ -2785,7 +2795,7 @@ const renderMyRealProfile = () => {
   if (sitEl) sitEl.textContent = SITUATION_LABELS[prof.workSituation] || "Disponible para proyectos";
 
   const conductEl = document.getElementById("myProfileConductBadge");
-  const conductScore = typeof prof.behaviorScore === "number" ? prof.behaviorScore : 10;
+  const conductScore = typeof prof.behaviorScore === "number" ? prof.behaviorScore : (typeof effectiveUser?.behaviorScore === "number" ? effectiveUser.behaviorScore : 10);
   if (conductEl) {
     conductEl.textContent = `Conducta: ${conductScore}/10 · ${getConductLabel(conductScore)}`;
     conductEl.className = `conduct-pill mono score-${conductScore <= 3 ? "bad" : conductScore <= 7 ? "warn" : "good"}`;
@@ -4515,6 +4525,7 @@ if (isFirebaseConfigured) {
       }
 
       populateProfileForm(currentOwnProfile);
+      renderMyRealProfile?.();
 
       // Si está en cuenta.html y aún no eligió su @usuario y especialidad, mostrar modal fluido de 1 paso
       if (
@@ -4560,6 +4571,7 @@ if (isFirebaseConfigured) {
       });
 
       populateProfileForm(currentOwnProfile);
+      renderMyRealProfile?.();
       renderAccountWorkspace();
       if (btn) btn.disabled = false;
       if (onboardingModal) onboardingModal.hidden = true;
@@ -5874,6 +5886,7 @@ if (isFirebaseConfigured) {
       reviewsByTargetUid = statsMap;
       renderAccountWorkspace();
       renderAllProfileViews();
+      renderMyRealProfile?.();
     });
 
     // Escuchar perfiles públicos
@@ -5888,8 +5901,12 @@ if (isFirebaseConfigured) {
       items.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
       allProfilesList = items;
       profilesByUid = map;
+      if (activeAuthUser && profilesByUid.has(activeAuthUser.uid)) {
+        currentOwnProfile = profilesByUid.get(activeAuthUser.uid);
+      }
       renderAllProfileViews();
       renderConnectionsSection();
+      renderMyRealProfile?.();
     });
 
     // Escuchar muro social y fotos de portafolio
@@ -7622,6 +7639,7 @@ if (isFirebaseConfigured) {
 
         prefillKnownUserFields();
         renderAccountWorkspace();
+        renderMyRealProfile?.();
         attachConnectionsListener(user);
         attachVaultListener(user);
         attachConversationsListener(user);

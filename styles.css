@@ -1260,13 +1260,17 @@ html.xuanii-auth-cached #forYouComposerWrap {
 }
 
 .studio-shell {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  display: block;
   min-height: calc(100vh - 64px);
   width: 100%;
   max-width: 100%;
   position: relative;
   z-index: 2;
+}
+
+.studio-shell:has(.studio-sidebar) {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
 }
 
 .studio-sidebar {
@@ -1417,7 +1421,9 @@ html.xuanii-auth-cached #forYouComposerWrap {
 }
 
 .studio-stage {
-  padding: 32px 0 80px clamp(24px, 3.2vw, 56px);
+  padding: 32px 16px 80px;
+  max-width: 780px;
+  margin: 0 auto;
   min-width: 0;
   width: 100%;
 }

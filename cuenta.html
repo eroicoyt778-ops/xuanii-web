@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2.2.1" />
 </head>
 <body>
   <!-- Fondo de seda monocromática fluida con desvanecido suave hacia negro obsidiana -->
@@ -232,67 +232,9 @@
 
       <!-- RED SOCIAL PROFESIONAL Y ESPACIO DE TRABAJO DESBLOQUEADO -->
       <div id="authenticatedWorkspace" class="studio-shell" hidden>
-        <aside class="studio-sidebar">
-          <div>
-            <div class="studio-user-head">
-              <div class="studio-user-row">
-                <img id="studioSideAvatar" src="favicon.svg" alt="" class="studio-avatar" style="cursor: pointer;" title="Ver perfil" />
-                <div class="studio-user-meta">
-                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span id="studioSideName" class="studio-user-name" style="cursor: pointer;" title="Ver perfil">Cargando...</span>
-                    <span id="studioCreatorSlot"></span>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span id="studioSideHandle" class="studio-user-handle mono">@usuario</span>
-                    <span id="studioSideStars" class="mono" style="font-size: 0.72rem; color: var(--silver-bright);">★ —</span>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;">
-                    <span id="studioSideConduct" class="conduct-pill mono score-good" style="font-size: 0.68rem; padding: 1px 6px;">Conducta: 10/10</span>
-                  </div>
-                </div>
-              </div>
-
-              <select id="studioPresenceSelect" class="studio-presence-select" aria-label="Estado laboral">
-                <option value="seeking_job">● Buscando empleo / encargos</option>
-                <option value="freelance_ready">● Disponible para proyectos</option>
-                <option value="employed_open">◐ Con trabajo · Abierto a colaborar</option>
-                <option value="hiring">◈ Contratando especialistas</option>
-              </select>
-            </div>
-
-            <nav class="studio-nav" style="margin-top: 18px;" aria-label="Navegación del espacio de trabajo">
-              <span class="studio-nav-label mono">ESPACIO DE TRABAJO</span>
-              <button type="button" class="studio-nav-btn active" data-ws-tab="feed">
-                <span>Para ti</span>
-              </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="employment">
-                <span>Empleo y Portafolio</span>
-              </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="profile">
-                <span>Mi Perfil</span>
-              </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="plans" id="wsPlansTabBtn">
-                <span>Planes y Membresías</span>
-              </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="files">
-                <span>Nube privada</span>
-                <span class="studio-badge mono" id="badgeFilesCount">0</span>
-              </button>
-              <button type="button" class="studio-nav-btn" data-ws-tab="settings">
-                <span>Seguridad y cuenta</span>
-              </button>
-            </nav>
-          </div>
-
-          <div class="studio-side-foot mono">
-            <span>● <strong id="activeUsersCount">1</strong> en línea</span>
-            <button type="button" class="text-action-btn" id="sidebarSignOutBtn" style="font-size: 0.76rem;">Salir</button>
-          </div>
-        </aside>
-
         <div class="studio-stage">
-          <!-- 1. PARA TI — DESCUBRIMIENTO VISUAL, FOTOS, BÚSQUEDA Y PUBLICACIONES -->
-          <section id="wsPanel-feed" class="workspace-panel">
+          <!-- 1. PARA TI — DESCUBRIMIENTO VISUAL, FOTOS, BÚSQUEDA Y PUBLICACIONES (Secundario en cuenta) -->
+          <section id="wsPanel-feed" class="workspace-panel" hidden>
             <div class="studio-top-bar" style="margin-bottom: 24px;">
               <div>
                 <span class="open-eyebrow mono" style="margin-bottom: 6px;">PARA TI · FOTOS, PORTAFOLIOS Y EMPLEO EN VIVO</span>
@@ -603,7 +545,7 @@
           </section>
 
           <!-- 5. MI PERFIL PROFESIONAL (ESTILO TIKTOK + FACEBOOK) -->
-          <section id="wsPanel-profile" class="workspace-panel" hidden>
+          <section id="wsPanel-profile" class="workspace-panel">
             <div class="profile-real-stage">
               <!-- Cabecera / Hero estilo TikTok -->
               <div class="profile-tiktok-hero">
@@ -1375,7 +1317,7 @@
     </div>
   </div>
 
-  <script src="firebase-config.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="firebase-config.js?v=2.2.1"></script>
+  <script type="module" src="app.js?v=2.2.1"></script>
 </body>
 </html>
