@@ -4966,8 +4966,9 @@ if (isFirebaseConfigured) {
       const headActions = document.createElement("div");
       headActions.className = "feed-header-actions";
 
-      // Botón Seguir / Siguiendo estilo Facebook / Twitter
-      if (!activeAuthUser || activeAuthUser.uid !== post.authorUid) {
+      // Botón Seguir / Siguiendo estilo Facebook / Twitter (oculto en publicaciones propias)
+      const viewerForFollow = activeAuthUser || cachedAuthSession;
+      if (!viewerForFollow || viewerForFollow.uid !== post.authorUid) {
         const followBtn = document.createElement("button");
         followBtn.type = "button";
         const isFollowed = myFollowingSet.has(post.authorUid);
@@ -5071,75 +5072,86 @@ if (isFirebaseConfigured) {
       });
       dropdown.appendChild(copyOpt);
 
-      // 3. Reportar publicación
-      const repOpt = document.createElement("button");
-      repOpt.type = "button";
-      repOpt.className = "feed-option-item danger";
-      repOpt.innerHTML = `
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-          <line x1="4" y1="22" x2="4" y2="15"></line>
-        </svg>
-        <span>Reportar publicación</span>
-      `;
-      repOpt.addEventListener("click", (e) => {
-        e.stopPropagation();
-        applyLiquidWaterRipple(e, repOpt);
-        closeDropdown();
-        if (window.location.pathname.endsWith("cuenta.html")) {
-          switchWorkspaceTab("settings");
-          const repInput = document.getElementById("reportTargetIdInput");
-          if (repInput) {
-            repInput.value = post.authorInternalId || authorInternalId;
-            document.getElementById("reportReasonInput")?.focus();
-          }
-        } else {
-          window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(post.authorInternalId || authorInternalId)}`;
-        }
-      });
-      dropdown.appendChild(repOpt);
-
-      // 4. Eliminar publicación en el menú de 3 puntos
+      // Permisos de autoría y administración del espectador actual
+      const effectiveViewer = activeAuthUser || cachedAuthSession;
+      const isOwner = Boolean(effectiveViewer && post.authorUid === effectiveViewer.uid);
       const isOwnerOrAdmin = Boolean(
-        activeAuthUser && (post.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
+        effectiveViewer && (
+          isOwner ||
+          isAdminUser(effectiveViewer) ||
+          isCreatorAccount(effectiveViewer.internalId, effectiveViewer.uid)
+        )
       );
 
-      const delDivider = document.createElement("div");
-      delDivider.className = "feed-options-divider";
-      dropdown.appendChild(delDivider);
+      // 3. Denunciar publicación (Solo para otros usuarios, el autor nunca se autodenuncia)
+      if (!isOwner) {
+        const repDivider = document.createElement("div");
+        repDivider.className = "feed-options-divider";
+        dropdown.appendChild(repDivider);
 
-      const delOpt = document.createElement("button");
-      delOpt.type = "button";
-      delOpt.className = "feed-option-item danger";
-      delOpt.innerHTML = `
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          <line x1="10" y1="11" x2="10" y2="17"></line>
-          <line x1="14" y1="11" x2="14" y2="17"></line>
-        </svg>
-        <span>Eliminar publicación</span>
-      `;
-      delOpt.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        applyLiquidWaterRipple(e, delOpt);
-        closeDropdown();
-        if (!activeAuthUser) {
-          alert("Inicia sesión con tu cuenta para eliminar publicaciones.");
-          signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
-          );
-          return;
-        }
-        if (!isOwnerOrAdmin) {
-          alert("Solo el autor de la publicación o los administradores de EndHa pueden eliminarla.");
-          return;
-        }
-        if (confirm("¿Estás seguro de que deseas eliminar esta publicación permanentemente?")) {
-          await cloudHooks.deletePost?.(post.id);
-        }
-      });
-      dropdown.appendChild(delOpt);
+        const repOpt = document.createElement("button");
+        repOpt.type = "button";
+        repOpt.className = "feed-option-item danger";
+        repOpt.innerHTML = `
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+            <line x1="4" y1="22" x2="4" y2="15"></line>
+          </svg>
+          <span>Denunciar publicación</span>
+        `;
+        repOpt.addEventListener("click", (e) => {
+          e.stopPropagation();
+          applyLiquidWaterRipple(e, repOpt);
+          closeDropdown();
+          if (window.location.pathname.endsWith("cuenta.html")) {
+            switchWorkspaceTab("settings");
+            const repInput = document.getElementById("reportTargetIdInput");
+            if (repInput) {
+              repInput.value = post.authorInternalId || authorInternalId;
+              document.getElementById("reportReasonInput")?.focus();
+            }
+          } else {
+            window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(post.authorInternalId || authorInternalId)}`;
+          }
+        });
+        dropdown.appendChild(repOpt);
+      }
+
+      // 4. Eliminar publicación (Solo para el autor de la publicación o Administrador/Creador)
+      if (isOwnerOrAdmin) {
+        const delDivider = document.createElement("div");
+        delDivider.className = "feed-options-divider";
+        dropdown.appendChild(delDivider);
+
+        const delOpt = document.createElement("button");
+        delOpt.type = "button";
+        delOpt.className = "feed-option-item danger";
+        delOpt.innerHTML = `
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span>Eliminar publicación</span>
+        `;
+        delOpt.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          applyLiquidWaterRipple(e, delOpt);
+          closeDropdown();
+          if (!activeAuthUser && !cachedAuthSession) {
+            alert("Inicia sesión con tu cuenta para eliminar publicaciones.");
+            signInAndEnterWorkspace(
+              window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            );
+            return;
+          }
+          if (confirm("¿Estás seguro de que deseas eliminar esta publicación permanentemente?")) {
+            await cloudHooks.deletePost?.(post.id);
+          }
+        });
+        dropdown.appendChild(delOpt);
+      }
 
       dotsBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -5412,8 +5424,8 @@ if (isFirebaseConfigured) {
             cHead.appendChild(cAuthor);
 
             if (
-              activeAuthUser &&
-              (c.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
+              effectiveViewer &&
+              (c.authorUid === effectiveViewer.uid || isOwnerOrAdmin)
             ) {
               const delC = document.createElement("button");
               delC.type = "button";
