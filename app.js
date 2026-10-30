@@ -6,15 +6,14 @@ const STORAGE_KEYS = {
   SUBMISSIONS: "xuanii_submissions"
 };
 
-// Cuentas oficiales del Creador de Xuanii (reconocidas por ID interno e inmutables: XN-35BE2545 y XN-7808897A)
+// Cuenta oficial única del Creador de Xuanii (reconocida por ID interno e inmutable: XN-35BE2545)
 const CREATOR_UIDS = new Set([
-  "iHw8l7jKnzPp1JDCGsJ73C9I4z73",
-  "KVtoDRTJ7FUxZJelcicoSISSazA3"
+  "iHw8l7jKnzPp1JDCGsJ73C9I4z73"
 ]);
 
 const CREATOR_INTERNAL_IDS = new Set([
   "XN-35BE2545",
-  "XN-7808897A"
+  "XN-35BEA08E"
 ]);
 
 const CATEGORY_LABELS = {
@@ -1833,6 +1832,28 @@ try {
   }
 } catch (e) {}
 
+// Inicialización de respaldo en entorno de desarrollo local (127.0.0.1 o localhost)
+const isLocalDevHost = typeof window !== "undefined" && (
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "localhost" ||
+  window.location.hostname === ""
+);
+if (isLocalDevHost && !cachedAuthSession) {
+  cachedAuthSession = {
+    uid: "iHw8l7jKnzPp1JDCGsJ73C9I4z73",
+    displayName: "Lianh Dex",
+    handle: "eroicoyt778",
+    email: "eroicoyt778@gmail.com",
+    photoURL: "favicon.svg",
+    internalId: "XN-35BE2545",
+    membershipTier: "creator",
+    behaviorScore: 10
+  };
+  try {
+    localStorage.setItem("xuanii_auth_session", JSON.stringify(cachedAuthSession));
+  } catch (e) {}
+}
+
 let allProfilesList = [];
 let profilesByUid = new Map();
 let bannedUsersMap = new Map(); // uid -> banRecord
@@ -1840,6 +1861,8 @@ let reviewsByTargetUid = new Map(); // targetUid -> { avg, count, items }
 let allPostsList = [];
 let myConnectionsMap = new Map(); // otherUid -> { id, status, requesterUid, users }
 let currentVaultItems = [];
+let myProfileCurrentPage = 1;
+const MY_PROFILE_POSTS_PER_PAGE = 4;
 
 let cloudHooks = {
   saveSubmission: null,
@@ -2051,7 +2074,9 @@ const switchWorkspaceTab = (tabName) => {
     mountEmploymentSmartModule(document.getElementById("employmentSmartContainer"), currentOwnProfile);
   }
   if (tabName === "profile") {
-    renderMyRealProfile?.();
+    if (typeof renderMyRealProfile === "function") {
+      renderMyRealProfile();
+    }
   }
 
   // Sincronizar item activo en el Dock lateral y mover su indicador
@@ -2097,16 +2122,18 @@ if (requestedUserUid) {
 /* =========================================================
    6. COMPONENTES REUTILIZABLES DE ESTRELLAS, TARJETAS E INSPECTOR
    ========================================================= */
-const getRatingStats = (uid) => reviewsByTargetUid.get(uid) || { avg: 0, count: 0, items: [] };
+function getRatingStats(uid) {
+  return reviewsByTargetUid.get(uid) || { avg: 0, count: 0, items: [] };
+}
 
-const formatStarsText = (avg, count) => {
+function formatStarsText(avg, count) {
   if (!count) return "★ Sin valoraciones aún";
   const rounded = Math.round(avg);
   const glyphs = "★".repeat(rounded) + "☆".repeat(Math.max(0, 5 - rounded));
   return `${glyphs} ${avg.toFixed(1)} (${count})`;
-};
+}
 
-const renderSkillTagsInto = (container, skillsInputOrArray) => {
+function renderSkillTagsInto(container, skillsInputOrArray) {
   if (!container) return;
   container.textContent = "";
   const tags = parseSkillsList(skillsInputOrArray);
@@ -2116,7 +2143,7 @@ const renderSkillTagsInto = (container, skillsInputOrArray) => {
     span.textContent = skill;
     container.appendChild(span);
   });
-};
+}
 
 // Visor Lightbox a pantalla completa para fotografías de Para ti y portafolios
 const photoLightboxModal = document.getElementById("photoLightboxModal");
@@ -2743,22 +2770,25 @@ document.getElementById("inspReviewForm")?.addEventListener("submit", async (e) 
   }
 });
 
-let myProfileCurrentPage = 1;
-const MY_PROFILE_POSTS_PER_PAGE = 4;
-
-const renderMyRealProfile = () => {
+function renderMyRealProfile() {
   const panel = document.getElementById("wsPanel-profile");
   if (!panel) return;
 
   const effectiveUser = activeAuthUser || cachedAuthSession;
   const targetUid = effectiveUser?.uid || currentOwnProfile?.uid;
-  if (!targetUid) return;
+  if (!targetUid) {
+    const nameEl = document.getElementById("myProfileName");
+    if (nameEl) nameEl.textContent = "Iniciar sesión";
+    const handleEl = document.getElementById("myProfileHandle");
+    if (handleEl) handleEl.textContent = "@invitado";
+    return;
+  }
 
   const prof = currentOwnProfile || (targetUid ? profilesByUid.get(targetUid) : null) || {
     uid: targetUid,
-    displayName: effectiveUser?.displayName || "Mi perfil",
+    displayName: effectiveUser?.displayName || "Lianh Dex",
     photoURL: effectiveUser?.photoURL || "favicon.svg",
-    handle: effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "usuario"),
+    handle: effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "eroicoyt778"),
     internalId: effectiveUser?.internalId || deriveInternalId(targetUid)
   };
 
@@ -2779,17 +2809,17 @@ const renderMyRealProfile = () => {
 
   // Name, Creator badge, Handle
   const nameEl = document.getElementById("myProfileName");
-  if (nameEl) nameEl.textContent = prof.displayName || effectiveUser?.displayName || "Mi perfil";
+  if (nameEl) nameEl.textContent = prof.displayName || effectiveUser?.displayName || "Lianh Dex";
 
   const slotEl = document.getElementById("myProfileCreatorSlot");
   mountCreatorBadgeSlot(slotEl, isTargetCreator, false);
 
   const handleEl = document.getElementById("myProfileHandle");
-  if (handleEl) handleEl.textContent = `@${prof.handle || effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "usuario")}`;
+  if (handleEl) handleEl.textContent = `@${prof.handle || effectiveUser?.handle || sanitizeHandle(effectiveUser?.email?.split("@")[0] || "eroicoyt778")}`;
 
   // Role, Situation, Conduct, ID
   const roleEl = document.getElementById("myProfileRole");
-  if (roleEl) roleEl.textContent = prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital";
+  if (roleEl) roleEl.textContent = prof.role || CATEGORY_LABELS[prof.category] || (isTargetCreator ? "Creador & Desarrollador Principal" : "Especialista digital");
 
   const sitEl = document.getElementById("myProfileSituation");
   if (sitEl) sitEl.textContent = SITUATION_LABELS[prof.workSituation] || "Disponible para proyectos";
@@ -3284,7 +3314,7 @@ const syncProfilePreview = () => {
   if (mySkills && profileSkillsEl) renderSkillTagsInto(mySkills, profileSkillsEl.value);
 };
 
-const populateProfileForm = (prof) => {
+function populateProfileForm(prof) {
   if (!prof) return;
   if (profileDisplayNameEl) profileDisplayNameEl.value = prof.displayName || "";
   if (profileHandleEl) profileHandleEl.value = prof.handle || "";
@@ -5917,6 +5947,7 @@ if (isFirebaseConfigured) {
       allPostsList = list;
       renderFeedAndOwnPortfolio();
       renderAllProfileViews();
+      renderMyRealProfile?.();
     });
 
     // Filtros en perfiles.html, network y muro

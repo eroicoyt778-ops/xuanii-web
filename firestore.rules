@@ -7,7 +7,7 @@ service cloud.firestore {
     }
 
     function isCreatorUid(uid) {
-      return uid == "iHw8l7jKnzPp1JDCGsJ73C9I4z73" || uid == "KVtoDRTJ7FUxZJelcicoSISSazA3";
+      return uid == "iHw8l7jKnzPp1JDCGsJ73C9I4z73";
     }
 
     function isAdmin() {
