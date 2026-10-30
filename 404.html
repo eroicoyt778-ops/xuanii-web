@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Página no encontrada · EndHa</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script>
+    (function () {
+      var p = window.location.pathname;
+      var q = window.location.search || '';
+      var h = window.location.hash || '';
+
+      // Redirección inteligente para enlaces de perfil directos estilo /@handle, /u/ID o /cuenta/ID
+      var profileMatch = p.match(/^\/@([a-zA-Z0-9_\-\.]+)/) || 
+                         p.match(/^\/u\/([a-zA-Z0-9_\-\.]+)/) || 
+                         p.match(/^\/cuenta\/([a-zA-Z0-9_\-\.]+)/);
+      if (profileMatch && profileMatch[1]) {
+        var cleanTarget = '/cuenta?id=' + encodeURIComponent(profileMatch[1]) + (q ? ('&' + q.replace(/^\?/, '')) : '') + h;
+        window.location.replace(cleanTarget);
+        return;
+      }
+
+      // Redirección si la URL termina en .html
+      if (/\.html$/i.test(p)) {
+        var cleanUrl = p.replace(/\.html$/i, '') + q + h;
+        window.location.replace(cleanUrl);
+        return;
+      }
+
+      // Redirección si tiene trailing slash innecesario
+      if (p.length > 1 && p.endsWith('/')) {
+        window.location.replace(p.slice(0, -1) + q + h);
+        return;
+      }
+    })();
+  </script>
+  <script src="theme-boot.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=2.2.5" />
+  <style>
+    .not-found-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    .not-found-card {
+      max-width: 520px;
+      width: 100%;
+      background: rgba(14, 15, 20, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 3rem 2rem;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    }
+    .not-found-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+    }
+    .not-found-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+    .not-found-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .not-found-desc {
+      font-size: 0.925rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .not-found-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    @media (min-width: 480px) {
+      .not-found-actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-silk-backdrop" aria-hidden="true">
+    <canvas id="monochromeCanvas"></canvas>
+  </div>
+
+  <main class="not-found-wrapper">
+    <div class="not-found-card">
+      <span class="not-found-badge">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>
+        ERROR 404 · RUTA NO LOCALIZADA
+      </span>
+      <div class="not-found-code">404</div>
+      <h1 class="not-found-title">Página o perfil no disponible</h1>
+      <p class="not-found-desc">
+        La dirección ingresada no existe, cambió de nombre o el identificador de usuario es incorrecto. Navega por las secciones oficiales de EndHa:
+      </p>
+
+      <div class="not-found-actions">
+        <a href="para-ti" class="btn btn-primary" style="text-decoration:none;">
+          Explorar Para ti
+        </a>
+        <a href="perfiles" class="btn btn-ghost" style="text-decoration:none;">
+          Directorio
+        </a>
+        <a href="cuenta" class="btn btn-ghost" style="text-decoration:none;">
+          Mi Cuenta
+        </a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

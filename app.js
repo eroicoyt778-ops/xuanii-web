@@ -46,6 +46,17 @@ const POST_KIND_LABELS = {
   available: "COMUNIDAD"
 };
 
+// Validadores universales de página (compatibles con URLs limpias sin .html)
+const isCuentaPage = () => {
+  const p = (window.location.pathname || "").replace(/\.html$/, "");
+  return p.endsWith("cuenta") || p.includes("/cuenta");
+};
+
+const isParaTiPage = () => {
+  const p = (window.location.pathname || "").replace(/\.html$/, "");
+  return p.endsWith("para-ti") || p.includes("/para-ti");
+};
+
 /**
  * Efecto de onda de agua líquida al hacer clic (Liquid Water Ripple)
  */
@@ -1156,14 +1167,14 @@ const renderRecruiterMirrorDirectory = (targetContainer, currentAuthUser) => {
       contactBtn.textContent = "Contactar cifrado →";
       contactBtn.addEventListener("click", () => {
         if (!currentAuthUser) {
-          signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(cand.uid)}`);
+          signInAndEnterWorkspace(`cuenta?chat=${encodeURIComponent(cand.uid)}`);
           return;
         }
-        if (window.location.pathname.endsWith("cuenta.html")) {
+        if (isCuentaPage()) {
           switchWorkspaceTab("messages");
           cloudHooks.openChatWithPeer?.(cand.uid);
         } else {
-          window.location.href = `cuenta.html?chat=${encodeURIComponent(cand.uid)}`;
+          window.location.href = `cuenta?chat=${encodeURIComponent(cand.uid)}`;
         }
       });
 
@@ -1386,7 +1397,7 @@ const initAppDockAndNavigation = () => {
 
   createCommBtn?.addEventListener("click", () => {
     closeDock();
-    if (window.location.pathname.endsWith("cuenta.html")) {
+    if (isCuentaPage()) {
       switchWorkspaceTab("communities");
       const cForm = document.getElementById("createCommunityForm");
       if (cForm) {
@@ -1394,7 +1405,7 @@ const initAppDockAndNavigation = () => {
         document.getElementById("newCommTitle")?.focus();
       }
     } else {
-      window.location.href = "cuenta.html?tab=communities";
+      window.location.href = "cuenta?tab=communities";
     }
   });
 
@@ -2107,12 +2118,12 @@ wsNavButtons.forEach((btn) => {
 const urlParams = new URLSearchParams(window.location.search);
 const requestedTab = urlParams.get("tab");
 const requestedChatUid = urlParams.get("chat");
-const requestedUserUid = urlParams.get("user") || urlParams.get("profile");
+const requestedUserUid = urlParams.get("user") || urlParams.get("profile") || urlParams.get("id");
 if (requestedChatUid) {
   switchWorkspaceTab("messages");
 } else if (requestedTab && ALL_WS_TABS.includes(requestedTab)) {
   switchWorkspaceTab(requestedTab);
-} else if (window.location.pathname.endsWith("cuenta.html")) {
+} else if (isCuentaPage()) {
   switchWorkspaceTab("profile");
 }
 if (requestedUserUid) {
@@ -2237,7 +2248,7 @@ const openPhotoLightbox = (post, signInCallback) => {
       applyLiquidWaterRipple(e, likeBtn);
       triggerFluidPop(likeBtn);
       if (!activeAuthUser) {
-        if (signInCallback) signInCallback(window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html");
+        if (signInCallback) signInCallback(isParaTiPage() ? "para-ti" : "cuenta");
         return;
       }
       cloudHooks.toggleLikePost?.(post.id, likedNow);
@@ -2265,13 +2276,13 @@ const openPhotoLightbox = (post, signInCallback) => {
       chatBtn.textContent = "Contactar / Trabajo →";
       chatBtn.addEventListener("click", () => {
         closePhotoLightbox();
-        if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+        if (isCuentaPage() && activeAuthUser) {
           switchWorkspaceTab("messages");
           cloudHooks.openChatWithPeer?.(post.authorUid);
         } else if (signInCallback) {
-          signInCallback(`cuenta.html?chat=${encodeURIComponent(post.authorUid)}`);
+          signInCallback(`cuenta?chat=${encodeURIComponent(post.authorUid)}`);
         } else {
-          window.location.href = `cuenta.html?chat=${encodeURIComponent(post.authorUid)}`;
+          window.location.href = `cuenta?chat=${encodeURIComponent(post.authorUid)}`;
         }
       });
       actsEl.appendChild(chatBtn);
@@ -2324,7 +2335,19 @@ if (starPickerEl) {
 
 const renderInspectorContent = (targetUid) => {
   if (!inspectorBackdrop || !targetUid) return;
-  const prof = profilesByUid.get(targetUid) || (currentOwnProfile?.uid === targetUid ? currentOwnProfile : null);
+  let prof = profilesByUid.get(targetUid) || (currentOwnProfile?.uid === targetUid ? currentOwnProfile : null);
+  if (!prof) {
+    const cleanSearch = String(targetUid).trim().replace(/^@/, "").toUpperCase();
+    for (const [uid, p] of profilesByUid.entries()) {
+      const pId = String(p.internalId || deriveInternalId(uid)).toUpperCase();
+      const pHandle = String(p.handle || "").toUpperCase();
+      if (pId === cleanSearch || pHandle === cleanSearch || uid === targetUid) {
+        prof = p;
+        targetUid = uid;
+        break;
+      }
+    }
+  }
   if (!prof) return;
 
   inspectedProfileUid = targetUid;
@@ -2342,19 +2365,19 @@ const renderInspectorContent = (targetUid) => {
     }
   }
 
-  // 2. Botón Compartir perfil
+  // 2. Botón Compartir perfil (URL limpia profesional con /cuenta?id=XN-XXXXXXX)
   const shareBtn = document.getElementById("inspShareProfileBtn");
   if (shareBtn) {
     shareBtn.onclick = (e) => {
       applyLiquidWaterRipple(e, shareBtn);
       triggerFluidPop(shareBtn);
-      const profileUrl = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(targetUid)}`;
+      const profileUrl = `${window.location.origin}/cuenta?id=${encodeURIComponent(internalId)}`;
       navigator.clipboard?.writeText(profileUrl).then(() => {
         const fb = document.getElementById("inspActionFeedback");
         if (fb) {
           fb.hidden = false;
-          fb.textContent = "Enlace del perfil copiado al portapapeles ✓";
-          setTimeout(() => { fb.hidden = true; }, 2600);
+          fb.textContent = `Enlace copiado: ${profileUrl} ✓`;
+          setTimeout(() => { fb.hidden = true; }, 2800);
         }
       }).catch(() => {});
     };
@@ -2452,10 +2475,10 @@ const renderInspectorContent = (targetUid) => {
       editBtn.textContent = "Editar mi perfil";
       editBtn.addEventListener("click", () => {
         closeInspector();
-        if (window.location.pathname.endsWith("cuenta.html")) {
+        if (isCuentaPage()) {
           switchWorkspaceTab("profile");
         } else {
-          window.location.href = "cuenta.html?tab=profile";
+          window.location.href = "cuenta?tab=profile";
         }
       });
       actionsEl.appendChild(editBtn);
@@ -2471,7 +2494,7 @@ const renderInspectorContent = (targetUid) => {
         applyLiquidWaterRipple(e, followBtn);
         triggerFluidPop(followBtn);
         if (!activeAuthUser) {
-          signInAndEnterWorkspace("para-ti.html");
+          signInAndEnterWorkspace("para-ti");
           return;
         }
         followBtn.disabled = true;
@@ -2497,11 +2520,11 @@ const renderInspectorContent = (targetUid) => {
       msgBtn.addEventListener("click", (e) => {
         applyLiquidWaterRipple(e, msgBtn);
         closeInspector();
-        if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+        if (isCuentaPage() && activeAuthUser) {
           switchWorkspaceTab("messages");
           cloudHooks.openChatWithPeer?.(targetUid);
         } else {
-          window.location.href = `cuenta.html?chat=${encodeURIComponent(targetUid)}`;
+          window.location.href = `cuenta?chat=${encodeURIComponent(targetUid)}`;
         }
       });
       actionsEl.appendChild(msgBtn);
@@ -2540,7 +2563,7 @@ const renderInspectorContent = (targetUid) => {
         repBtn.textContent = "Reportar";
         repBtn.addEventListener("click", () => {
           closeInspector();
-          if (window.location.pathname.endsWith("cuenta.html")) {
+          if (isCuentaPage()) {
             switchWorkspaceTab("settings");
             const repInput = document.getElementById("reportTargetIdInput");
             if (repInput) {
@@ -2548,7 +2571,7 @@ const renderInspectorContent = (targetUid) => {
               document.getElementById("reportReasonInput")?.focus();
             }
           } else {
-            window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(internalId)}`;
+            window.location.href = `cuenta?tab=settings&report=${encodeURIComponent(internalId)}`;
           }
         });
         actionsEl.appendChild(repBtn);
@@ -2868,19 +2891,19 @@ function renderMyRealProfile() {
   if (likesCountEl) likesCountEl.textContent = formatTiktokNumber(totalLikes);
   if (starsSummaryEl) starsSummaryEl.textContent = stats.count > 0 ? `★ ${stats.avg.toFixed(1)}` : "★ Nuevo";
 
-  // Share button
+  // Share button (Enlace limpio y profesional /cuenta?id=XN-XXXXXXX)
   const shareBtn = document.getElementById("myProfileShareBtn");
   if (shareBtn) {
     shareBtn.onclick = (e) => {
       applyLiquidWaterRipple(e, shareBtn);
       triggerFluidPop(shareBtn);
-      const profileUrl = `${window.location.origin}/perfiles.html?user=${encodeURIComponent(targetUid)}`;
+      const profileUrl = `${window.location.origin}/cuenta?id=${encodeURIComponent(internalId)}`;
       navigator.clipboard?.writeText(profileUrl).then(() => {
         const fb = document.getElementById("myProfileActionFeedback");
         if (fb) {
           fb.hidden = false;
-          fb.textContent = "Enlace público de tu perfil copiado al portapapeles ✓";
-          setTimeout(() => { fb.hidden = true; }, 2600);
+          fb.textContent = `Enlace de tu cuenta copiado: ${profileUrl} ✓`;
+          setTimeout(() => { fb.hidden = true; }, 2800);
         }
       }).catch(() => {});
     };
@@ -3063,7 +3086,7 @@ function renderMyRealProfile() {
 const openOwnProfileInspector = () => {
   if (activeAuthUser) {
     if (typeof closeDock === "function") closeDock();
-    if (window.location.pathname.endsWith("cuenta.html")) {
+    if (isCuentaPage()) {
       switchWorkspaceTab("profile");
     } else {
       renderInspectorContent(activeAuthUser.uid);
@@ -3219,11 +3242,11 @@ const createProfileDirectoryRow = (prof, signInCallback) => {
     chatBtn.className = "btn btn-white btn-sm";
     chatBtn.textContent = "Contactar / Trabajo →";
     chatBtn.addEventListener("click", () => {
-      if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+      if (isCuentaPage() && activeAuthUser) {
         switchWorkspaceTab("messages");
         cloudHooks.openChatWithPeer?.(prof.uid);
       } else {
-        signInCallback(`cuenta.html?chat=${encodeURIComponent(prof.uid)}`);
+        signInCallback(`cuenta?chat=${encodeURIComponent(prof.uid)}`);
       }
     });
     right.appendChild(chatBtn);
@@ -4607,10 +4630,10 @@ if (isFirebaseConfigured) {
       if (onboardingModal) onboardingModal.hidden = true;
     });
 
-    // Inicio y cierre de sesión con Google
-    const signInAndEnterWorkspace = async (destinationUrl = "cuenta.html") => {
+    // Inicio y cierre de sesión con Google (URLs limpias)
+    const signInAndEnterWorkspace = async (destinationUrl = "cuenta") => {
       if (activeAuthUser) {
-        if (!window.location.pathname.endsWith(destinationUrl)) {
+        if (!isCuentaPage()) {
           window.location.href = destinationUrl;
         }
         return;
@@ -4619,8 +4642,8 @@ if (isFirebaseConfigured) {
         const cred = await signInWithPopup(auth, provider);
         if (cred?.user) {
           const alreadyAtDest =
-            (destinationUrl === "cuenta.html" && window.location.pathname.endsWith("cuenta.html")) ||
-            (destinationUrl === "para-ti.html" && window.location.pathname.endsWith("para-ti.html"));
+            (destinationUrl.includes("cuenta") && isCuentaPage()) ||
+            (destinationUrl.includes("para-ti") && isParaTiPage());
           if (!alreadyAtDest) {
             window.location.href = destinationUrl;
           }
@@ -4632,11 +4655,11 @@ if (isFirebaseConfigured) {
       }
     };
 
-    navSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
-    heroSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
-    accountSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta.html"));
+    navSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta"));
+    heroSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta"));
+    accountSignInBtn?.addEventListener("click", () => signInAndEnterWorkspace("cuenta"));
     document.getElementById("forYouGuestSignInBtn")?.addEventListener("click", () =>
-      signInAndEnterWorkspace("para-ti.html")
+      signInAndEnterWorkspace("para-ti")
     );
 
     const handleSignOut = async () => {
@@ -4646,7 +4669,7 @@ if (isFirebaseConfigured) {
       } catch (e) {}
       cachedAuthSession = null;
       await signOut(auth);
-      if (window.location.pathname.endsWith("cuenta.html")) {
+      if (isCuentaPage()) {
         renderAccountWorkspace();
       }
     };
@@ -4879,11 +4902,11 @@ if (isFirebaseConfigured) {
           contactBtn.style.color = "var(--white)";
           contactBtn.textContent = "Contactar →";
           contactBtn.addEventListener("click", () => {
-            if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+            if (isCuentaPage() && activeAuthUser) {
               switchWorkspaceTab("messages");
               cloudHooks.openChatWithPeer?.(prof.uid);
             } else {
-              signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(prof.uid)}`);
+              signInAndEnterWorkspace(`cuenta?chat=${encodeURIComponent(prof.uid)}`);
             }
           });
           actWrap.appendChild(contactBtn);
@@ -4980,7 +5003,7 @@ if (isFirebaseConfigured) {
           applyLiquidWaterRipple(e, followBtn);
           triggerFluidPop(followBtn);
           if (!activeAuthUser) {
-            signInAndEnterWorkspace("para-ti.html");
+            signInAndEnterWorkspace("para-ti");
             return;
           }
           followBtn.disabled = true;
@@ -5033,7 +5056,7 @@ if (isFirebaseConfigured) {
         applyLiquidWaterRipple(e, saveOpt);
         closeDropdown();
         if (!activeAuthUser) {
-          signInAndEnterWorkspace("para-ti.html");
+          signInAndEnterWorkspace("para-ti");
           return;
         }
         const nowSaved = await cloudHooks.toggleSavePost?.(post.id);
@@ -5064,7 +5087,7 @@ if (isFirebaseConfigured) {
         e.stopPropagation();
         applyLiquidWaterRipple(e, copyOpt);
         closeDropdown();
-        const postUrl = `${window.location.origin}/para-ti.html?post=${post.id}`;
+        const postUrl = `${window.location.origin}/para-ti?post=${post.id}`;
         navigator.clipboard?.writeText(postUrl).then(() => {
           copyOpt.innerHTML = copyOptSuccessHtml;
           setTimeout(() => { copyOpt.innerHTML = copyOptNormalHtml; }, 2000);
@@ -5103,7 +5126,7 @@ if (isFirebaseConfigured) {
           e.stopPropagation();
           applyLiquidWaterRipple(e, repOpt);
           closeDropdown();
-          if (window.location.pathname.endsWith("cuenta.html")) {
+          if (isCuentaPage()) {
             switchWorkspaceTab("settings");
             const repInput = document.getElementById("reportTargetIdInput");
             if (repInput) {
@@ -5111,7 +5134,7 @@ if (isFirebaseConfigured) {
               document.getElementById("reportReasonInput")?.focus();
             }
           } else {
-            window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(post.authorInternalId || authorInternalId)}`;
+            window.location.href = `cuenta?tab=settings&report=${encodeURIComponent(post.authorInternalId || authorInternalId)}`;
           }
         });
         dropdown.appendChild(repOpt);
@@ -5142,7 +5165,7 @@ if (isFirebaseConfigured) {
           if (!activeAuthUser && !cachedAuthSession) {
             alert("Inicia sesión con tu cuenta para eliminar publicaciones.");
             signInAndEnterWorkspace(
-              window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+              isParaTiPage() ? "para-ti" : "cuenta"
             );
             return;
           }
@@ -5219,7 +5242,7 @@ if (isFirebaseConfigured) {
         triggerFluidPop(likeBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            isParaTiPage() ? "para-ti" : "cuenta"
           );
           return;
         }
@@ -5245,7 +5268,7 @@ if (isFirebaseConfigured) {
         triggerFluidPop(dislikeBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            isParaTiPage() ? "para-ti" : "cuenta"
           );
           return;
         }
@@ -5290,7 +5313,7 @@ if (isFirebaseConfigured) {
         triggerFluidPop(saveBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            isParaTiPage() ? "para-ti" : "cuenta"
           );
           return;
         }
@@ -5331,11 +5354,11 @@ if (isFirebaseConfigured) {
         `;
         contactBtn.addEventListener("click", (e) => {
           applyLiquidWaterRipple(e, contactBtn);
-          if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
+          if (isCuentaPage() && activeAuthUser) {
             switchWorkspaceTab("messages");
             cloudHooks.openChatWithPeer?.(post.authorUid);
           } else {
-            signInAndEnterWorkspace(`cuenta.html?chat=${encodeURIComponent(post.authorUid)}`);
+            signInAndEnterWorkspace(`cuenta?chat=${encodeURIComponent(post.authorUid)}`);
           }
         });
         bar.appendChild(contactBtn);
@@ -5531,7 +5554,7 @@ if (isFirebaseConfigured) {
         loginToComment.textContent = "Inicia sesión con Google para comentar →";
         loginToComment.addEventListener("click", () =>
           signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            isParaTiPage() ? "para-ti" : "cuenta"
           )
         );
         commentsDrawer.appendChild(loginToComment);
@@ -5645,7 +5668,7 @@ if (isFirebaseConfigured) {
         triggerFluidPop(likeBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
-            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+            isParaTiPage() ? "para-ti" : "cuenta"
           );
           return;
         }
@@ -6124,7 +6147,7 @@ if (isFirebaseConfigured) {
 
     const openForYouCreateModal = () => {
       if (!activeAuthUser) {
-        signInAndEnterWorkspace("para-ti.html");
+        signInAndEnterWorkspace("para-ti");
         return;
       }
       if (!forYouCreateModal) return;
@@ -6351,7 +6374,7 @@ if (isFirebaseConfigured) {
     document.getElementById("forYouComposerForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!activeAuthUser || !cloudHooks.publishPost) {
-        signInAndEnterWorkspace("para-ti.html");
+        signInAndEnterWorkspace("para-ti");
         return;
       }
 
