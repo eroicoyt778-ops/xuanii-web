@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para ti — Fotos, trabajos y talento en vivo · Xuanii</title>
-  <meta name="description" content="Explora fotografías, muestras de edición, diseños, proyectos de código y búsquedas de talento publicadas en tiempo real por especialistas verificados en Xuanii." />
+  <title>Para ti — Publicaciones, dudas y comunidad en vivo · EndHa</title>
+  <meta name="description" content="Explora publicaciones, dudas, preguntas a la comunidad, tips técnicos, videos y conocimientos compartidos en tiempo real en EndHa." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,26 +41,42 @@
         >
           <span class="dock-burger-box" aria-hidden="true">
             <span class="dock-line dock-line-top"></span>
-            <span class="dock-line dock-line-mid"></span>
             <span class="dock-line dock-line-bot"></span>
           </span>
         </button>
 
-        <div class="nav-vertical-divider" aria-hidden="true"></div>
-
-        <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+        <a href="index.html" class="brand" aria-label="EndHa Inicio">
           <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+            <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+            <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
           </svg>
-          <span class="brand-text">xuanii</span>
+          <span class="brand-text">EndHa</span>
         </a>
       </div>
 
-      <div class="nav-center" aria-hidden="true"></div>
+      <!-- BUSCADOR LITERAMENTE ARRIBA EN LA BARRA PRINCIPAL -->
+      <div class="nav-center">
+        <div class="navbar-search-box">
+          <svg class="navbar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.5" y1="16.5" x2="21.5" y2="21.5"></line>
+          </svg>
+          <input
+            type="search"
+            id="forYouSearchInput"
+            class="navbar-search-input"
+            placeholder="Buscar publicaciones, temas o #etiquetas..."
+            aria-label="Buscar en Para ti"
+          />
+        </div>
+      </div>
 
+      <!-- ACCIONES SUPERIORES: BOTÓN AÑADIR + ACCESO DE USUARIO -->
       <div class="nav-actions">
+        <button type="button" class="btn btn-white btn-sm foryou-btn-add" id="forYouAddPostBtn" title="Crear nueva publicación">
+          <span class="foryou-plus-glyph">+</span> Añadir
+        </button>
+
         <button class="btn btn-white btn-sm" id="navGoogleSignInBtn" type="button">
           <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.25-.93 2.31-1.99 3.02v2.5h3.22c1.89-1.74 2.98-4.3 2.98-7.35 0-.37-.04-.73-.1-1.09z"/>
@@ -70,26 +86,6 @@
           </svg>
           <span>Acceso con Google</span>
         </button>
-
-        <div class="nav-profile-chip" id="navUserChip" hidden>
-          <a href="cuenta.html?tab=profile" class="nav-profile-anchor" id="navProfileLink" title="Ir a mi Perfil Profesional">
-            <div class="nav-avatar-shell">
-              <img id="navUserAvatar" src="favicon.svg" alt="" class="nav-avatar-img" />
-              <span class="nav-presence-badge" id="navPresenceIndicator" title="Disponible"></span>
-            </div>
-            <div class="nav-profile-meta">
-              <span id="navUserName" class="nav-user-label">Perfil</span>
-              <span class="nav-role-sub mono">Perfil Profesional</span>
-            </div>
-          </a>
-          <button class="nav-logout-btn" id="navSignOutBtn" type="button" aria-label="Cerrar sesión" title="Cerrar sesión">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
   </header>
@@ -100,26 +96,16 @@
       <div class="dock-head">
         <div class="dock-brand-line">
           <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+            <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+            <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
           </svg>
-          <span class="dock-title">Espacio de Trabajo</span>
+          <span class="dock-title">EndHa</span>
         </div>
         <button class="dock-close-btn" id="dockCloseBtn" type="button" aria-label="Cerrar panel">✕</button>
       </div>
 
-      <div class="dock-cta-box">
-        <button class="btn btn-dock-publish" id="dockQuickPublishBtn" type="button">
-          <svg class="dock-icon-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          <span>Publicar Contenido</span>
-          <span class="dock-cta-badge mono">Foto / Video / Código</span>
-        </button>
-      </div>
-
-      <nav class="dock-nav" aria-label="Navegación principal">
+      <nav class="dock-nav" id="dockNav" aria-label="Navegación principal">
+        <span class="dock-indicator-bar" id="dockIndicatorBar" aria-hidden="true"></span>
         <span class="dock-group-title mono">FEED & DESCUBRIMIENTO</span>
         <a href="para-ti.html" class="dock-nav-item active" id="dockNavParaTi">
           <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -128,7 +114,7 @@
           </svg>
           <div class="dock-nav-text">
             <span class="dock-nav-label">Para ti</span>
-            <span class="dock-nav-sub">Fotos, videos y talento en vivo</span>
+            <span class="dock-nav-sub">Publicaciones, dudas y comunidad</span>
           </div>
         </a>
 
@@ -198,193 +184,233 @@
       </nav>
 
       <div class="dock-foot">
-        <div class="dock-id-pill mono" id="dockInternalIdBadge">
-          ID: XN-00000000
-        </div>
+        <a href="cuenta.html?tab=profile" class="dock-profile-row" id="navUserChip" title="Ir a mi perfil" hidden>
+          <div class="dock-avatar-shell">
+            <img id="navUserAvatar" src="favicon.svg" alt="" class="dock-avatar-img" />
+            <span class="nav-presence-badge" id="navPresenceIndicator" title="Disponible"></span>
+          </div>
+          <div class="dock-profile-meta">
+            <div class="dock-profile-nameline">
+              <span id="navUserName" class="dock-user-label">Perfil</span>
+              <span id="dockCreatorSlot"></span>
+            </div>
+            <span id="dockUserHandle" class="dock-handle mono">@usuario</span>
+          </div>
+          <div class="dock-profile-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
         <span class="dock-esc-hint mono">Presiona [Esc] para cerrar</span>
       </div>
     </aside>
   </div>
 
-  <main>
-    <!-- CABECERA Y BUSCADOR EN VIVO "PARA TI" -->
-    <section class="foryou-hub-head">
-      <div class="container foryou-full-container">
-        <div class="hero-copy" data-reveal>
-          <span class="open-eyebrow mono">PARA TI · RED VISUAL Y TALENTO EN VIVO</span>
-          <h1 style="font-size: clamp(2.15rem, 4.2vw, 3.35rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.07; margin-bottom: 14px;">
-            Descubre fotos, trabajos reales<br />
-            <span class="text-silver">y a la persona exacta que necesitas.</span>
-          </h1>
-          <p class="hero-lead" style="margin-bottom: 0; max-width: 680px;">
-            Explora lo que están lanzando editores de video, retocadores de foto, diseñadores y programadores. Busca por especialidad, mira sus imágenes en grande y contáctalos con un clic.
-          </p>
-        </div>
-
-        <div class="foryou-search-shell" data-reveal style="--reveal-delay: 90ms;">
-          <div class="foryou-search-line">
-            <svg class="foryou-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="16.5" y1="16.5" x2="21.5" y2="21.5"></line>
-            </svg>
-            <input
-              type="search"
-              id="forYouSearchInput"
-              class="foryou-search-input"
-              placeholder="Buscar fotos, editor de video, editor de foto, diseño, @usuario o ID (XN-...)..."
-              aria-label="Buscar en Para ti"
-            />
-            <span id="forYouResultsMeta" class="mono" style="font-size: 0.74rem; color: var(--muted); white-space: nowrap;">EN VIVO</span>
-          </div>
-
-          <div class="foryou-controls-bar">
-            <div class="topic-tabs" id="forYouFilterTabs" role="tablist" aria-label="Filtrar publicaciones Para ti" style="border-bottom: none; padding-bottom: 0;">
-              <button type="button" class="topic-tab active" data-fy-filter="all">Para ti</button>
-              <button type="button" class="topic-tab" data-fy-filter="photos">Fotos y visual</button>
-              <button type="button" class="topic-tab" data-fy-filter="job">Empleo y encargos</button>
-              <button type="button" class="topic-tab" data-fy-filter="video">Video y Motion</button>
-              <button type="button" class="topic-tab" data-fy-filter="photo">Foto y Retoque</button>
-              <button type="button" class="topic-tab" data-fy-filter="design">Diseño y UI</button>
-              <button type="button" class="topic-tab" data-fy-filter="dev">Desarrollo</button>
-            </div>
-
-            <div class="view-mode-switch" id="forYouViewSwitch" aria-label="Modo de visualización">
-              <button type="button" class="view-mode-btn active" data-fy-view="stream">Flujo social</button>
-              <button type="button" class="view-mode-btn" data-fy-view="mosaic">Mosaico visual</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONTENIDO PRINCIPAL: PUBLICADOR RÁPIDO + PERFILES RECOMENDADOS + FEED DE FOTOS Y PUBLICACIONES -->
-    <section class="section-dark" style="padding-top: 44px;">
-      <div class="container foryou-full-container">
-        <!-- Invitación limpia para visitantes sin sesión -->
-        <div id="forYouGuestBar" class="open-row" style="padding-top: 0; padding-bottom: 24px; margin-bottom: 28px;">
-          <div>
-            <span class="open-row-title">¿Quieres lanzar fotos de tus trabajos o publicar que buscas un especialista?</span>
-            <span class="open-row-sub">Entra con tu cuenta de Google para subir imágenes a Para ti, comentar y recibir propuestas cifradas.</span>
-          </div>
-          <button type="button" class="btn btn-white btn-sm" id="forYouGuestSignInBtn">
-            Publicar con Google <span class="arrow">→</span>
-          </button>
-        </div>
-
-        <!-- Publicador directo en Para ti cuando el usuario tiene sesión iniciada -->
-        <div id="forYouComposerWrap" hidden style="margin-bottom: 36px;">
-          <form id="forYouComposerForm" class="feed-composer-open" style="margin-bottom: 0;" novalidate>
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-              <span class="mono" style="font-size: 0.72rem; letter-spacing: 0.1em; color: var(--silver);">PUBLICAR EN EL FEED Y PORTAFOLIO</span>
-              <select id="forYouPostKind" class="studio-presence-select" style="width: auto; min-width: 240px;">
-                <option value="portfolio">Muestra visual (Foto / Captura)</option>
-                <option value="video">Muestra de Video (YouTube / Vimeo / MP4)</option>
-                <option value="code_snippet">Fragmento de Código Fuente</option>
-                <option value="job">Oferta de empleo / Búsqueda de especialista</option>
-                <option value="available">Disponible para proyectos / Encargos</option>
-              </select>
-            </div>
-
-            <textarea
-              id="forYouPostCaption"
-              class="line-textarea"
-              style="min-height: 70px;"
-              maxlength="2800"
-              placeholder="Describe tu trabajo, proyecto, video o el perfil técnico que buscas contratar..."
-              required
-            ></textarea>
-
-            <!-- Campo opcional de Video -->
-            <div id="forYouVideoInputWrap" style="display: none; margin-top: 10px;">
-              <input
-                type="url"
-                id="forYouVideoUrlInput"
-                class="line-input"
-                placeholder="Pega el enlace de video: https://youtube.com/watch?v=... o https://vimeo.com/..."
-              />
-            </div>
-
-            <!-- Campos opcionales de Código Fuente -->
-            <div id="forYouCodeSnippetWrap" style="display: none; margin-top: 12px; gap: 8px; flex-direction: column;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input
-                  type="text"
-                  id="forYouCodeTitleInput"
-                  class="line-input"
-                  style="flex: 1;"
-                  placeholder="Título del snippet (ej: useDebounce hook, shader 3D, backend auth)"
-                />
-                <select id="forYouCodeLangSelect" class="studio-presence-select" style="width: auto;">
-                  <option value="javascript">JavaScript / TypeScript</option>
-                  <option value="python">Python</option>
-                  <option value="rust">Rust</option>
-                  <option value="css">CSS / Tailwind</option>
-                  <option value="html">HTML</option>
-                  <option value="sql">SQL</option>
-                  <option value="json">JSON</option>
-                </select>
-              </div>
-              <textarea
-                id="forYouCodeSnippetArea"
-                class="line-textarea mono"
-                style="min-height: 110px; font-size: 0.82rem;"
-                placeholder="// Pega tu código fuente aquí..."
-              ></textarea>
-            </div>
-
-            <div id="forYouPhotoPreviewWrap" class="composer-photo-preview" hidden>
-              <img id="forYouPhotoPreviewImg" alt="Vista previa" />
-              <button type="button" class="text-action-btn" id="forYouRemovePhotoBtn" style="margin-top: 6px;">Quitar foto</button>
-            </div>
-
-            <div class="composer-toolbar">
-              <div class="inline-actions">
-                <input type="file" id="forYouPhotoInput" accept="image/*" hidden />
-                <button type="button" class="btn btn-ghost btn-sm" id="forYouAttachPhotoBtn">
-                  Adjuntar foto o imagen
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" id="forYouToggleVideoBtn">
-                  Video URL
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" id="forYouToggleCodeBtn">
-                  Código
-                </button>
-                <span id="forYouComposerFeedback" class="mono" style="font-size: 0.76rem; color: var(--silver);"></span>
-              </div>
-              <button type="submit" class="btn btn-white btn-sm" id="forYouPublishBtn">
-                Publicar en Para ti <span class="arrow">→</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Franja dinámica de perfiles que coinciden con lo que buscas -->
-        <div id="forYouSpecialistsZone" class="foryou-specialists-zone" style="padding-top: 8px; margin-bottom: 24px;">
-          <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <span id="forYouSpecialistsLabel" class="open-eyebrow mono" style="margin-bottom: 0;">PERFILES DESTACADOS PARA TI</span>
-            <a href="perfiles.html" class="text-action-btn" style="text-decoration: none;">Ver directorio completo →</a>
-          </div>
-          <div id="forYouSpecialistsGrid" class="foryou-specialists-grid"></div>
-        </div>
-
-        <!-- Stream principal (Flujo social o Mosaico visual) -->
-        <div id="forYouStreamContainer"></div>
-      </div>
-    </section>
+  <main class="foryou-main">
+    <div class="container foryou-full-container">
+      <!-- STREAM SOCIAL: PUBLICACIONES EN VIVO (LO PRIMERO QUE VE EL USUARIO) -->
+      <div id="forYouStreamContainer"></div>
+    </div>
   </main>
+
+  <!-- APARTADO ESPECIAL DEDICADO: ESTUDIO DE CREACIÓN COMPLETO -->
+  <div id="forYouCreateModal" class="foryou-modal-backdrop" hidden aria-hidden="true">
+    <div class="foryou-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="foryouModalTitle">
+      <div class="foryou-modal-header">
+        <div class="foryou-modal-title-row">
+          <span class="foryou-modal-badge mono">ESTUDIO DE CREACIÓN · ENDHA</span>
+          <h2 id="foryouModalTitle" class="foryou-modal-heading">Crear nueva publicación</h2>
+        </div>
+        <button type="button" class="foryou-modal-close" id="forYouCloseModalBtn" aria-label="Cerrar ventana">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="forYouComposerForm" class="foryou-modal-body" novalidate>
+        <!-- Perfil del autor activo -->
+        <div class="foryou-modal-author-strip">
+          <img id="forYouModalAvatar" src="favicon.svg" alt="" class="feed-author-avatar" />
+          <div class="foryou-modal-author-info">
+            <strong id="forYouModalAuthorName" class="foryou-modal-name">Tu perfil</strong>
+            <span id="forYouModalAuthorHandle" class="mono foryou-modal-handle">@usuario</span>
+          </div>
+          <div class="foryou-modal-scope-pill mono">Para ti · Público</div>
+        </div>
+
+        <!-- Título opcional del post -->
+        <div class="foryou-modal-field">
+          <input
+            type="text"
+            id="forYouPostTitle"
+            class="foryou-modal-title-input"
+            placeholder="Título o titular de tu publicación (opcional)..."
+            maxlength="160"
+          />
+        </div>
+
+        <!-- Área de descripción / texto principal -->
+        <div class="foryou-modal-field">
+          <textarea
+            id="forYouPostCaption"
+            class="foryou-modal-textarea"
+            rows="5"
+            placeholder="¿De qué quieres hablar hoy? Comparte tus ideas, proyectos, avances o dudas con la comunidad (puedes incluir #hashtags que se detectarán automáticamente)..."
+            required
+          ></textarea>
+          <div class="foryou-modal-char-row">
+            <span class="foryou-modal-hint mono">Escribe #etiquetas para relacionar tu contenido.</span>
+            <span id="forYouCharCounter" class="mono foryou-char-counter">0 / 2800</span>
+          </div>
+        </div>
+
+        <!-- Selector de herramientas multimedia -->
+        <div class="studio-media-toolbar">
+          <span class="studio-media-toolbar-title mono">ADJUNTAR MULTIMEDIA:</span>
+          <div class="studio-media-buttons">
+            <button type="button" class="studio-media-btn" id="forYouMediaVideoBtn">
+              🎬 Video <span class="mono" style="font-size: 0.7rem; opacity: 0.85;">(máx 5 min)</span>
+            </button>
+            <button type="button" class="studio-media-btn" id="forYouMediaPhotoBtn">
+              📷 Foto o Portada
+            </button>
+            <button type="button" class="studio-media-btn" id="forYouMediaCodeBtn">
+              💻 Código fuente
+            </button>
+          </div>
+        </div>
+
+        <!-- ZONA DE VIDEO (HASTA 5 MINUTOS MÁXIMO) -->
+        <div id="forYouVideoSection" class="studio-section-card" hidden>
+          <div class="studio-section-head">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="mono" style="font-size: 0.76rem; font-weight: 700; color: var(--white);">MUESTRA DE VIDEO</span>
+              <span class="studio-limit-badge mono">HASTA 5 MINUTOS (MÁX 300s)</span>
+            </div>
+            <button type="button" class="text-action-btn danger" id="forYouDismissVideoSectionBtn">✕ Quitar</button>
+          </div>
+
+          <div class="studio-video-methods">
+            <!-- Método 1: Subida de archivo con validación de duración -->
+            <div class="studio-upload-box" id="forYouVideoDropBox">
+              <input type="file" id="forYouVideoFileInput" accept="video/mp4,video/webm,video/ogg,video/quicktime" hidden />
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+              </svg>
+              <div>
+                <button type="button" class="btn btn-ghost btn-sm" id="forYouSelectVideoFileBtn">
+                  📁 Seleccionar archivo de video
+                </button>
+                <span class="studio-upload-sub mono">MP4, WebM o MOV · Límite máximo: 5:00 minutos</span>
+              </div>
+            </div>
+
+            <div class="studio-or-divider mono">o pega un enlace</div>
+
+            <!-- Método 2: Enlace externo -->
+            <input
+              type="url"
+              id="forYouVideoUrlInput"
+              class="line-input"
+              placeholder="Enlace de YouTube, Shorts, Vimeo o enlace directo a video .mp4..."
+            />
+          </div>
+
+          <!-- Previsualizador de Video validado -->
+          <div id="forYouVideoPreviewCard" class="studio-media-preview-box" hidden>
+            <video id="forYouVideoPlayer" controls playsinline class="studio-preview-video"></video>
+            <div class="studio-media-preview-foot">
+              <span id="forYouVideoDurationStatus" class="mono studio-duration-ok">⏱ 00:00 / 05:00 (Válido)</span>
+              <button type="button" class="text-action-btn danger" id="forYouClearVideoPreviewBtn">Quitar video</button>
+            </div>
+          </div>
+
+          <!-- Mensaje de error/validación de video -->
+          <div id="forYouVideoValidationMsg" class="studio-validation-error mono" hidden></div>
+        </div>
+
+        <!-- ZONA DE FOTO O PORTADA VISUAL -->
+        <div id="forYouPhotoSection" class="studio-section-card" hidden>
+          <div class="studio-section-head">
+            <span class="mono" style="font-size: 0.76rem; font-weight: 700; color: var(--white);">FOTO O PORTADA VISUAL</span>
+            <button type="button" class="text-action-btn danger" id="forYouDismissPhotoSectionBtn">✕ Quitar</button>
+          </div>
+          <input type="file" id="forYouPhotoInput" accept="image/*" hidden />
+          <button type="button" class="btn btn-ghost btn-sm" id="forYouSelectPhotoBtn">
+            📷 Seleccionar imagen de tu equipo
+          </button>
+          <div id="forYouPhotoPreviewWrap" class="studio-media-preview-box" hidden style="margin-top: 10px;">
+            <img id="forYouPhotoPreviewImg" alt="Vista previa de portada" class="studio-preview-img" />
+            <div class="studio-media-preview-foot">
+              <span class="mono" style="font-size: 0.72rem; color: var(--silver);">Imagen lista para publicar</span>
+              <button type="button" class="text-action-btn danger" id="forYouClearPhotoPreviewBtn">Quitar foto</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ZONA DE CÓDIGO FUENTE -->
+        <div id="forYouCodeSection" class="studio-section-card" hidden>
+          <div class="studio-section-head">
+            <span class="mono" style="font-size: 0.76rem; font-weight: 700; color: var(--white);">FRAGMENTO DE CÓDIGO</span>
+            <button type="button" class="text-action-btn danger" id="forYouDismissCodeSectionBtn">✕ Quitar</button>
+          </div>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+            <input
+              type="text"
+              id="forYouCodeTitleInput"
+              class="line-input"
+              style="flex: 1; min-width: 200px;"
+              placeholder="Título del snippet (ej: Shader GLSL / Hook React / Auth Rust)..."
+            />
+            <select id="forYouCodeLangSelect" class="studio-presence-select" style="width: auto;">
+              <option value="javascript">JavaScript / TypeScript</option>
+              <option value="python">Python</option>
+              <option value="rust">Rust</option>
+              <option value="css">CSS / Tailwind</option>
+              <option value="html">HTML</option>
+              <option value="sql">SQL</option>
+              <option value="json">JSON</option>
+              <option value="cpp">C++ / C</option>
+              <option value="go">Go</option>
+            </select>
+          </div>
+          <textarea
+            id="forYouCodeSnippetArea"
+            class="line-textarea mono"
+            style="min-height: 120px; font-size: 0.82rem;"
+            placeholder="// Pega tu código fuente aquí..."
+          ></textarea>
+        </div>
+
+        <!-- Pie del modal con acciones claras -->
+        <div class="foryou-modal-footer">
+          <span id="forYouComposerFeedback" class="mono foryou-modal-status"></span>
+          <div class="foryou-modal-btns">
+            <button type="button" class="btn btn-ghost btn-sm" id="forYouCancelPostBtn">Cancelar</button>
+            <button type="submit" class="btn btn-white btn-sm" id="forYouPublishBtn">
+              Publicar en Para ti <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="container footer-inner">
       <a href="index.html" class="brand">
         <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+          <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
         </svg>
-        <span class="brand-text">xuanii</span>
+        <span class="brand-text">EndHa</span>
       </a>
 
-      <span class="footer-copy mono">© 2026 Xuanii</span>
+      <span class="footer-copy mono">© 2026 EndHa · by Xuanii</span>
 
       <div class="footer-links">
         <a href="para-ti.html">Para ti</a>
@@ -398,43 +424,132 @@
     </div>
   </footer>
 
-  <!-- DRAWER LATERAL DE PERFIL COMPLETO, GALERÍA DE FOTOS Y ESTRELLAS -->
+  <!-- DRAWER LATERAL DE PERFIL ESTILO TIKTOK / RED SOCIAL -->
   <div class="inspector-backdrop" id="profileInspectorBackdrop" hidden>
-    <aside class="inspector-drawer" role="dialog" aria-modal="true" aria-labelledby="inspName">
+    <aside class="inspector-drawer inspector-drawer-tiktok" role="dialog" aria-modal="true" aria-labelledby="inspName">
+      <!-- CABECERA SUPERIOR: ID KICKER + BOTÓN COMPARTIR + CERRAR -->
       <div class="modal-head" style="margin-bottom: 0;">
         <span class="mono modal-kicker" id="inspInternalId">ID: XN-00000000</span>
-        <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
-      </div>
-
-      <div class="profile-identity">
-        <img id="inspAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" style="width: 64px; height: 64px;" />
-        <div class="profile-meta-stack">
-          <div class="profile-name-line">
-            <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
-            <span id="inspCreatorSlot"></span>
-            <span id="inspHandle" class="profile-handle mono">@usuario</span>
-          </div>
-          <div class="profile-role-line">
-            <span id="inspRole" class="profile-role">Especialidad</span>
-            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
-          </div>
-          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-tiktok-share" id="inspShareProfileBtn" type="button" title="Copiar enlace del perfil" aria-label="Compartir perfil">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+          </button>
+          <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
         </div>
       </div>
 
-      <p id="inspBio" class="profile-bio"></p>
-      <div id="inspSkills" class="skills-tags-line mono"></div>
+      <!-- HERO DEL PERFIL: AVATAR GRANDE + NOMBRES + INSIGNIAS -->
+      <div class="profile-tiktok-hero">
+        <div class="profile-tiktok-avatar-wrap">
+          <img id="inspAvatar" src="favicon.svg" alt="" class="profile-tiktok-avatar" />
+        </div>
+        <div class="profile-tiktok-names">
+          <div class="profile-tiktok-title-row">
+            <h3 id="inspName" class="profile-tiktok-name">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
+          </div>
+          <span id="inspHandle" class="profile-tiktok-handle mono">@usuario</span>
+          <div class="profile-tiktok-meta-pills">
+            <span id="inspRole" class="profile-role">Especialidad</span>
+            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
+            <span id="inspConductBadge" class="conduct-pill score-good mono">Conducta: 10/10</span>
+          </div>
+        </div>
+      </div>
 
-      <div class="inline-actions" id="inspActionButtons"></div>
+      <!-- BARRA DE ACCIONES TIKTOK: SEGUIR / MENSAJE / EDITAR -->
+      <div class="profile-tiktok-actions-bar" id="inspActionButtons"></div>
       <div id="inspActionFeedback" class="form-feedback" hidden></div>
 
-      <div class="section-divider-top" style="padding-top: 24px;">
-        <span class="open-eyebrow mono" style="margin-bottom: 10px;">PORTAFOLIO Y TRABAJOS PUBLICADOS</span>
+      <!-- CONTADORES SOCIALES TIKTOK: SIGUIENDO / SEGUIDORES / ME GUSTA -->
+      <div class="profile-tiktok-stats-bar">
+        <div class="tiktok-stat-box">
+          <strong id="inspFollowingCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Siguiendo</span>
+        </div>
+        <div class="tiktok-stat-divider" aria-hidden="true"></div>
+        <div class="tiktok-stat-box">
+          <strong id="inspFollowersCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Seguidores</span>
+        </div>
+        <div class="tiktok-stat-divider" aria-hidden="true"></div>
+        <div class="tiktok-stat-box">
+          <strong id="inspLikesCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Me gusta</span>
+        </div>
+      </div>
+
+      <!-- BIOGRAFÍA Y HABILIDADES -->
+      <div class="profile-tiktok-bio-card">
+        <p id="inspBio" class="profile-bio"></p>
+        <div id="inspSkills" class="skills-tags-line mono"></div>
+      </div>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN DEL PERFIL (TIKTOK STYLE) -->
+      <div class="profile-tiktok-tabs-nav" role="tablist">
+        <button type="button" class="tiktok-tab-btn active" id="inspTabPostsBtn" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span>Publicaciones</span>
+          <span class="tiktok-tab-counter" id="inspTabPostsCounter">0</span>
+        </button>
+        <button type="button" class="tiktok-tab-btn disabled" id="inspTabPortfolioBtn" role="tab" aria-selected="false" title="Opción desactivada temporalmente">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span>Portafolio</span>
+          <span class="tiktok-tab-pill-locked">Próximamente</span>
+        </button>
+        <button type="button" class="tiktok-tab-btn" id="inspTabReviewsBtn" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Reseñas</span>
+          <span class="tiktok-tab-counter" id="inspTabReviewsCounter">0</span>
+        </button>
+      </div>
+
+      <!-- PANEL 1: PUBLICACIONES EN SCROLL TIPO FACEBOOK CON PAGINACIÓN ANTI-LAG -->
+      <div class="profile-tiktok-panel" id="inspPanelPosts">
+        <div id="inspUserPostsStream" class="profile-posts-stream"></div>
+        <div id="inspPostsPaginationWrap" class="profile-pagination-wrap" hidden>
+          <button type="button" id="inspLoadMorePostsBtn" class="btn-load-more-profile">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span id="inspLoadMoreLabel">Cargar más publicaciones</span>
+          </button>
+          <span class="mono profile-pagination-counter" id="inspPostsCounter"></span>
+        </div>
+        <div id="inspPostsAllLoaded" class="profile-all-loaded mono" hidden>
+          ✓ Has visto todas las publicaciones
+        </div>
+        <div id="inspPostsEmpty" class="profile-posts-empty mono" hidden>
+          Este creador aún no ha compartido publicaciones en su perfil.
+        </div>
+      </div>
+
+      <!-- PANEL 2: PORTAFOLIO (DESACTIVADO / OCULTO) -->
+      <div class="profile-tiktok-panel" id="inspPanelPortfolio" hidden>
         <div id="inspPortfolioList" class="portfolio-gallery-grid"></div>
       </div>
 
-      <div class="section-divider-top" style="padding-top: 24px;">
-        <span class="open-eyebrow mono" style="margin-bottom: 12px;">VALORACIONES DE TRABAJOS (ESTRELLAS)</span>
+      <!-- PANEL 3: RESEÑAS Y VALORACIONES -->
+      <div class="profile-tiktok-panel" id="inspPanelReviews" hidden>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        </div>
 
         <form id="inspReviewForm" class="open-form" style="gap: 16px; margin-bottom: 28px;" novalidate hidden>
           <div>

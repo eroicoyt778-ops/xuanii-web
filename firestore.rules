@@ -7,15 +7,11 @@ service cloud.firestore {
     }
 
     function isCreatorUid(uid) {
-      return uid == "KVtoDRTJ7FUxZJelcicoSISSazA3"
-          || uid == "iHw8l7jKnzPp1JDCGsJ73C9I4z73";
+      return uid == "KVtoDRTJ7FUxZJelcicoSISSazA3";
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == "thexsactc@gmail.com"
-        || isCreatorUid(request.auth.uid)
-      );
+      return isSignedIn() && isCreatorUid(request.auth.uid);
     }
 
     function isNotBanned() {
@@ -125,9 +121,12 @@ service cloud.firestore {
                     && (!('videoUrl' in request.resource.data) || request.resource.data.videoUrl.size() <= 600);
       allow update: if isNotBanned()
                     && (resource.data.authorUid == request.auth.uid
+                        || isAdmin()
                         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dislikes'])
                         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount'])
-                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentCount']));
+                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'dislikes'])
+                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'dislikes', 'commentCount']));
       allow delete: if isSignedIn()
                     && (resource.data.authorUid == request.auth.uid || isAdmin());
 
@@ -138,9 +137,17 @@ service cloud.firestore {
                       && request.resource.data.text is string
                       && request.resource.data.text.size() > 0
                       && request.resource.data.text.size() <= 1200;
+        allow update: if isAdmin() || (isNotBanned() && resource.data.authorUid == request.auth.uid);
         allow delete: if isSignedIn()
                       && (resource.data.authorUid == request.auth.uid || isAdmin());
       }
+    }
+
+    // Bandeja de comentarios en duda retenidos para moderación por el administrador
+    match /adminPendingComments/{pendingId} {
+      allow create: if isNotBanned()
+                    && request.resource.data.commentText is string;
+      allow read, update, delete: if isAdmin();
     }
 
     // Conexiones de confianza / amigos entre usuarios

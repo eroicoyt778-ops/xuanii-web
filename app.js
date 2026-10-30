@@ -6,17 +6,13 @@ const STORAGE_KEYS = {
   SUBMISSIONS: "xuanii_submissions"
 };
 
-const ADMIN_EMAIL = "thexsactc@gmail.com";
-
-// Cuentas oficiales del Creador de Xuanii (reconocidas por ID interno e inmutables)
+// Cuenta oficial única del Creador de Xuanii (reconocida por ID interno e inmutable)
 const CREATOR_UIDS = new Set([
-  "KVtoDRTJ7FUxZJelcicoSISSazA3",
-  "iHw8l7jKnzPp1JDCGsJ73C9I4z73"
+  "KVtoDRTJ7FUxZJelcicoSISSazA3"
 ]);
 
 const CREATOR_INTERNAL_IDS = new Set([
-  "XN-7808897A",
-  "XN-35BE2545"
+  "XN-7808897A"
 ]);
 
 const CATEGORY_LABELS = {
@@ -38,9 +34,63 @@ const SITUATION_LABELS = {
 };
 
 const POST_KIND_LABELS = {
-  portfolio: "MUESTRA DE PORTAFOLIO",
-  job: "OFERTA / BÚSQUEDA DE TALENTO",
-  available: "DISPONIBLE PARA TRABAJAR"
+  question: "DUDA / PREGUNTA",
+  knowledge: "CONOCIMIENTO / TIP",
+  video: "VIDEO & MOTION",
+  code_snippet: "CÓDIGO & DEV",
+  photo: "FOTO & VISUAL",
+  post: "PUBLICACIÓN",
+  portfolio: "FOTO & VISUAL",
+  job: "OPORTUNIDAD",
+  available: "COMUNIDAD"
+};
+
+/**
+ * Efecto de onda de agua líquida al hacer clic (Liquid Water Ripple)
+ */
+function applyLiquidWaterRipple(e, element) {
+  if (!element) return;
+  const rect = element.getBoundingClientRect();
+  const circle = document.createElement("span");
+  const diameter = Math.max(rect.width, rect.height) * 2;
+  const radius = diameter / 2;
+
+  const clientX = e && typeof e.clientX === "number" ? e.clientX : (rect.left + rect.width / 2);
+  const clientY = e && typeof e.clientY === "number" ? e.clientY : (rect.top + rect.height / 2);
+
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${clientX - rect.left - radius}px`;
+  circle.style.top = `${clientY - rect.top - radius}px`;
+  circle.className = "water-ripple-wave";
+
+  const prevRipple = element.querySelector(".water-ripple-wave");
+  if (prevRipple) prevRipple.remove();
+
+  element.appendChild(circle);
+  circle.addEventListener("animationend", () => circle.remove());
+}
+
+/**
+ * Microinteracción elástica con física de gota de agua (Liquid Spring Pop)
+ */
+function triggerFluidPop(element) {
+  if (!element) return;
+  element.classList.remove("fluid-water-pop");
+  void element.offsetWidth; // Forzar reflujo para reiniciar animación
+  element.classList.add("fluid-water-pop");
+  setTimeout(() => element.classList.remove("fluid-water-pop"), 550);
+}
+
+const POST_KIND_CLASSES = {
+  question: "kind-badge-question",
+  knowledge: "kind-badge-knowledge",
+  video: "kind-badge-video",
+  code_snippet: "kind-badge-code",
+  photo: "kind-badge-photo",
+  post: "kind-badge-post",
+  portfolio: "kind-badge-photo",
+  job: "kind-badge-question",
+  available: "kind-badge-post"
 };
 
 const BUILTIN_COMMUNITIES = [
@@ -163,7 +213,7 @@ const deriveInternalId = (uid) => {
   return `XN-${partA}${partB}`;
 };
 
-// Verificador determinista de cuenta oficial del Creador (ambas cuentas XN-7808897A y XN-35BE2545)
+// Verificador determinista de cuenta oficial del Creador (cuenta única XN-7808897A)
 const isCreatorAccount = (internalId = "", uid = "") => {
   if (uid && CREATOR_UIDS.has(uid)) return true;
   const code = String(internalId || (uid ? deriveInternalId(uid) : ""))
@@ -172,33 +222,133 @@ const isCreatorAccount = (internalId = "", uid = "") => {
   return CREATOR_INTERNAL_IDS.has(code);
 };
 
-const isAdminUser = (user) =>
-  Boolean(user && (user.email === ADMIN_EMAIL || isCreatorAccount("", user.uid)));
+const isAdminUser = (user) => {
+  if (!user) return false;
+  const uid = user.uid || user.id || "";
+  const internalId = user.internalId || (uid ? deriveInternalId(uid) : "");
+  return Boolean((uid && CREATOR_UIDS.has(uid)) || isCreatorAccount(internalId, uid));
+};
 
-// Constructor DOM de la Insignia Oficial de Creador (Monocromática Luminosa)
-const createCreatorBadgeEl = (small = false) => {
-  const badge = document.createElement("span");
-  badge.className = small ? "creator-badge creator-badge-sm" : "creator-badge";
-  badge.title = "Creador oficial de Xuanii";
-
+// Generador del chulito azul de verificación oficial
+const createVerifiedBadgeEl = (small = false) => {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("aria-hidden", "true");
+  const size = small ? 14 : 17;
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", String(size));
+  svg.setAttribute("height", String(size));
+  svg.setAttribute("class", "verified-check-icon");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Cuenta verificada");
+  svg.setAttribute("title", "Cuenta verificada");
+
+  // Roseta exterior azul oficial (estilo verificado premium)
+  const bgPath = document.createElementNS(svgNS, "path");
+  bgPath.setAttribute(
+    "d",
+    "M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.67-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"
+  );
+  bgPath.setAttribute("fill", "#1d9bf0");
+
+  // Chulito / checkmark blanco nítido
+  const checkPath = document.createElementNS(svgNS, "path");
+  checkPath.setAttribute(
+    "d",
+    "M10.54 16.2L6.8 12.46l1.41-1.42 2.33 2.33 5.23-5.23 1.42 1.42-6.65 6.64z"
+  );
+  checkPath.setAttribute("fill", "#ffffff");
+
+  svg.appendChild(bgPath);
+  svg.appendChild(checkPath);
+  return svg;
+};
+
+// Generador de la llave de tuerca mecánica reservada exclusivamente al Creador (con gradiente animado blanco y negro)
+const createCreatorWrenchEl = (small = false) => {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  const size = small ? 14 : 16.5;
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", String(size));
+  svg.setAttribute("height", String(size));
+  svg.setAttribute("class", "creator-wrench-icon");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Creador oficial de EndHa");
+  svg.setAttribute("title", "Creador oficial de EndHa");
+
+  // Definición de degradado líquido blanco y negro en movimiento continuo
+  const defs = document.createElementNS(svgNS, "defs");
+  const grad = document.createElementNS(svgNS, "linearGradient");
+  const gradId = `creatorWrenchGrad_${Math.random().toString(36).slice(2, 8)}`;
+  grad.setAttribute("id", gradId);
+  grad.setAttribute("x1", "0%");
+  grad.setAttribute("y1", "0%");
+  grad.setAttribute("x2", "100%");
+  grad.setAttribute("y2", "100%");
+
+  // Parada 1: Blanco -> Negro -> Gris claro -> Blanco
+  const stop1 = document.createElementNS(svgNS, "stop");
+  stop1.setAttribute("offset", "0%");
+  stop1.setAttribute("stop-color", "#ffffff");
+  const anim1 = document.createElementNS(svgNS, "animate");
+  anim1.setAttribute("attributeName", "stop-color");
+  anim1.setAttribute("values", "#ffffff;#09090b;#d4d4d8;#ffffff");
+  anim1.setAttribute("dur", "3.6s");
+  anim1.setAttribute("repeatCount", "indefinite");
+  stop1.appendChild(anim1);
+
+  // Parada 2: Negro -> Blanco -> Negro -> Negro
+  const stop2 = document.createElementNS(svgNS, "stop");
+  stop2.setAttribute("offset", "50%");
+  stop2.setAttribute("stop-color", "#18181b");
+  const anim2 = document.createElementNS(svgNS, "animate");
+  anim2.setAttribute("attributeName", "stop-color");
+  anim2.setAttribute("values", "#18181b;#ffffff;#18181b;#18181b");
+  anim2.setAttribute("dur", "3.6s");
+  anim2.setAttribute("repeatCount", "indefinite");
+  stop2.appendChild(anim2);
+
+  // Parada 3: Blanco -> Negro -> Blanco -> Blanco
+  const stop3 = document.createElementNS(svgNS, "stop");
+  stop3.setAttribute("offset", "100%");
+  stop3.setAttribute("stop-color", "#ffffff");
+  const anim3 = document.createElementNS(svgNS, "animate");
+  anim3.setAttribute("attributeName", "stop-color");
+  anim3.setAttribute("values", "#ffffff;#18181b;#ffffff;#ffffff");
+  anim3.setAttribute("dur", "3.6s");
+  anim3.setAttribute("repeatCount", "indefinite");
+  stop3.appendChild(anim3);
+
+  grad.appendChild(stop1);
+  grad.appendChild(stop2);
+  grad.appendChild(stop3);
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+
   const path = document.createElementNS(svgNS, "path");
   path.setAttribute(
     "d",
-    "M8 0.8L9.85 6.15L15.2 8L9.85 9.85L8 15.2L6.15 9.85L0.8 8L6.15 6.15L8 0.8Z"
+    "M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"
   );
-  path.setAttribute("fill", "currentColor");
+  path.setAttribute("fill", `url(#${gradId})`);
+  path.setAttribute("stroke", "rgba(255, 255, 255, 0.85)");
+  path.setAttribute("stroke-width", "0.7");
   svg.appendChild(path);
+  return svg;
+};
 
-  const txt = document.createElement("span");
-  txt.textContent = "CREADOR";
+// Constructor DOM del distintivo del Creador: Llave de tuerca PRIMERO + Chulito azul DESPUÉS
+const createCreatorBadgeEl = (small = false) => {
+  const badge = document.createElement("span");
+  badge.className = small ? "creator-badge creator-badge-sm" : "creator-badge";
+  badge.title = "Creador oficial · Cuenta verificada";
 
-  badge.appendChild(svg);
-  badge.appendChild(txt);
+  // 1. Llave de tuerca de Creador PRIMERO
+  badge.appendChild(createCreatorWrenchEl(small));
+
+  // 2. Chulito azul de verificación DESPUÉS
+  badge.appendChild(createVerifiedBadgeEl(small));
+
   return badge;
 };
 
@@ -270,13 +420,15 @@ const renderMembershipBadge = (tier = "standard", small = false) => {
   return empty;
 };
 
-const mountCreatorBadgeSlot = (slotEl, isCreator, small = false, tier = "standard") => {
+const mountCreatorBadgeSlot = (slotEl, isCreator, smallOrTier = false, tier = "standard") => {
   if (!slotEl) return;
+  const small = typeof smallOrTier === "boolean" ? smallOrTier : false;
+  const effectiveTier = typeof smallOrTier === "string" ? smallOrTier : tier;
   slotEl.textContent = "";
   if (isCreator) {
     slotEl.appendChild(createCreatorBadgeEl(small));
-  } else if (tier === "pro" || tier === "plus") {
-    slotEl.appendChild(renderMembershipBadge(tier, small));
+  } else if (effectiveTier === "pro" || effectiveTier === "plus") {
+    slotEl.appendChild(renderMembershipBadge(effectiveTier, small));
   }
 };
 
@@ -310,6 +462,59 @@ const trackUserInteraction = (category, weightType, userUid) => {
   writeJson(`xuanii_affinity_${userUid}`, current);
 };
 
+let myFollowingSet = new Set();
+let mySavedPostsSet = new Set();
+
+const SEVERE_TOXIC_REGEX = /\b(muérete|te voy a matar|matate|nazi|violador|pedófilo|pedofilo|terrorista|sicario|narco|estafador de mierda|puta madre|hijo de perra|malparido|gonorrea|maricón|maricon)\b/i;
+
+const AMBIGUOUS_PHRASES_REGEX = /\b(tu madre|tu mama|tu mamá|estúpido|estupido|idiota|imbécil|imbecil|pendejo|tarado|asqueroso|inútil|inutil|manco|bobalicón|basura|porquería|porqueria)\b/i;
+
+const evaluateCommentContent = (text) => {
+  const clean = String(text || "").trim();
+  if (SEVERE_TOXIC_REGEX.test(clean)) {
+    return { verdict: "blocked", reason: "Lenguaje tóxico o violatorio directo" };
+  }
+  if (AMBIGUOUS_PHRASES_REGEX.test(clean)) {
+    return { verdict: "review", reason: "Expresión ambigua / en duda detectada" };
+  }
+  return { verdict: "clean", reason: null };
+};
+
+const getConductLabel = (score) => {
+  const s = Number(score) || 10;
+  if (s >= 10) return "Impecable";
+  if (s >= 8) return "Buena";
+  if (s >= 5) return "Advertencia";
+  if (s >= 2) return "En riesgo crítico";
+  return "Pésima (Suspendido)";
+};
+
+const renderCaptionWithHashtags = (captionText) => {
+  const frag = document.createDocumentFragment();
+  const parts = String(captionText || "").split(/(#[\w\u00C0-\u017F]+)/g);
+  parts.forEach((part) => {
+    if (part.startsWith("#")) {
+      const a = document.createElement("a");
+      a.className = "hashtag-link";
+      a.href = "#";
+      a.textContent = part;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const fySearch = document.getElementById("forYouSearchInput");
+        if (fySearch) {
+          fySearch.value = part;
+          fySearch.dispatchEvent(new Event("input", { bubbles: true }));
+          document.getElementById("forYouStreamContainer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+      frag.appendChild(a);
+    } else {
+      frag.appendChild(document.createTextNode(part));
+    }
+  });
+  return frag;
+};
+
 const calculatePostScore = (post, userVector, nowMs) => {
   const cat = post.authorCategory || "video";
   const affinityVal = userVector[cat] || 0.2;
@@ -318,24 +523,23 @@ const calculatePostScore = (post, userVector, nowMs) => {
   const timeDecay = Math.exp(-ageHours / 48);
 
   const likesCount = Array.isArray(post.likes) ? post.likes.length : 0;
+  const dislikesCount = Array.isArray(post.dislikes) ? post.dislikes.length : 0;
   const commentsCount = Number(post.commentCount) || 0;
-  const rawEngagement = likesCount * 2 + commentsCount * 3.5;
-  const socialScore = Math.min(1.0, Math.log1p(rawEngagement) / Math.log1p(30));
 
-  let tierScore = 0.1;
-  if (post.membershipTier === "creator" || isCreatorAccount(post.authorInternalId, post.authorUid)) {
-    tierScore = 1.0;
-  } else if (post.membershipTier === "pro") {
-    tierScore = 0.85;
-  } else if (post.membershipTier === "plus") {
-    tierScore = 0.50;
-  }
+  // Calidad social orgánica: Me gusta (+3), No me gusta (-2), Comentarios (+4)
+  const rawEngagement = Math.max(0, likesCount * 3 - dislikesCount * 2 + commentsCount * 4);
+  const socialScore = Math.min(1.0, Math.log1p(rawEngagement) / Math.log1p(35));
 
+  // Prioridad orgánica para creadores que el usuario sigue (+40 pts)
+  const isFollowed = myFollowingSet.has(post.authorUid);
+  const followScore = isFollowed ? 40.0 : 0.0;
+
+  // CERO "pagar para ganar" para PRO. La visibilidad es 100% meritocrática y basada en afinidad comunitaria.
   return (
-    affinityVal * 35 +
-    timeDecay * 25 +
-    socialScore * 20 +
-    tierScore * 20
+    followScore +
+    affinityVal * 25 +
+    socialScore * 25 +
+    timeDecay * 10
   );
 };
 
@@ -384,8 +588,8 @@ const parseVideoUrl = (rawUrl) => {
     };
   }
 
-  // Direct video file (mp4, webm)
-  if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url)) {
+  // Direct video file (mp4, webm, mov, data:video, blob)
+  if (url.startsWith("data:video/") || url.startsWith("blob:") || /\.(mp4|webm|mov)(\?.*)?$/i.test(url)) {
     return {
       provider: "direct",
       videoUrl: url
@@ -891,13 +1095,14 @@ const renderRecruiterMirrorDirectory = (targetContainer, currentAuthUser) => {
       roleSpan.className = "candidate-role";
       roleSpan.textContent = cand.role || CATEGORY_LABELS[cand.category] || "Especialista digital";
 
-      const idSpan = document.createElement("span");
-      idSpan.className = "mono candidate-id";
-      idSpan.textContent = `ID: ${cand.internalId || deriveInternalId(cand.uid)}`;
-
       info.appendChild(nameLine);
       info.appendChild(roleSpan);
-      info.appendChild(idSpan);
+      if (isAdminUser(activeAuthUser)) {
+        const idSpan = document.createElement("span");
+        idSpan.className = "mono candidate-id";
+        idSpan.textContent = `ID: ${cand.internalId || deriveInternalId(cand.uid)}`;
+        info.appendChild(idSpan);
+      }
 
       const scoreBox = document.createElement("div");
       scoreBox.className = "candidate-score-box mono";
@@ -1096,14 +1301,65 @@ const initAppDockAndNavigation = () => {
   const toggleBtn = document.getElementById("dockToggleBtn");
   const closeBtn = document.getElementById("dockCloseBtn");
   const backdrop = document.getElementById("appDockBackdrop");
-  const quickPublishBtn = document.getElementById("dockQuickPublishBtn");
   const openPlansBtn = document.getElementById("dockOpenPlansBtn");
   const createCommBtn = document.getElementById("dockCreateCommBtn");
+  const nav = document.getElementById("dockNav") || document.querySelector(".dock-nav");
+  let indicator = document.getElementById("dockIndicatorBar");
+
+  const positionIndicatorAt = (el, smooth = true) => {
+    if (!el || !nav) return;
+    if (!indicator) {
+      indicator = document.getElementById("dockIndicatorBar");
+      if (!indicator) return;
+    }
+    const navRect = nav.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    if (navRect.height === 0 || elRect.height === 0) return;
+
+    const barHeight = Math.min(24, Math.max(16, elRect.height * 0.46));
+    const top = elRect.top - navRect.top + (elRect.height - barHeight) / 2;
+
+    indicator.style.transition = smooth
+      ? "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease"
+      : "none";
+
+    indicator.style.height = `${barHeight}px`;
+    indicator.style.transform = `translateY(${top}px)`;
+    indicator.style.opacity = "1";
+  };
+
+  const syncDockIndicator = (smooth = true) => {
+    if (!nav) return;
+    const active = nav.querySelector(".dock-nav-item.active");
+    if (active) {
+      positionIndicatorAt(active, smooth);
+    } else if (indicator) {
+      indicator.style.opacity = "0";
+    }
+  };
+
+  if (nav) {
+    nav.classList.add("dock-has-js");
+    const items = nav.querySelectorAll(".dock-nav-item");
+
+    items.forEach((item) => {
+      item.addEventListener("mouseenter", () => positionIndicatorAt(item, true));
+      item.addEventListener("focus", () => positionIndicatorAt(item, true));
+    });
+
+    nav.addEventListener("mouseleave", () => syncDockIndicator(true));
+    window.addEventListener("resize", () => syncDockIndicator(false));
+  }
+
+  window.__xuaniiSyncDockIndicator = syncDockIndicator;
 
   const openDock = () => {
     if (!backdrop) return;
     backdrop.hidden = false;
     if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(() => {
+      syncDockIndicator(false);
+    });
   };
 
   const closeDock = () => {
@@ -1120,22 +1376,6 @@ const initAppDockAndNavigation = () => {
   closeBtn?.addEventListener("click", closeDock);
   backdrop?.addEventListener("click", (e) => {
     if (e.target === backdrop) closeDock();
-  });
-
-  quickPublishBtn?.addEventListener("click", () => {
-    closeDock();
-    const fyInp = document.getElementById("forYouPostCaption");
-    const feedInp = document.getElementById("feedPostCaption");
-    if (fyInp) {
-      fyInp.focus();
-      fyInp.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else if (feedInp) {
-      switchWorkspaceTab("feed");
-      feedInp.focus();
-      feedInp.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else {
-      window.location.href = "para-ti.html";
-    }
   });
 
   openPlansBtn?.addEventListener("click", () => {
@@ -1580,6 +1820,13 @@ if (edCanvas) {
 let activeAuthUser = null;
 let currentOwnProfile = null;
 let myCryptoKeys = null; // { publicKeyJwk, privateKeyJwk }
+let cachedAuthSession = null;
+try {
+  const cachedJson = localStorage.getItem("xuanii_auth_session");
+  if (cachedJson) {
+    cachedAuthSession = JSON.parse(cachedJson);
+  }
+} catch (e) {}
 
 let allProfilesList = [];
 let profilesByUid = new Map();
@@ -1596,10 +1843,18 @@ let cloudHooks = {
   saveSituationQuick: null,
   publishPost: null,
   toggleLikePost: null,
+  toggleDislikePost: null,
+  toggleSavePost: null,
+  toggleFollowCreator: null,
   deletePost: null,
   addPostComment: null,
   deletePostComment: null,
   subscribePostComments: null,
+  subscribeAdminPendingComments: null,
+  adminApproveComment: null,
+  adminRejectAndSanctionComment: null,
+  adminBanFromComment: null,
+  adminUpdateUserConduct: null,
   submitStarReview: null,
   requestConnection: null,
   acceptConnection: null,
@@ -1614,6 +1869,8 @@ let cloudHooks = {
   createVaultItem: null,
   deleteVaultItem: null
 };
+
+let buildRichSocialPostEl = null;
 
 const prefillKnownUserFields = () => {
   const waitlist = readJson(STORAGE_KEYS.WAITLIST, null);
@@ -1788,6 +2045,24 @@ const switchWorkspaceTab = (tabName) => {
   if (tabName === "employment") {
     mountEmploymentSmartModule(document.getElementById("employmentSmartContainer"), currentOwnProfile);
   }
+
+  // Sincronizar item activo en el Dock lateral y mover su indicador
+  const dockMap = {
+    feed: "dockNavParaTi",
+    messages: "dockNavMessages",
+    communities: "dockNavCommunities",
+    employment: "dockNavEmployment",
+    profile: "dockNavProfile"
+  };
+  const dockNav = document.getElementById("dockNav") || document.querySelector(".dock-nav");
+  if (dockNav) {
+    dockNav.querySelectorAll(".dock-nav-item").forEach((el) => el.classList.remove("active"));
+    const activeDockId = dockMap[tabName];
+    if (activeDockId) {
+      document.getElementById(activeDockId)?.classList.add("active");
+    }
+    window.__xuaniiSyncDockIndicator?.(true);
+  }
 };
 
 wsNavButtons.forEach((btn) => {
@@ -1799,10 +2074,14 @@ wsNavButtons.forEach((btn) => {
 const urlParams = new URLSearchParams(window.location.search);
 const requestedTab = urlParams.get("tab");
 const requestedChatUid = urlParams.get("chat");
+const requestedUserUid = urlParams.get("user") || urlParams.get("profile");
 if (requestedChatUid) {
   switchWorkspaceTab("messages");
 } else if (requestedTab && ALL_WS_TABS.includes(requestedTab)) {
   switchWorkspaceTab(requestedTab);
+}
+if (requestedUserUid) {
+  setTimeout(() => renderInspectorContent(requestedUserUid), 350);
 }
 
 /* =========================================================
@@ -1887,7 +2166,7 @@ const openPhotoLightbox = (post, signInCallback) => {
 
     const hnd = document.createElement("span");
     hnd.className = "profile-handle mono";
-    hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"} · ${authorInternalId}`;
+    hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"}`;
     nm.appendChild(hnd);
 
     const sub = document.createElement("span");
@@ -1910,8 +2189,16 @@ const openPhotoLightbox = (post, signInCallback) => {
     const likeBtn = document.createElement("button");
     likeBtn.type = "button";
     likeBtn.className = likedNow ? "post-like-btn liked" : "post-like-btn";
-    likeBtn.textContent = `${likedNow ? "♥" : "♡"} ${countNow} Me gusta`;
-    likeBtn.addEventListener("click", () => {
+    const getLightboxHeartHtml = (active, count) => `
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+      <span>${count} Me gusta</span>
+    `;
+    likeBtn.innerHTML = getLightboxHeartHtml(likedNow, countNow);
+    likeBtn.addEventListener("click", (e) => {
+      applyLiquidWaterRipple(e, likeBtn);
+      triggerFluidPop(likeBtn);
       if (!activeAuthUser) {
         if (signInCallback) signInCallback(window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html");
         return;
@@ -1920,14 +2207,14 @@ const openPhotoLightbox = (post, signInCallback) => {
       likedNow = !likedNow;
       countNow = Math.max(0, countNow + (likedNow ? 1 : -1));
       likeBtn.className = likedNow ? "post-like-btn liked" : "post-like-btn";
-      likeBtn.textContent = `${likedNow ? "♥" : "♡"} ${countNow} Me gusta`;
+      likeBtn.innerHTML = getLightboxHeartHtml(likedNow, countNow);
     });
     actsEl.appendChild(likeBtn);
 
     const viewBtn = document.createElement("button");
     viewBtn.type = "button";
     viewBtn.className = "btn btn-ghost btn-sm";
-    viewBtn.textContent = "Ver perfil y ★";
+    viewBtn.textContent = "Ver perfil profesional";
     viewBtn.addEventListener("click", () => {
       closePhotoLightbox();
       renderInspectorContent(post.authorUid);
@@ -2007,17 +2294,43 @@ const renderInspectorContent = (targetUid) => {
   const internalId = prof.internalId || deriveInternalId(targetUid);
   const stats = getRatingStats(targetUid);
 
+  // 1. ID Kicker en la cabecera
   const idEl = document.getElementById("inspInternalId");
   if (idEl) {
-    idEl.textContent = `ID: ${internalId}`;
-    idEl.onclick = () => copyTextWithFeedback(internalId, idEl);
+    const canSeeId = isAdminUser(activeAuthUser);
+    idEl.hidden = !canSeeId;
+    if (canSeeId) {
+      idEl.textContent = `ID: ${internalId}`;
+      idEl.onclick = () => copyTextWithFeedback(internalId, idEl);
+    }
   }
 
+  // 2. Botón Compartir perfil
+  const shareBtn = document.getElementById("inspShareProfileBtn");
+  if (shareBtn) {
+    shareBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, shareBtn);
+      triggerFluidPop(shareBtn);
+      const profileUrl = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(targetUid)}`;
+      navigator.clipboard?.writeText(profileUrl).then(() => {
+        const fb = document.getElementById("inspActionFeedback");
+        if (fb) {
+          fb.hidden = false;
+          fb.textContent = "Enlace del perfil copiado al portapapeles ✓";
+          setTimeout(() => { fb.hidden = true; }, 2600);
+        }
+      }).catch(() => {});
+    };
+  }
+
+  // 3. Avatar e Identidad del Creador
   const avatarEl = document.getElementById("inspAvatar");
   const isTargetCreator = isCreatorAccount(internalId, targetUid);
   if (avatarEl) {
     avatarEl.src = prof.photoURL || "favicon.svg";
-    avatarEl.classList.toggle("creator-avatar-ring", isTargetCreator);
+    avatarEl.className = isTargetCreator
+      ? "profile-tiktok-avatar creator-avatar-ring"
+      : "profile-tiktok-avatar";
     avatarEl.onerror = () => {
       avatarEl.src = "favicon.svg";
     };
@@ -2047,12 +2360,50 @@ const renderInspectorContent = (targetUid) => {
   if (starsEl) {
     starsEl.textContent = formatStarsText(stats.avg, stats.count);
   }
+  const conductEl = document.getElementById("inspConductBadge");
+  const conductScore = typeof prof.behaviorScore === "number" ? prof.behaviorScore : 10;
+  if (conductEl) {
+    conductEl.textContent = `Conducta: ${conductScore}/10 · ${getConductLabel(conductScore)}`;
+    conductEl.className = `conduct-pill mono score-${conductScore <= 3 ? "bad" : conductScore <= 7 ? "warn" : "good"}`;
+  }
   if (bioEl) {
     bioEl.textContent = prof.bio || "Sin descripción detallada aún.";
   }
   renderSkillTagsInto(skillsEl, prof.skills);
 
-  // Botones de acción (Conectar, Enviar mensaje cifrado, Reportar ID)
+  // 4. Publicaciones del creador y Métricas Sociales estilo TikTok
+  const userPosts = allPostsList.filter((p) => p.authorUid === targetUid);
+  userPosts.sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+
+  const followingCount = Array.isArray(prof.following)
+    ? prof.following.length
+    : (activeAuthUser && activeAuthUser.uid === targetUid ? myFollowingSet.size : 0);
+
+  let followersCount = allProfilesList.filter(
+    (p) => Array.isArray(p.following) && p.following.includes(targetUid)
+  ).length;
+  if (activeAuthUser && activeAuthUser.uid !== targetUid && myFollowingSet.has(targetUid)) {
+    const alreadyCounted = allProfilesList.some(
+      (p) => p.uid === activeAuthUser.uid && Array.isArray(p.following) && p.following.includes(targetUid)
+    );
+    if (!alreadyCounted) followersCount += 1;
+  }
+
+  const totalLikes = userPosts.reduce((acc, p) => acc + (Array.isArray(p.likes) ? p.likes.length : 0), 0);
+  const formatTiktokNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return String(num || 0);
+  };
+
+  const followingEl = document.getElementById("inspFollowingCount");
+  const followersEl = document.getElementById("inspFollowersCount");
+  const likesEl = document.getElementById("inspLikesCount");
+  if (followingEl) followingEl.textContent = formatTiktokNumber(followingCount);
+  if (followersEl) followersEl.textContent = formatTiktokNumber(followersCount);
+  if (likesEl) likesEl.textContent = formatTiktokNumber(totalLikes);
+
+  // 5. Botones de acción TikTok (Seguir, Mensaje, Conectar, Editar)
   if (actionsEl) {
     actionsEl.textContent = "";
     const isMe = activeAuthUser && activeAuthUser.uid === targetUid;
@@ -2060,7 +2411,7 @@ const renderInspectorContent = (targetUid) => {
     if (isMe) {
       const editBtn = document.createElement("button");
       editBtn.type = "button";
-      editBtn.className = "btn btn-ghost btn-sm";
+      editBtn.className = "btn btn-white btn-sm";
       editBtn.textContent = "Editar mi perfil";
       editBtn.addEventListener("click", () => {
         closeInspector();
@@ -2072,11 +2423,42 @@ const renderInspectorContent = (targetUid) => {
       });
       actionsEl.appendChild(editBtn);
     } else {
+      // Botón Seguir estilo TikTok
+      const followBtn = document.createElement("button");
+      followBtn.type = "button";
+      const isFollowed = myFollowingSet.has(targetUid);
+      followBtn.className = isFollowed ? "btn-tiktok-follow following" : "btn-tiktok-follow";
+      followBtn.textContent = isFollowed ? "Siguiendo" : "+ Seguir";
+      followBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, followBtn);
+        triggerFluidPop(followBtn);
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace("para-ti.html");
+          return;
+        }
+        followBtn.disabled = true;
+        const nextState = await cloudHooks.toggleFollowCreator?.(targetUid);
+        followBtn.className = nextState ? "btn-tiktok-follow following" : "btn-tiktok-follow";
+        followBtn.textContent = nextState ? "Siguiendo" : "+ Seguir";
+        followBtn.disabled = false;
+        renderInspectorContent(targetUid);
+      });
+      actionsEl.appendChild(followBtn);
+
+      // Botón Mensaje directo cifrado
       const msgBtn = document.createElement("button");
       msgBtn.type = "button";
-      msgBtn.className = "btn btn-white btn-sm";
-      msgBtn.textContent = "Mensaje cifrado →";
-      msgBtn.addEventListener("click", () => {
+      msgBtn.className = "btn btn-ghost btn-sm";
+      msgBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        <span>Mensaje</span>
+      `;
+      msgBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, msgBtn);
         closeInspector();
         if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
           switchWorkspaceTab("messages");
@@ -2094,32 +2476,31 @@ const renderInspectorContent = (targetUid) => {
         connBtn.className = "btn btn-ghost btn-sm";
 
         if (!conn) {
-          connBtn.textContent = "+ Agregar a contactos";
+          connBtn.textContent = "+ Conectar";
           connBtn.addEventListener("click", async () => {
             connBtn.disabled = true;
             await cloudHooks.requestConnection?.(targetUid).catch(() => {});
             renderInspectorContent(targetUid);
           });
+          actionsEl.appendChild(connBtn);
         } else if (conn.status === "accepted") {
-          connBtn.textContent = "Contacto aceptado ✓";
+          connBtn.textContent = "Conectado ✓";
           connBtn.disabled = true;
-        } else if (conn.requesterUid === activeAuthUser.uid) {
-          connBtn.textContent = "Solicitud enviada";
-          connBtn.disabled = true;
-        } else {
-          connBtn.textContent = "Aceptar solicitud de contacto";
+          actionsEl.appendChild(connBtn);
+        } else if (conn.requesterUid !== activeAuthUser.uid) {
+          connBtn.textContent = "Aceptar contacto";
           connBtn.addEventListener("click", async () => {
             connBtn.disabled = true;
             await cloudHooks.acceptConnection?.(targetUid).catch(() => {});
             renderInspectorContent(targetUid);
           });
+          actionsEl.appendChild(connBtn);
         }
-        actionsEl.appendChild(connBtn);
 
         const repBtn = document.createElement("button");
         repBtn.type = "button";
         repBtn.className = "text-action-btn";
-        repBtn.textContent = `Reportar ${internalId}`;
+        repBtn.textContent = "Reportar";
         repBtn.addEventListener("click", () => {
           closeInspector();
           if (window.location.pathname.endsWith("cuenta.html")) {
@@ -2130,7 +2511,7 @@ const renderInspectorContent = (targetUid) => {
               document.getElementById("reportReasonInput")?.focus();
             }
           } else {
-            window.location.href = "cuenta.html?tab=settings";
+            window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(internalId)}`;
           }
         });
         actionsEl.appendChild(repBtn);
@@ -2138,41 +2519,131 @@ const renderInspectorContent = (targetUid) => {
     }
   }
 
-  // Galería fotográfica del portafolio del usuario
-  const portEl = document.getElementById("inspPortfolioList");
-  if (portEl) {
-    portEl.textContent = "";
-    const userPosts = allPostsList.filter((p) => p.authorUid === targetUid);
-    if (userPosts.length === 0) {
-      const p = document.createElement("p");
-      p.style.fontSize = "0.86rem";
-      p.style.color = "var(--muted)";
-      p.textContent = "Este especialista aún no ha subido muestras fotográficas a su portafolio.";
-      portEl.appendChild(p);
-    } else {
-      userPosts.forEach((post) => {
-        const card = document.createElement("div");
-        card.className = "portfolio-shot";
-        if (post.photoUrl) {
-          const img = document.createElement("img");
-          img.src = post.photoUrl;
-          img.alt = post.caption || "Trabajo";
-          img.style.cursor = "zoom-in";
-          img.addEventListener("click", () => openPhotoLightbox(post));
-          card.appendChild(img);
-        }
-        const foot = document.createElement("div");
-        foot.className = "portfolio-shot-foot";
-        const cap = document.createElement("span");
-        cap.textContent = (post.caption || "Publicación").slice(0, 80);
-        foot.appendChild(cap);
-        card.appendChild(foot);
-        portEl.appendChild(card);
-      });
-    }
+  // 6. Configuración de pestañas tipo TikTok
+  const tabPostsBtn = document.getElementById("inspTabPostsBtn");
+  const tabPortfolioBtn = document.getElementById("inspTabPortfolioBtn");
+  const tabReviewsBtn = document.getElementById("inspTabReviewsBtn");
+
+  const panelPosts = document.getElementById("inspPanelPosts");
+  const panelPortfolio = document.getElementById("inspPanelPortfolio");
+  const panelReviews = document.getElementById("inspPanelReviews");
+
+  const postsCounterEl = document.getElementById("inspTabPostsCounter");
+  const reviewsCounterEl = document.getElementById("inspTabReviewsCounter");
+
+  if (postsCounterEl) postsCounterEl.textContent = userPosts.length;
+  if (reviewsCounterEl) reviewsCounterEl.textContent = stats.count;
+
+  const activateTab = (tabName) => {
+    if (tabPostsBtn) tabPostsBtn.classList.toggle("active", tabName === "posts");
+    if (tabPortfolioBtn) tabPortfolioBtn.classList.toggle("active", tabName === "portfolio");
+    if (tabReviewsBtn) tabReviewsBtn.classList.toggle("active", tabName === "reviews");
+
+    if (panelPosts) panelPosts.hidden = tabName !== "posts";
+    if (panelPortfolio) panelPortfolio.hidden = tabName !== "portfolio";
+    if (panelReviews) panelReviews.hidden = tabName !== "reviews";
+  };
+
+  if (tabPostsBtn) {
+    tabPostsBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, tabPostsBtn);
+      activateTab("posts");
+    };
+  }
+  if (tabReviewsBtn) {
+    tabReviewsBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, tabReviewsBtn);
+      activateTab("reviews");
+    };
+  }
+  // Pestaña Portafolio desactivada como solicitó el usuario
+  if (tabPortfolioBtn) {
+    tabPortfolioBtn.onclick = (e) => {
+      e.preventDefault();
+    };
   }
 
-  // Formulario y lista de valoraciones con estrellas
+  // Activar pestaña "posts" por defecto
+  activateTab("posts");
+
+  // 7. Renderizado del Feed de Publicaciones en Scroll tipo Facebook con Paginación Anti-Lag
+  const streamEl = document.getElementById("inspUserPostsStream");
+  const paginationWrap = document.getElementById("inspPostsPaginationWrap");
+  const loadMoreBtn = document.getElementById("inspLoadMorePostsBtn");
+  const postsCountMeta = document.getElementById("inspPostsCounter");
+  const allLoadedEl = document.getElementById("inspPostsAllLoaded");
+  const emptyPostsEl = document.getElementById("inspPostsEmpty");
+
+  let currentPage = 1;
+  const POSTS_PER_PAGE = 4;
+
+  const renderPostsPage = (page) => {
+    if (!streamEl) return;
+    if (page === 1) streamEl.textContent = "";
+
+    const visiblePosts = userPosts.slice(0, page * POSTS_PER_PAGE);
+
+    if (userPosts.length === 0) {
+      if (emptyPostsEl) emptyPostsEl.hidden = false;
+      if (paginationWrap) paginationWrap.hidden = true;
+      if (allLoadedEl) allLoadedEl.hidden = true;
+      return;
+    }
+
+    if (emptyPostsEl) emptyPostsEl.hidden = true;
+
+    // Renderizar solo los posts nuevos del lote actual
+    const startIndex = (page - 1) * POSTS_PER_PAGE;
+    const batch = userPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+
+    batch.forEach((post) => {
+      if (typeof buildRichSocialPostEl === "function") {
+        const postNode = buildRichSocialPostEl(post, `insp_${targetUid}`);
+        streamEl.appendChild(postNode);
+      } else {
+        // Fallback editorial ligero si Firebase aún inicializa
+        const fallbackCard = document.createElement("article");
+        fallbackCard.className = "feed-post-open";
+        if (post.title) {
+          const t = document.createElement("h3");
+          t.className = "feed-post-title";
+          t.textContent = post.title;
+          fallbackCard.appendChild(t);
+        }
+        if (post.caption) {
+          const c = document.createElement("p");
+          c.className = "feed-post-caption";
+          c.textContent = post.caption;
+          fallbackCard.appendChild(c);
+        }
+        streamEl.appendChild(fallbackCard);
+      }
+    });
+
+    if (visiblePosts.length < userPosts.length) {
+      if (paginationWrap) paginationWrap.hidden = false;
+      if (allLoadedEl) allLoadedEl.hidden = true;
+      if (postsCountMeta) {
+        postsCountMeta.textContent = `Mostrando ${visiblePosts.length} de ${userPosts.length} publicaciones`;
+      }
+    } else {
+      if (paginationWrap) paginationWrap.hidden = true;
+      if (allLoadedEl) allLoadedEl.hidden = false;
+    }
+  };
+
+  if (loadMoreBtn) {
+    loadMoreBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, loadMoreBtn);
+      triggerFluidPop(loadMoreBtn);
+      currentPage++;
+      renderPostsPage(currentPage);
+    };
+  }
+
+  renderPostsPage(1);
+
+  // 8. Reseñas y Calificaciones (panel de estrellas)
   const revForm = document.getElementById("inspReviewForm");
   if (revForm) {
     revForm.hidden = !activeAuthUser || activeAuthUser.uid === targetUid;
@@ -2262,9 +2733,19 @@ document.getElementById("inspReviewForm")?.addEventListener("submit", async (e) 
   }
 });
 
-document.getElementById("previewOwnInspectorBtn")?.addEventListener("click", () => {
-  if (activeAuthUser) renderInspectorContent(activeAuthUser.uid);
-});
+const openOwnProfileInspector = () => {
+  if (activeAuthUser) {
+    if (typeof closeDock === "function") closeDock();
+    renderInspectorContent(activeAuthUser.uid);
+  }
+};
+
+document.getElementById("previewOwnInspectorBtn")?.addEventListener("click", openOwnProfileInspector);
+document.getElementById("sideViewProfileBtn")?.addEventListener("click", openOwnProfileInspector);
+document.getElementById("dockViewProfileBtn")?.addEventListener("click", openOwnProfileInspector);
+document.getElementById("dockProfileMainBtn")?.addEventListener("click", openOwnProfileInspector);
+document.getElementById("studioSideAvatar")?.addEventListener("click", openOwnProfileInspector);
+document.getElementById("studioSideName")?.addEventListener("click", openOwnProfileInspector);
 
 // Constructor de fila de especialista para perfiles.html y networkExploreList
 const createProfileDirectoryRow = (prof, signInCallback) => {
@@ -2313,7 +2794,9 @@ const createProfileDirectoryRow = (prof, signInCallback) => {
     nameLine.appendChild(createCreatorBadgeEl(false));
   }
   nameLine.appendChild(handleSpan);
-  nameLine.appendChild(idSpan);
+  if (isAdminUser(activeAuthUser)) {
+    nameLine.appendChild(idSpan);
+  }
 
   const roleLine = document.createElement("div");
   roleLine.className = "profile-role-line";
@@ -2461,8 +2944,12 @@ const syncProfilePreview = () => {
   if (profilePreviewInternalId && activeAuthUser) {
     const idCode = currentOwnProfile?.internalId || deriveInternalId(activeAuthUser.uid);
     const iAmCreator = isCreatorAccount(idCode, activeAuthUser.uid);
-    profilePreviewInternalId.textContent = `ID: ${idCode}`;
-    profilePreviewInternalId.onclick = () => copyTextWithFeedback(idCode, profilePreviewInternalId);
+    const canSeeId = isAdminUser(activeAuthUser);
+    profilePreviewInternalId.hidden = !canSeeId;
+    if (canSeeId) {
+      profilePreviewInternalId.textContent = `ID: ${idCode}`;
+      profilePreviewInternalId.onclick = () => copyTextWithFeedback(idCode, profilePreviewInternalId);
+    }
     mountCreatorBadgeSlot(document.getElementById("previewCreatorSlot"), iAmCreator, false);
     if (profilePreviewAvatar) {
       profilePreviewAvatar.classList.toggle("creator-avatar-ring", iAmCreator);
@@ -2636,10 +3123,11 @@ const renderAccountWorkspace = () => {
   const bannedGateEl = document.getElementById("bannedAccountGate");
   const workspaceEl = document.getElementById("authenticatedWorkspace");
 
+  const effectiveUser = activeAuthUser || cachedAuthSession;
   const isBanned = Boolean(activeAuthUser && bannedUsersMap.has(activeAuthUser.uid));
 
   if (authGateEl && workspaceEl) {
-    if (!activeAuthUser) {
+    if (!effectiveUser) {
       authGateEl.hidden = false;
       if (bannedGateEl) bannedGateEl.hidden = true;
       workspaceEl.hidden = true;
@@ -2664,10 +3152,10 @@ const renderAccountWorkspace = () => {
     }
   }
 
-  if (activeAuthUser) {
-    const myId = currentOwnProfile?.internalId || deriveInternalId(activeAuthUser.uid);
-    const iAmCreator = isCreatorAccount(myId, activeAuthUser.uid);
-    const myStats = getRatingStats(activeAuthUser.uid);
+  if (effectiveUser) {
+    const myId = currentOwnProfile?.internalId || effectiveUser.internalId || deriveInternalId(effectiveUser.uid);
+    const iAmCreator = isCreatorAccount(myId, effectiveUser.uid);
+    const myStats = getRatingStats(effectiveUser.uid);
 
     const sideAvatar = document.getElementById("studioSideAvatar");
     const sideName = document.getElementById("studioSideName");
@@ -2680,18 +3168,20 @@ const renderAccountWorkspace = () => {
     const userSubEl = document.getElementById("accountUserSub");
 
     if (sideAvatar) {
-      sideAvatar.src = currentOwnProfile?.photoURL || activeAuthUser.photoURL || "favicon.svg";
+      const srcUrl = currentOwnProfile?.photoURL || effectiveUser.photoURL || "favicon.svg";
+      sideAvatar.src = srcUrl;
       sideAvatar.classList.toggle("creator-avatar-ring", iAmCreator);
       sideAvatar.onerror = () => {
         sideAvatar.src = "favicon.svg";
       };
     }
     if (sideName) {
-      sideName.textContent = currentOwnProfile?.displayName || activeAuthUser.displayName || "Mi cuenta";
+      sideName.textContent = currentOwnProfile?.displayName || effectiveUser.displayName || "Mi cuenta";
     }
-    mountCreatorBadgeSlot(sideCreatorSlot, iAmCreator, true);
+    const myTier = isCreatorAccount(myId, effectiveUser.uid) ? "creator" : (currentOwnProfile?.membershipTier || effectiveUser.membershipTier || "standard");
+    mountCreatorBadgeSlot(sideCreatorSlot, iAmCreator, myTier);
     if (sideHandle) {
-      sideHandle.textContent = `@${currentOwnProfile?.handle || sanitizeHandle(activeAuthUser.email?.split("@")[0])}`;
+      sideHandle.textContent = `@${currentOwnProfile?.handle || sanitizeHandle(effectiveUser.email?.split("@")[0] || "usuario")}`;
     }
     if (sideIdBadge) {
       sideIdBadge.textContent = `ID: ${myId}`;
@@ -2704,17 +3194,23 @@ const renderAccountWorkspace = () => {
     if (sideStars) {
       sideStars.textContent = myStats.count > 0 ? `★ ${myStats.avg.toFixed(1)} (${myStats.count})` : "★ Nuevo";
     }
+    const sideConduct = document.getElementById("studioSideConduct");
+    const myConductScore = typeof currentOwnProfile?.behaviorScore === "number" ? currentOwnProfile.behaviorScore : 10;
+    if (sideConduct) {
+      sideConduct.textContent = `Conducta: ${myConductScore}/10 · ${getConductLabel(myConductScore)}`;
+      sideConduct.className = `conduct-pill mono score-${myConductScore <= 3 ? "bad" : myConductScore <= 7 ? "warn" : "good"}`;
+    }
     if (userStatusEl) {
-      userStatusEl.textContent = activeAuthUser.displayName || activeAuthUser.email || "Conectado";
+      userStatusEl.textContent = effectiveUser.displayName || effectiveUser.email || "Conectado";
     }
     if (userSubEl) {
-      userSubEl.textContent = activeAuthUser.email || "OAuth 2.0 activo.";
+      userSubEl.textContent = effectiveUser.email || "OAuth 2.0 activo.";
     }
 
     // Mostrar panel de moderación exclusivamente al creador / propietario
     const adminPanel = document.getElementById("adminModerationPanel");
     if (adminPanel) {
-      adminPanel.hidden = !isAdminUser(activeAuthUser);
+      adminPanel.hidden = !isAdminUser(effectiveUser);
     }
   }
 
@@ -3011,6 +3507,39 @@ authSetupModal?.addEventListener("click", (e) => {
   if (e.target === authSetupModal) closeSetupModal();
 });
 
+if (cachedAuthSession) {
+  if (navSignInBtn) navSignInBtn.hidden = true;
+  if (navUserChip) navUserChip.hidden = false;
+  if (navUserAvatar) {
+    navUserAvatar.src = cachedAuthSession.photoURL || "favicon.svg";
+    const isCreator = isCreatorAccount(cachedAuthSession.internalId, cachedAuthSession.uid);
+    navUserAvatar.classList.toggle("creator-avatar-ring", isCreator);
+    navUserAvatar.classList.toggle("pro-avatar-ring", cachedAuthSession.membershipTier === "pro");
+    navUserAvatar.classList.toggle("plus-avatar-ring", cachedAuthSession.membershipTier === "plus");
+  }
+  if (navUserName) {
+    navUserName.textContent = (cachedAuthSession.displayName || "Perfil").split(" ")[0];
+  }
+  const dockHandleEl = document.getElementById("dockUserHandle");
+  if (dockHandleEl) {
+    dockHandleEl.textContent = `@${cachedAuthSession.handle || "usuario"}`;
+  }
+  const dockCreatorSlot = document.getElementById("dockCreatorSlot");
+  if (dockCreatorSlot) {
+    const isCreator = isCreatorAccount(cachedAuthSession.internalId, cachedAuthSession.uid);
+    mountCreatorBadgeSlot(dockCreatorSlot, isCreator, true, cachedAuthSession.membershipTier);
+  }
+  const dockBadge = document.getElementById("dockInternalIdBadge");
+  if (dockBadge && cachedAuthSession.internalId) {
+    dockBadge.textContent = `ID: ${cachedAuthSession.internalId}`;
+  }
+
+  const fyGuest = document.getElementById("forYouGuestBar");
+  const fyComposer = document.getElementById("forYouComposerWrap");
+  if (fyGuest) fyGuest.hidden = true;
+  if (fyComposer) fyComposer.hidden = false;
+}
+
 prefillKnownUserFields();
 renderAccountWorkspace();
 renderCloudVaultList();
@@ -3039,6 +3568,7 @@ if (isFirebaseConfigured) {
         onSnapshot,
         arrayUnion,
         arrayRemove,
+        increment,
         serverTimestamp
       }
     ] = await Promise.all([
@@ -3182,9 +3712,65 @@ if (isFirebaseConfigured) {
     cloudHooks.toggleLikePost = async (postId, currentlyLiked) => {
       const user = auth.currentUser;
       if (!user || !postId) return;
-      await updateDoc(doc(db, "posts", postId), {
-        likes: currentlyLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
-      });
+      const postRef = doc(db, "posts", postId);
+      if (currentlyLiked) {
+        await updateDoc(postRef, {
+          likes: arrayRemove(user.uid)
+        }).catch(() => {});
+      } else {
+        await updateDoc(postRef, {
+          likes: arrayUnion(user.uid),
+          dislikes: arrayRemove(user.uid)
+        }).catch(() => {});
+      }
+    };
+
+    cloudHooks.toggleDislikePost = async (postId, currentlyDisliked) => {
+      const user = auth.currentUser;
+      if (!user || !postId) return;
+      const postRef = doc(db, "posts", postId);
+      if (currentlyDisliked) {
+        await updateDoc(postRef, {
+          dislikes: arrayRemove(user.uid)
+        }).catch(() => {});
+      } else {
+        await updateDoc(postRef, {
+          dislikes: arrayUnion(user.uid),
+          likes: arrayRemove(user.uid)
+        }).catch(() => {});
+      }
+    };
+
+    cloudHooks.toggleSavePost = async (postId) => {
+      const user = auth.currentUser;
+      if (!user || !postId) return false;
+      const isSaved = mySavedPostsSet.has(postId);
+      if (isSaved) {
+        mySavedPostsSet.delete(postId);
+      } else {
+        mySavedPostsSet.add(postId);
+      }
+      writeJson(`endha_saved_${user.uid}`, Array.from(mySavedPostsSet));
+      await updateDoc(doc(db, "profiles", user.uid), {
+        savedPosts: isSaved ? arrayRemove(postId) : arrayUnion(postId)
+      }).catch(() => {});
+      return !isSaved;
+    };
+
+    cloudHooks.toggleFollowCreator = async (creatorUid) => {
+      const user = auth.currentUser;
+      if (!user || !creatorUid || creatorUid === user.uid) return false;
+      const isFollowing = myFollowingSet.has(creatorUid);
+      if (isFollowing) {
+        myFollowingSet.delete(creatorUid);
+      } else {
+        myFollowingSet.add(creatorUid);
+      }
+      writeJson(`endha_following_${user.uid}`, Array.from(myFollowingSet));
+      await updateDoc(doc(db, "profiles", user.uid), {
+        following: isFollowing ? arrayRemove(creatorUid) : arrayUnion(creatorUid)
+      }).catch(() => {});
+      return !isFollowing;
     };
 
     cloudHooks.deletePost = async (postId) => {
@@ -3194,22 +3780,60 @@ if (isFirebaseConfigured) {
 
     cloudHooks.addPostComment = async ({ postId, text, currentCount = 0 }) => {
       const user = auth.currentUser;
-      if (!user || !postId) return;
+      if (!user || !postId) return null;
       const clean = String(text || "").trim().slice(0, 1000);
-      if (!clean) return;
+      if (!clean) return null;
       const prof = currentOwnProfile || {};
-      await addDoc(collection(db, "posts", postId, "comments"), {
+
+      // 1. Verificar puntaje de conducta del autor
+      const authorScore = typeof prof.behaviorScore === "number" ? prof.behaviorScore : 10;
+      if (authorScore <= 1) {
+        return { blocked: true, reason: "Conducta crítica (1/10)" };
+      }
+
+      // 2. Evaluar toxicidad / expresiones ambiguas
+      const evalRes = evaluateCommentContent(clean);
+      if (evalRes.verdict === "blocked") {
+        return { blocked: true, reason: evalRes.reason };
+      }
+
+      const isPending = evalRes.verdict === "review";
+      const commentDocRef = await addDoc(collection(db, "posts", postId, "comments"), {
         authorUid: user.uid,
         authorInternalId: prof.internalId || deriveInternalId(user.uid),
         authorName: prof.displayName || user.displayName || "Especialista",
         authorHandle: prof.handle || sanitizeHandle(user.email?.split("@")[0]),
         text: clean,
+        flaggedReview: isPending,
+        reviewStatus: isPending ? "pending" : "approved",
+        flagReason: isPending ? evalRes.reason : null,
         createdAtMs: Date.now(),
         createdAt: serverTimestamp()
       });
+
+      if (isPending) {
+        // Enviar a la bandeja de moderación del administrador
+        await addDoc(collection(db, "adminPendingComments"), {
+          commentId: commentDocRef.id,
+          postId,
+          commentText: clean,
+          authorUid: user.uid,
+          authorInternalId: prof.internalId || deriveInternalId(user.uid),
+          authorName: prof.displayName || user.displayName || "Especialista",
+          authorHandle: prof.handle || sanitizeHandle(user.email?.split("@")[0]),
+          authorScore,
+          flagReason: evalRes.reason,
+          status: "pending",
+          createdAtMs: Date.now(),
+          createdAt: serverTimestamp()
+        }).catch(() => {});
+        return { pendingReview: true, reason: evalRes.reason };
+      }
+
       await updateDoc(doc(db, "posts", postId), {
         commentCount: Math.max(0, Number(currentCount) || 0) + 1
       }).catch(() => {});
+      return { success: true };
     };
 
     cloudHooks.deletePostComment = async (postId, commentId, nextCount = 0) => {
@@ -3230,6 +3854,115 @@ if (isFirebaseConfigured) {
         snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
         callback(list);
       });
+    };
+
+    cloudHooks.subscribeAdminPendingComments = (callback) => {
+      const qAdmin = query(
+        collection(db, "adminPendingComments"),
+        where("status", "==", "pending")
+      );
+      return onSnapshot(qAdmin, (snap) => {
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        callback(list);
+      }, (err) => {
+        console.warn("adminPendingComments snapshot:", err);
+      });
+    };
+
+    cloudHooks.adminApproveComment = async ({ pendingId, postId, commentId }) => {
+      if (pendingId) {
+        await updateDoc(doc(db, "adminPendingComments", pendingId), {
+          status: "approved",
+          reviewedAtMs: Date.now()
+        }).catch(() => {});
+      }
+      if (postId && commentId) {
+        await updateDoc(doc(db, "posts", postId, "comments", commentId), {
+          flaggedReview: false,
+          reviewStatus: "approved"
+        }).catch(() => {});
+        const postSnap = await getDoc(doc(db, "posts", postId)).catch(() => null);
+        const curr = Number(postSnap?.data()?.commentCount) || 0;
+        await updateDoc(doc(db, "posts", postId), {
+          commentCount: curr + 1
+        }).catch(() => {});
+      }
+    };
+
+    cloudHooks.adminRejectAndSanctionComment = async ({ pendingId, postId, commentId, authorUid }) => {
+      if (pendingId) {
+        await updateDoc(doc(db, "adminPendingComments", pendingId), {
+          status: "sanctioned",
+          reviewedAtMs: Date.now()
+        }).catch(() => {});
+      }
+      if (postId && commentId) {
+        await deleteDoc(doc(db, "posts", postId, "comments", commentId)).catch(() => {});
+      }
+      if (authorUid) {
+        const prof = profilesByUid.get(authorUid);
+        const currScore = typeof prof?.behaviorScore === "number" ? prof.behaviorScore : 10;
+        const newScore = Math.max(1, currScore - 2);
+        await updateDoc(doc(db, "profiles", authorUid), {
+          behaviorScore: newScore,
+          lastSanctionAtMs: Date.now(),
+          lastSanctionReason: "Comentario inapropiado retenido por filtro (-2 pts)"
+        }).catch(() => {});
+        if (prof) prof.behaviorScore = newScore;
+        if (newScore <= 1 && cloudHooks.adminBanUser) {
+          await cloudHooks.adminBanUser(authorUid, "Conducta crítica reiterada (1/10)");
+        }
+      }
+    };
+
+    cloudHooks.adminBanFromComment = async ({ pendingId, postId, commentId, authorUid }) => {
+      if (pendingId) {
+        await updateDoc(doc(db, "adminPendingComments", pendingId), {
+          status: "banned",
+          reviewedAtMs: Date.now()
+        }).catch(() => {});
+      }
+      if (postId && commentId) {
+        await deleteDoc(doc(db, "posts", postId, "comments", commentId)).catch(() => {});
+      }
+      if (authorUid) {
+        await updateDoc(doc(db, "profiles", authorUid), {
+          behaviorScore: 1,
+          lastSanctionAtMs: Date.now(),
+          lastSanctionReason: "Expulsión permanente por moderación (1/10)"
+        }).catch(() => {});
+        if (cloudHooks.adminBanUser) {
+          await cloudHooks.adminBanUser(authorUid, "Expulsión permanente por moderación (1/10)");
+        }
+      }
+    };
+
+    cloudHooks.adminUpdateUserConduct = async (targetIdOrUid, score, note) => {
+      let targetUid = targetIdOrUid;
+      let targetProf = profilesByUid.get(targetIdOrUid);
+      if (!targetProf) {
+        for (const [u, p] of profilesByUid.entries()) {
+          if (p.internalId === targetIdOrUid || deriveInternalId(u) === targetIdOrUid) {
+            targetUid = u;
+            targetProf = p;
+            break;
+          }
+        }
+      }
+      if (!targetUid) throw new Error("No se encontró ningún usuario con ese ID o UID.");
+      const numScore = Math.min(10, Math.max(1, Number(score) || 10));
+      await updateDoc(doc(db, "profiles", targetUid), {
+        behaviorScore: numScore,
+        conductNote: String(note || "").slice(0, 200),
+        conductUpdatedAtMs: Date.now()
+      });
+      if (targetProf) targetProf.behaviorScore = numScore;
+      if (numScore <= 1 && cloudHooks.adminBanUser) {
+        await cloudHooks.adminBanUser(targetUid, note || "Sanción manual de conducta (1/10)");
+      } else if (numScore > 1 && bannedUsersMap.has(targetUid) && cloudHooks.adminUnbanUser) {
+        await cloudHooks.adminUnbanUser(targetUid);
+      }
     };
 
     cloudHooks.submitStarReview = async ({ targetUid, stars, comment }) => {
@@ -3547,6 +4280,11 @@ if (isFirebaseConfigured) {
     );
 
     const handleSignOut = async () => {
+      try {
+        localStorage.removeItem("xuanii_auth_session");
+        document.documentElement.classList.remove("xuanii-auth-cached");
+      } catch (e) {}
+      cachedAuthSession = null;
       await signOut(auth);
       if (window.location.pathname.endsWith("cuenta.html")) {
         renderAccountWorkspace();
@@ -3597,17 +4335,51 @@ if (isFirebaseConfigured) {
         const resolvedCat = post.authorCategory || authorProf?.category || "";
         const idCode = (post.authorInternalId || authorProf?.internalId || deriveInternalId(post.authorUid)).toLowerCase();
         const skillsStr = Array.isArray(authorProf?.skills) ? authorProf.skills.join(" ") : "";
-        const haystack = `${post.caption || ""} ${post.authorName || ""} @${post.authorHandle || ""} ${idCode} ${post.authorRole || ""} ${CATEGORY_LABELS[resolvedCat] || ""} ${skillsStr}`.toLowerCase();
+        const cap = (post.caption || "").toLowerCase();
+        const haystack = `${cap} ${post.authorName || ""} @${post.authorHandle || ""} ${idCode} ${post.authorRole || ""} ${CATEGORY_LABELS[resolvedCat] || ""} ${skillsStr}`.toLowerCase();
 
-        if (filterKey === "photos" || filterKey === "portfolio") {
-          if (!post.photoUrl && post.kind !== "portfolio") return false;
-          if (filterKey === "photos" && !post.photoUrl) return false;
+        if (filterKey === "dudas") {
+          const isDuda =
+            post.kind === "question" ||
+            cap.includes("#duda") ||
+            cap.includes("#pregunta") ||
+            cap.includes("?") ||
+            cap.includes("¿") ||
+            cap.includes("duda") ||
+            cap.includes("pregunta") ||
+            cap.includes("ayuda");
+          if (!isDuda) return false;
+        } else if (filterKey === "conocimiento") {
+          const isKnow =
+            post.kind === "knowledge" ||
+            cap.includes("#tip") ||
+            cap.includes("#tutorial") ||
+            cap.includes("#conocimiento") ||
+            cap.includes("tip") ||
+            cap.includes("tutorial") ||
+            cap.includes("aprende");
+          if (!isKnow) return false;
+        } else if (filterKey === "video") {
+          const isVid =
+            Boolean(post.videoUrl) ||
+            post.kind === "video" ||
+            cap.includes("#video") ||
+            cap.includes("youtube") ||
+            cap.includes("vimeo");
+          if (!isVid) return false;
+        } else if (filterKey === "code") {
+          const isCode =
+            Boolean(post.codeSnippet && post.codeSnippet.code) ||
+            post.kind === "code_snippet" ||
+            cap.includes("#dev") ||
+            cap.includes("#codigo");
+          if (!isCode) return false;
+        } else if (filterKey === "photos" || filterKey === "portfolio") {
+          if (!post.photoUrl && post.kind !== "portfolio" && post.kind !== "photo") return false;
         } else if (filterKey === "job") {
           if (post.kind !== "job" && post.kind !== "available") return false;
-        } else if (["video", "photo", "design", "dev"].includes(filterKey)) {
-          const catMatch =
-            resolvedCat === filterKey ||
-            (filterKey === "video" && resolvedCat === "motion3d");
+        } else if (["photo", "design", "dev"].includes(filterKey)) {
+          const catMatch = resolvedCat === filterKey;
           const kwMatch = (CATEGORY_KEYWORDS[filterKey] || []).some((kw) => haystack.includes(kw));
           if (!catMatch && !kwMatch) return false;
         }
@@ -3706,7 +4478,7 @@ if (isFirebaseConfigured) {
         const hnd = document.createElement("span");
         hnd.className = "profile-handle mono";
         hnd.style.display = "block";
-        hnd.textContent = `@${prof.handle || "usuario"} · ${internalId}`;
+        hnd.textContent = `@${prof.handle || "usuario"}`;
 
         const role = document.createElement("span");
         role.className = "open-row-sub";
@@ -3767,7 +4539,7 @@ if (isFirebaseConfigured) {
     };
 
     // Constructor de publicación rica (con Foto Zoom Lightbox, Insignia Creador, Likes y Comentarios en vivo)
-    const buildRichSocialPostEl = (post, scopePrefix = "fy") => {
+    buildRichSocialPostEl = (post, scopePrefix = "fy") => {
       const art = document.createElement("article");
       art.className = "feed-post-open";
 
@@ -3817,7 +4589,7 @@ if (isFirebaseConfigured) {
 
       const hnd = document.createElement("span");
       hnd.className = "profile-handle mono";
-      hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"} · ${authorInternalId}`;
+      hnd.textContent = `@${post.authorHandle || authorProf?.handle || "usuario"}`;
       nm.appendChild(hnd);
 
       const sub = document.createElement("span");
@@ -3830,18 +4602,217 @@ if (isFirebaseConfigured) {
       authorBox.appendChild(av);
       authorBox.appendChild(meta);
 
-      const kindBadge = document.createElement("span");
-      kindBadge.className = "feed-post-kind mono";
-      kindBadge.textContent = POST_KIND_LABELS[post.kind] || "PUBLICACIÓN";
+      // Bloque derecho de la cabecera: Botón Seguir + Menú de 3 puntos + Tipo
+      const headActions = document.createElement("div");
+      headActions.className = "feed-header-actions";
+
+      // Botón Seguir / Siguiendo estilo Facebook / Twitter
+      if (!activeAuthUser || activeAuthUser.uid !== post.authorUid) {
+        const followBtn = document.createElement("button");
+        followBtn.type = "button";
+        const isFollowed = myFollowingSet.has(post.authorUid);
+        followBtn.className = isFollowed ? "btn-feed-follow following" : "btn-feed-follow";
+        followBtn.textContent = isFollowed ? "Siguiendo" : "+ Seguir";
+        followBtn.title = isFollowed ? "Dejar de seguir a este creador" : "Seguir a este creador en Para ti";
+        followBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          applyLiquidWaterRipple(e, followBtn);
+          triggerFluidPop(followBtn);
+          if (!activeAuthUser) {
+            signInAndEnterWorkspace("para-ti.html");
+            return;
+          }
+          followBtn.disabled = true;
+          const nextState = await cloudHooks.toggleFollowCreator?.(post.authorUid);
+          followBtn.className = nextState ? "btn-feed-follow following" : "btn-feed-follow";
+          followBtn.textContent = nextState ? "Siguiendo" : "+ Seguir";
+          followBtn.disabled = false;
+          renderFeedAndOwnPortfolio();
+        });
+        headActions.appendChild(followBtn);
+      }
+
+      // Menú de 3 puntos (···)
+      const optionsWrap = document.createElement("div");
+      optionsWrap.className = "feed-post-options-wrap";
+      const dotsBtn = document.createElement("button");
+      dotsBtn.type = "button";
+      dotsBtn.className = "feed-options-btn";
+      dotsBtn.setAttribute("aria-label", "Más opciones de publicación");
+      dotsBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <circle cx="5" cy="12" r="1.75"/>
+          <circle cx="12" cy="12" r="1.75"/>
+          <circle cx="19" cy="12" r="1.75"/>
+        </svg>
+      `;
+
+      const dropdown = document.createElement("div");
+      dropdown.className = "feed-options-dropdown";
+
+      const closeDropdown = () => {
+        dropdown.classList.remove("is-open");
+        dotsBtn.classList.remove("active");
+      };
+
+      // 1. Guardar en favoritos / Ver más tarde
+      const isPostSaved = mySavedPostsSet.has(post.id);
+      const saveOpt = document.createElement("button");
+      saveOpt.type = "button";
+      saveOpt.className = "feed-option-item";
+      const getSaveOptHtml = (saved) => `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>${saved ? "Guardado en tu baúl" : "Guardar en favoritos / Ver más tarde"}</span>
+      `;
+      saveOpt.innerHTML = getSaveOptHtml(isPostSaved);
+      saveOpt.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, saveOpt);
+        closeDropdown();
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace("para-ti.html");
+          return;
+        }
+        const nowSaved = await cloudHooks.toggleSavePost?.(post.id);
+        saveOpt.innerHTML = getSaveOptHtml(nowSaved);
+        updateSaveBtnState(nowSaved);
+      });
+      dropdown.appendChild(saveOpt);
+
+      // 2. Copiar enlace
+      const copyOpt = document.createElement("button");
+      copyOpt.type = "button";
+      copyOpt.className = "feed-option-item";
+      const copyOptNormalHtml = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        <span>Copiar enlace de publicación</span>
+      `;
+      const copyOptSuccessHtml = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Enlace copiado</span>
+      `;
+      copyOpt.innerHTML = copyOptNormalHtml;
+      copyOpt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, copyOpt);
+        closeDropdown();
+        const postUrl = `${window.location.origin}/para-ti.html?post=${post.id}`;
+        navigator.clipboard?.writeText(postUrl).then(() => {
+          copyOpt.innerHTML = copyOptSuccessHtml;
+          setTimeout(() => { copyOpt.innerHTML = copyOptNormalHtml; }, 2000);
+        }).catch(() => {});
+      });
+      dropdown.appendChild(copyOpt);
+
+      // 3. Reportar publicación
+      const repOpt = document.createElement("button");
+      repOpt.type = "button";
+      repOpt.className = "feed-option-item danger";
+      repOpt.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+          <line x1="4" y1="22" x2="4" y2="15"></line>
+        </svg>
+        <span>Reportar publicación</span>
+      `;
+      repOpt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, repOpt);
+        closeDropdown();
+        if (window.location.pathname.endsWith("cuenta.html")) {
+          switchWorkspaceTab("settings");
+          const repInput = document.getElementById("reportTargetIdInput");
+          if (repInput) {
+            repInput.value = post.authorInternalId || authorInternalId;
+            document.getElementById("reportReasonInput")?.focus();
+          }
+        } else {
+          window.location.href = `cuenta.html?tab=settings&report=${encodeURIComponent(post.authorInternalId || authorInternalId)}`;
+        }
+      });
+      dropdown.appendChild(repOpt);
+
+      // 4. Eliminar publicación en el menú de 3 puntos
+      const isOwnerOrAdmin = Boolean(
+        activeAuthUser && (post.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
+      );
+
+      const delDivider = document.createElement("div");
+      delDivider.className = "feed-options-divider";
+      dropdown.appendChild(delDivider);
+
+      const delOpt = document.createElement("button");
+      delOpt.type = "button";
+      delOpt.className = "feed-option-item danger";
+      delOpt.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+        <span>Eliminar publicación</span>
+      `;
+      delOpt.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, delOpt);
+        closeDropdown();
+        if (!activeAuthUser) {
+          alert("Inicia sesión con tu cuenta para eliminar publicaciones.");
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          );
+          return;
+        }
+        if (!isOwnerOrAdmin) {
+          alert("Solo el autor de la publicación o los administradores de EndHa pueden eliminarla.");
+          return;
+        }
+        if (confirm("¿Estás seguro de que deseas eliminar esta publicación permanentemente?")) {
+          await cloudHooks.deletePost?.(post.id);
+        }
+      });
+      dropdown.appendChild(delOpt);
+
+      dotsBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        applyLiquidWaterRipple(e, dotsBtn);
+        triggerFluidPop(dotsBtn);
+        const willOpen = !dropdown.classList.contains("is-open");
+        document.querySelectorAll(".feed-options-dropdown.is-open").forEach((d) => d.classList.remove("is-open"));
+        document.querySelectorAll(".feed-options-btn.active").forEach((b) => b.classList.remove("active"));
+        if (willOpen) {
+          dropdown.classList.add("is-open");
+          dotsBtn.classList.add("active");
+        }
+      });
+
+      optionsWrap.appendChild(dotsBtn);
+      optionsWrap.appendChild(dropdown);
+      headActions.appendChild(optionsWrap);
 
       head.appendChild(authorBox);
-      head.appendChild(kindBadge);
+      head.appendChild(headActions);
       art.appendChild(head);
+
+      if (post.title) {
+        const tit = document.createElement("h3");
+        tit.className = "feed-post-title";
+        tit.textContent = post.title;
+        art.appendChild(tit);
+      }
 
       if (post.caption) {
         const cap = document.createElement("p");
         cap.className = "feed-post-caption";
-        cap.textContent = post.caption;
+        cap.appendChild(renderCaptionWithHashtags(post.caption));
         art.appendChild(cap);
       }
 
@@ -3855,13 +4826,25 @@ if (isFirebaseConfigured) {
       bar.style.flexWrap = "wrap";
 
       const likesArr = Array.isArray(post.likes) ? post.likes : [];
-      const likedByMe = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
+      const dislikesArr = Array.isArray(post.dislikes) ? post.dislikes : [];
+      let likedByMe = Boolean(activeAuthUser && likesArr.includes(activeAuthUser.uid));
+      let dislikedByMe = Boolean(activeAuthUser && dislikesArr.includes(activeAuthUser.uid));
 
+      // Botón Me gusta (SVG)
       const likeBtn = document.createElement("button");
       likeBtn.type = "button";
-      likeBtn.className = likedByMe ? "post-like-btn liked" : "post-like-btn";
-      likeBtn.textContent = `${likedByMe ? "♥" : "♡"} ${likesArr.length} Me gusta`;
-      likeBtn.addEventListener("click", () => {
+      likeBtn.className = likedByMe ? "post-reaction-btn active-like" : "post-reaction-btn";
+      const getLikeBtnHtml = (active, count) => `
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+        </svg>
+        <span class="reaction-count">${count > 0 ? count : ""}</span>
+        <span>Me gusta</span>
+      `;
+      likeBtn.innerHTML = getLikeBtnHtml(likedByMe, likesArr.length);
+      likeBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, likeBtn);
+        triggerFluidPop(likeBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
             window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
@@ -3873,19 +4856,93 @@ if (isFirebaseConfigured) {
       });
       bar.appendChild(likeBtn);
 
+      // Botón No me gusta (SVG)
+      const dislikeBtn = document.createElement("button");
+      dislikeBtn.type = "button";
+      dislikeBtn.className = dislikedByMe ? "post-reaction-btn active-dislike" : "post-reaction-btn";
+      const getDislikeBtnHtml = (active, count) => `
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+        </svg>
+        <span class="reaction-count">${count > 0 ? count : ""}</span>
+        <span>No me gusta</span>
+      `;
+      dislikeBtn.innerHTML = getDislikeBtnHtml(dislikedByMe, dislikesArr.length);
+      dislikeBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, dislikeBtn);
+        triggerFluidPop(dislikeBtn);
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          );
+          return;
+        }
+        cloudHooks.toggleDislikePost?.(post.id, dislikedByMe);
+      });
+      bar.appendChild(dislikeBtn);
+
+      // Botón Comentarios (SVG)
       const commentCountNum = Number(post.commentCount) || 0;
       const commentBtn = document.createElement("button");
       commentBtn.type = "button";
-      commentBtn.className = "text-action-btn";
-      commentBtn.textContent =
-        commentCountNum > 0 ? `Comentarios (${commentCountNum})` : "Comentar";
+      commentBtn.className = "post-reaction-btn";
+      const getCommentBtnHtml = (count) => `
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        </svg>
+        <span class="reaction-count">${count > 0 ? count : ""}</span>
+        <span>${count > 0 ? "Comentarios" : "Comentar"}</span>
+      `;
+      commentBtn.innerHTML = getCommentBtnHtml(commentCountNum);
       bar.appendChild(commentBtn);
 
+      // Botón Guardar (SVG)
+      let isSaved = mySavedPostsSet.has(post.id);
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.className = isSaved ? "post-reaction-btn active-save" : "post-reaction-btn";
+      const getSaveBtnHtml = (saved) => `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>${saved ? "Guardado" : "Guardar"}</span>
+      `;
+      saveBtn.innerHTML = getSaveBtnHtml(isSaved);
+      function updateSaveBtnState(saved) {
+        isSaved = saved;
+        saveBtn.className = saved ? "post-reaction-btn active-save" : "post-reaction-btn";
+        saveBtn.innerHTML = getSaveBtnHtml(saved);
+      }
+      saveBtn.addEventListener("click", async (e) => {
+        applyLiquidWaterRipple(e, saveBtn);
+        triggerFluidPop(saveBtn);
+        if (!activeAuthUser) {
+          signInAndEnterWorkspace(
+            window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
+          );
+          return;
+        }
+        const nowSaved = await cloudHooks.toggleSavePost?.(post.id);
+        updateSaveBtnState(nowSaved);
+        saveOpt.innerHTML = getSaveOptHtml(nowSaved);
+      });
+      bar.appendChild(saveBtn);
+
+      // Botón Ver perfil
       const inspectBtn = document.createElement("button");
       inspectBtn.type = "button";
       inspectBtn.className = "text-action-btn";
-      inspectBtn.textContent = "Ver perfil / ★";
-      inspectBtn.addEventListener("click", () => renderInspectorContent(post.authorUid));
+      inspectBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Ver perfil</span>
+      `;
+      inspectBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, inspectBtn);
+        renderInspectorContent(post.authorUid);
+      });
       bar.appendChild(inspectBtn);
 
       if (!activeAuthUser || post.authorUid !== activeAuthUser.uid) {
@@ -3893,8 +4950,15 @@ if (isFirebaseConfigured) {
         contactBtn.type = "button";
         contactBtn.className = "text-action-btn";
         contactBtn.style.color = "var(--white)";
-        contactBtn.textContent = "Contactar →";
-        contactBtn.addEventListener("click", () => {
+        contactBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span>Contactar</span>
+        `;
+        contactBtn.addEventListener("click", (e) => {
+          applyLiquidWaterRipple(e, contactBtn);
           if (window.location.pathname.endsWith("cuenta.html") && activeAuthUser) {
             switchWorkspaceTab("messages");
             cloudHooks.openChatWithPeer?.(post.authorUid);
@@ -3903,20 +4967,6 @@ if (isFirebaseConfigured) {
           }
         });
         bar.appendChild(contactBtn);
-      }
-
-      if (
-        activeAuthUser &&
-        (post.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser))
-      ) {
-        const delBtn = document.createElement("button");
-        delBtn.type = "button";
-        delBtn.className = "text-action-btn";
-        delBtn.textContent = "Eliminar";
-        delBtn.addEventListener("click", () => {
-          cloudHooks.deletePost?.(post.id);
-        });
-        bar.appendChild(delBtn);
       }
 
       art.appendChild(bar);
@@ -3940,10 +4990,17 @@ if (isFirebaseConfigured) {
         }
         if (!cloudHooks.subscribePostComments) return;
         const unsub = cloudHooks.subscribePostComments(post.id, (comments) => {
-          const cleanComments = comments.filter((c) => !bannedUsersMap.has(c.authorUid));
+          const cleanComments = comments.filter((c) => {
+            if (bannedUsersMap.has(c.authorUid)) return false;
+            // Filtrar comentarios en duda (flaggedReview)
+            if (c.flaggedReview) {
+              if (!activeAuthUser) return false;
+              return c.authorUid === activeAuthUser.uid || isAdminUser(activeAuthUser);
+            }
+            return true;
+          });
           latestCommentsCount = cleanComments.length;
-          commentBtn.textContent =
-            latestCommentsCount > 0 ? `Comentarios (${latestCommentsCount})` : "Comentar";
+          commentBtn.innerHTML = getCommentBtnHtml(latestCommentsCount);
 
           commentsListEl.textContent = "";
           if (cleanComments.length === 0) {
@@ -3982,6 +5039,16 @@ if (isFirebaseConfigured) {
             cMeta.style.color = "var(--muted)";
             cMeta.textContent = `@${c.authorHandle || "usuario"} · ${formatDateEs(c.createdAtMs)}`;
             cAuthor.appendChild(cMeta);
+
+            if (c.flaggedReview) {
+              const pendingFlag = document.createElement("span");
+              pendingFlag.className = "mono";
+              pendingFlag.style.fontSize = "0.7rem";
+              pendingFlag.style.color = "var(--gold)";
+              pendingFlag.textContent = " [En revisión por moderación]";
+              cAuthor.appendChild(pendingFlag);
+            }
+
             cHead.appendChild(cAuthor);
 
             if (
@@ -4019,7 +5086,9 @@ if (isFirebaseConfigured) {
         mountCommentsSubscription();
       }
 
-      commentBtn.addEventListener("click", () => {
+      commentBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, commentBtn);
+        triggerFluidPop(commentBtn);
         if (expandedCommentPosts.has(post.id)) {
           expandedCommentPosts.delete(post.id);
           commentsDrawer.hidden = true;
@@ -4054,16 +5123,32 @@ if (isFirebaseConfigured) {
           e.preventDefault();
           const val = cInp.value.trim();
           if (!val || !cloudHooks.addPostComment) return;
+
+          // Verificar si el usuario tiene conducta crítica (1/10)
+          const myScore = typeof currentOwnProfile?.behaviorScore === "number" ? currentOwnProfile.behaviorScore : 10;
+          if (myScore <= 1) {
+            alert("Tu cuenta tiene calificación de conducta crítica (1/10) y no puede enviar comentarios.");
+            return;
+          }
+
           cBtn.disabled = true;
-          await cloudHooks
+          const res = await cloudHooks
             .addPostComment({
               postId: post.id,
               text: val,
               currentCount: latestCommentsCount
             })
-            .catch(() => {});
-          cInp.value = "";
+            .catch(() => null);
+
           cBtn.disabled = false;
+          if (res?.blocked) {
+            alert("Tu comentario fue bloqueado automáticamente por infringir las normas de respeto y seguridad de EndHa.");
+            return;
+          }
+          if (res?.pendingReview) {
+            alert("Tu comentario incluye una expresión en duda y fue enviado a la bandeja de moderación. Estará visible tras la validación del administrador.");
+          }
+          cInp.value = "";
         });
         commentsDrawer.appendChild(cForm);
       } else {
@@ -4111,7 +5196,8 @@ if (isFirebaseConfigured) {
         textBox.addEventListener("click", () => renderInspectorContent(post.authorUid));
 
         const kindTag = document.createElement("span");
-        kindTag.className = "feed-post-kind mono";
+        const kindClass = POST_KIND_CLASSES[post.kind] || "kind-badge-post";
+        kindTag.className = `feed-post-kind mono ${kindClass}`;
         kindTag.textContent = POST_KIND_LABELS[post.kind] || "PUBLICACIÓN";
 
         const txt = document.createElement("p");
@@ -4175,8 +5261,16 @@ if (isFirebaseConfigured) {
       const likeBtn = document.createElement("button");
       likeBtn.type = "button";
       likeBtn.className = likedByMe ? "post-like-btn liked" : "post-like-btn";
-      likeBtn.textContent = `${likedByMe ? "♥" : "♡"} ${likesArr.length}`;
-      likeBtn.addEventListener("click", () => {
+      const getTileHeartHtml = (active, count) => `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="reaction-icon">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>${count}</span>
+      `;
+      likeBtn.innerHTML = getTileHeartHtml(likedByMe, likesArr.length);
+      likeBtn.addEventListener("click", (e) => {
+        applyLiquidWaterRipple(e, likeBtn);
+        triggerFluidPop(likeBtn);
         if (!activeAuthUser) {
           signInAndEnterWorkspace(
             window.location.pathname.endsWith("para-ti.html") ? "para-ti.html" : "cuenta.html"
@@ -4262,15 +5356,7 @@ if (isFirebaseConfigured) {
         });
       }
 
-      // 3. Franjas de especialistas recomendados en Para ti (para-ti.html y cuenta.html)
-      renderSpecialistsStripInto(
-        document.getElementById("forYouSpecialistsZone"),
-        document.getElementById("forYouSpecialistsLabel"),
-        document.getElementById("forYouSpecialistsGrid"),
-        forYouFilter,
-        forYouQuery,
-        true
-      );
+      // 3. Franjas de especialistas recomendados en feed de cuenta.html
       renderSpecialistsStripInto(
         document.getElementById("wsFeedSpecialistsZone"),
         document.getElementById("wsFeedSpecialistsLabel"),
@@ -4306,8 +5392,8 @@ if (isFirebaseConfigured) {
         const p = document.createElement("p");
         p.textContent =
           allPostsList.length === 0
-            ? "Lanza la primera fotografía de tu portafolio o una búsqueda de talento para estrenar Para ti."
-            : "No hay publicaciones o fotos que coincidan con ese filtro. Prueba otra palabra clave.";
+            ? "Sé el primero en compartir una publicación, idea o pregunta en Para ti pulsando '+ Añadir'."
+            : "No hay publicaciones que coincidan con esa búsqueda. Prueba con otra palabra o #etiqueta.";
         empty.appendChild(idx);
         empty.appendChild(p);
         containerEl.appendChild(empty);
@@ -4332,13 +5418,10 @@ if (isFirebaseConfigured) {
     const renderFeedAndOwnPortfolio = () => {
       const cleanPosts = allPostsList.filter((p) => !bannedUsersMap.has(p.authorUid));
 
-      // Sincronizar barra de publicación en para-ti.html según estado de sesión
-      const fyGuestBar = document.getElementById("forYouGuestBar");
-      const fyComposerWrap = document.getElementById("forYouComposerWrap");
-      if (fyGuestBar && fyComposerWrap) {
-        const banned = Boolean(activeAuthUser && bannedUsersMap.has(activeAuthUser.uid));
-        fyGuestBar.hidden = Boolean(activeAuthUser);
-        fyComposerWrap.hidden = !activeAuthUser || banned;
+      // Sincronizar modal de publicación en para-ti.html si no hay sesión
+      const fyModal = document.getElementById("forYouCreateModal");
+      if (fyModal && !activeAuthUser) {
+        fyModal.hidden = true;
       }
 
       // 1. "Para ti" dentro de cuenta.html (#socialFeedStream)
@@ -4364,14 +5447,6 @@ if (isFirebaseConfigured) {
             fyFiltered.length === 1 ? "1 PUBLICACIÓN" : `${fyFiltered.length} PUBLICACIONES`;
         }
         renderDiscoveryStreamInto(forYouStreamContainerEl, fyFiltered, forYouViewMode, "fy");
-        renderSpecialistsStripInto(
-          document.getElementById("forYouSpecialistsZone"),
-          document.getElementById("forYouSpecialistsLabel"),
-          document.getElementById("forYouSpecialistsGrid"),
-          forYouFilter,
-          forYouQuery,
-          true
-        );
       }
 
       // 3. Muestra en vivo de "Para ti" en la portada index.html (#homeForYouMosaic)
@@ -4570,151 +5645,400 @@ if (isFirebaseConfigured) {
       });
     });
 
-    // Controles de búsqueda, filtros y modo mosaico en para-ti.html
-    document.querySelectorAll("#forYouFilterTabs .topic-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll("#forYouFilterTabs .topic-tab").forEach((b) => b.classList.remove("active"));
-        tab.classList.add("active");
-        forYouFilter = tab.dataset.fyFilter || "all";
-        renderFeedAndOwnPortfolio();
-      });
-    });
-
+    // Buscador directo en Para ti (#forYouSearchInput en la barra superior)
     document.getElementById("forYouSearchInput")?.addEventListener("input", (e) => {
       forYouQuery = e.target.value || "";
       renderFeedAndOwnPortfolio();
     });
 
-    document.querySelectorAll("#forYouViewSwitch .view-mode-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("#forYouViewSwitch .view-mode-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        forYouViewMode = btn.dataset.fyView || "stream";
-        renderFeedAndOwnPortfolio();
+    // =========================================================
+    // ESTUDIO DE CREACIÓN COMPLETO (VIDEO HASTA 5 MIN, FOTOS, CÓDIGO)
+    // =========================================================
+    const forYouAddPostBtn = document.getElementById("forYouAddPostBtn");
+    const forYouCreateModal = document.getElementById("forYouCreateModal");
+    const forYouCloseModalBtn = document.getElementById("forYouCloseModalBtn");
+    const forYouCancelPostBtn = document.getElementById("forYouCancelPostBtn");
+
+    let stagedStudioVideoFile = null;
+    let stagedStudioVideoUrl = "";
+    let stagedStudioVideoDuration = 0;
+    let stagedStudioPhotoDataUrl = "";
+
+    const checkVideoDuration = (file) => {
+      return new Promise((resolve, reject) => {
+        const vid = document.createElement("video");
+        vid.preload = "metadata";
+        const url = URL.createObjectURL(file);
+        vid.src = url;
+        vid.onloadedmetadata = () => {
+          URL.revokeObjectURL(url);
+          resolve(vid.duration || 0);
+        };
+        vid.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error("Formato de video no compatible"));
+        };
       });
+    };
+
+    const formatVideoTime = (seconds) => {
+      if (!seconds || isNaN(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m < 10 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s}`;
+    };
+
+    const resetStudioModal = () => {
+      stagedStudioVideoFile = null;
+      stagedStudioVideoUrl = "";
+      stagedStudioVideoDuration = 0;
+      stagedStudioPhotoDataUrl = "";
+
+      const titleEl = document.getElementById("forYouPostTitle");
+      const capEl = document.getElementById("forYouPostCaption");
+      const counterEl = document.getElementById("forYouCharCounter");
+      const feedback = document.getElementById("forYouComposerFeedback");
+      if (titleEl) titleEl.value = "";
+      if (capEl) capEl.value = "";
+      if (counterEl) counterEl.textContent = "0 / 2800";
+      if (feedback) feedback.textContent = "";
+
+      // Reset Video
+      const vSection = document.getElementById("forYouVideoSection");
+      const vFileInput = document.getElementById("forYouVideoFileInput");
+      const vUrlInput = document.getElementById("forYouVideoUrlInput");
+      const vPreview = document.getElementById("forYouVideoPreviewCard");
+      const vPlayer = document.getElementById("forYouVideoPlayer");
+      const vMsg = document.getElementById("forYouVideoValidationMsg");
+      if (vSection) vSection.hidden = true;
+      if (vFileInput) vFileInput.value = "";
+      if (vUrlInput) vUrlInput.value = "";
+      if (vPreview) vPreview.hidden = true;
+      if (vPlayer) vPlayer.src = "";
+      if (vMsg) { vMsg.hidden = true; vMsg.textContent = ""; }
+
+      // Reset Photo
+      const pSection = document.getElementById("forYouPhotoSection");
+      const pFileInput = document.getElementById("forYouPhotoInput");
+      const pPreview = document.getElementById("forYouPhotoPreviewWrap");
+      const pImg = document.getElementById("forYouPhotoPreviewImg");
+      if (pSection) pSection.hidden = true;
+      if (pFileInput) pFileInput.value = "";
+      if (pPreview) pPreview.hidden = true;
+      if (pImg) pImg.src = "";
+
+      // Reset Code
+      const cSection = document.getElementById("forYouCodeSection");
+      const cTitle = document.getElementById("forYouCodeTitleInput");
+      const cArea = document.getElementById("forYouCodeSnippetArea");
+      if (cSection) cSection.hidden = true;
+      if (cTitle) cTitle.value = "";
+      if (cArea) cArea.value = "";
+
+      // Reset tool buttons
+      document.querySelectorAll(".studio-media-btn").forEach((b) => b.classList.remove("active"));
+    };
+
+    const openForYouCreateModal = () => {
+      if (!activeAuthUser) {
+        signInAndEnterWorkspace("para-ti.html");
+        return;
+      }
+      if (!forYouCreateModal) return;
+
+      const myProf = profilesByUid.get(activeAuthUser.uid);
+      const av = document.getElementById("forYouModalAvatar");
+      const nm = document.getElementById("forYouModalAuthorName");
+      const hnd = document.getElementById("forYouModalAuthorHandle");
+
+      if (av) av.src = activeAuthUser.photoURL || myProf?.photoURL || "favicon.svg";
+      if (nm) nm.textContent = activeAuthUser.displayName || myProf?.displayName || "Tú";
+      if (hnd) hnd.textContent = `@${myProf?.handle || activeAuthUser.email?.split("@")[0] || "usuario"}`;
+
+      forYouCreateModal.hidden = false;
+      forYouCreateModal.setAttribute("aria-hidden", "false");
+      setTimeout(() => {
+        document.getElementById("forYouPostCaption")?.focus();
+      }, 60);
+    };
+
+    const closeForYouCreateModal = () => {
+      if (!forYouCreateModal) return;
+      forYouCreateModal.hidden = true;
+      forYouCreateModal.setAttribute("aria-hidden", "true");
+      resetStudioModal();
+    };
+
+    if (forYouAddPostBtn) forYouAddPostBtn.addEventListener("click", openForYouCreateModal);
+    if (forYouCloseModalBtn) forYouCloseModalBtn.addEventListener("click", closeForYouCreateModal);
+    if (forYouCancelPostBtn) forYouCancelPostBtn.addEventListener("click", closeForYouCreateModal);
+
+    // Contador de caracteres en tiempo real
+    document.getElementById("forYouPostCaption")?.addEventListener("input", (e) => {
+      const len = e.target.value.length;
+      const counter = document.getElementById("forYouCharCounter");
+      if (counter) counter.textContent = `${len} / 2800`;
     });
 
-    // Publicador directo en para-ti.html con foto adjunta
-    let stagedForYouPhotoDataUrl = "";
-    const forYouPhotoInput = document.getElementById("forYouPhotoInput");
-    const forYouPhotoPreviewWrap = document.getElementById("forYouPhotoPreviewWrap");
-    const forYouPhotoPreviewImg = document.getElementById("forYouPhotoPreviewImg");
-    const forYouComposerFeedback = document.getElementById("forYouComposerFeedback");
+    // Alternadores de módulos multimedia
+    const vSec = document.getElementById("forYouVideoSection");
+    const pSec = document.getElementById("forYouPhotoSection");
+    const cSec = document.getElementById("forYouCodeSection");
 
-    document.getElementById("forYouAttachPhotoBtn")?.addEventListener("click", () => {
-      forYouPhotoInput?.click();
+    const vBtn = document.getElementById("forYouMediaVideoBtn");
+    const pBtn = document.getElementById("forYouMediaPhotoBtn");
+    const cBtn = document.getElementById("forYouMediaCodeBtn");
+
+    vBtn?.addEventListener("click", () => {
+      if (!vSec) return;
+      vSec.hidden = !vSec.hidden;
+      vBtn.classList.toggle("active", !vSec.hidden);
+      if (!vSec.hidden) document.getElementById("forYouVideoUrlInput")?.focus();
     });
 
-    forYouPhotoInput?.addEventListener("change", async (e) => {
+    pBtn?.addEventListener("click", () => {
+      if (!pSec) return;
+      pSec.hidden = !pSec.hidden;
+      pBtn.classList.toggle("active", !pSec.hidden);
+      if (!pSec.hidden) document.getElementById("forYouPhotoInput")?.click();
+    });
+
+    cBtn?.addEventListener("click", () => {
+      if (!cSec) return;
+      cSec.hidden = !cSec.hidden;
+      cBtn.classList.toggle("active", !cSec.hidden);
+      if (!cSec.hidden) document.getElementById("forYouCodeTitleInput")?.focus();
+    });
+
+    document.getElementById("forYouDismissVideoSectionBtn")?.addEventListener("click", () => {
+      if (vSec) vSec.hidden = true;
+      vBtn?.classList.remove("active");
+      stagedStudioVideoFile = null;
+      stagedStudioVideoUrl = "";
+      stagedStudioVideoDuration = 0;
+      const vPlayer = document.getElementById("forYouVideoPlayer");
+      if (vPlayer) vPlayer.src = "";
+      document.getElementById("forYouVideoPreviewCard")?.setAttribute("hidden", "true");
+    });
+
+    document.getElementById("forYouDismissPhotoSectionBtn")?.addEventListener("click", () => {
+      if (pSec) pSec.hidden = true;
+      pBtn?.classList.remove("active");
+      stagedStudioPhotoDataUrl = "";
+      document.getElementById("forYouPhotoPreviewWrap")?.setAttribute("hidden", "true");
+    });
+
+    document.getElementById("forYouDismissCodeSectionBtn")?.addEventListener("click", () => {
+      if (cSec) cSec.hidden = true;
+      cBtn?.classList.remove("active");
+      const cArea = document.getElementById("forYouCodeSnippetArea");
+      if (cArea) cArea.value = "";
+    });
+
+    // Control de Video: Selección y VALIDACIÓN ESTRICTA DE DURACIÓN (MÁX. 5 MINUTOS = 300 SEG)
+    const vFileInput = document.getElementById("forYouVideoFileInput");
+    const vUrlInput = document.getElementById("forYouVideoUrlInput");
+    const vPreviewCard = document.getElementById("forYouVideoPreviewCard");
+    const vPlayer = document.getElementById("forYouVideoPlayer");
+    const vStatus = document.getElementById("forYouVideoDurationStatus");
+    const vValMsg = document.getElementById("forYouVideoValidationMsg");
+
+    document.getElementById("forYouSelectVideoFileBtn")?.addEventListener("click", () => {
+      vFileInput?.click();
+    });
+
+    vFileInput?.addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (vValMsg) { vValMsg.hidden = true; vValMsg.textContent = ""; }
+      if (vStatus) vStatus.textContent = "Validando duración de video...";
+
+      try {
+        const duration = await checkVideoDuration(file);
+        // Validar límite estricto de 5 minutos (300 segundos)
+        if (duration > 300) {
+          e.target.value = "";
+          stagedStudioVideoFile = null;
+          stagedStudioVideoDuration = 0;
+          stagedStudioVideoUrl = "";
+          if (vPreviewCard) vPreviewCard.hidden = true;
+          if (vPlayer) vPlayer.src = "";
+          if (vValMsg) {
+            vValMsg.hidden = false;
+            vValMsg.textContent = `El video supera el límite de 5 minutos (Duración detectada: ${formatVideoTime(duration)}). Selecciona un video de hasta 5:00 minutos o utiliza un enlace externo.`;
+          }
+          return;
+        }
+
+        // Duración válida (<= 5 minutos)
+        stagedStudioVideoFile = file;
+        stagedStudioVideoDuration = Math.round(duration);
+
+        // Convertir o crear URL para reproducción en vivo
+        const objectUrl = URL.createObjectURL(file);
+        stagedStudioVideoUrl = objectUrl;
+
+        // Intentar compresión/dataUrl si es ligero para persistencia
+        if (file.size < 950000) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            if (evt.target?.result) stagedStudioVideoUrl = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+
+        if (vPlayer) vPlayer.src = objectUrl;
+        if (vStatus) {
+          vStatus.textContent = `${formatVideoTime(duration)} / 05:00 · Duración válida ✓`;
+        }
+        if (vPreviewCard) vPreviewCard.hidden = false;
+        if (vValMsg) { vValMsg.hidden = true; }
+      } catch (err) {
+        if (vValMsg) {
+          vValMsg.hidden = false;
+          vValMsg.textContent = "No se pudo leer la duración del archivo. Asegúrate de subir un formato de video compatible (MP4, WebM o MOV).";
+        }
+      }
+    });
+
+    document.getElementById("forYouClearVideoPreviewBtn")?.addEventListener("click", () => {
+      if (vFileInput) vFileInput.value = "";
+      stagedStudioVideoFile = null;
+      stagedStudioVideoUrl = "";
+      stagedStudioVideoDuration = 0;
+      if (vPreviewCard) vPreviewCard.hidden = true;
+      if (vPlayer) vPlayer.src = "";
+      if (vValMsg) { vValMsg.hidden = true; vValMsg.textContent = ""; }
+    });
+
+    vUrlInput?.addEventListener("input", (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        stagedStudioVideoUrl = url;
+        if (vValMsg) vValMsg.hidden = true;
+      }
+    });
+
+    // Control de Foto / Portada
+    const pFileInput = document.getElementById("forYouPhotoInput");
+    const pPreviewWrap = document.getElementById("forYouPhotoPreviewWrap");
+    const pPreviewImg = document.getElementById("forYouPhotoPreviewImg");
+
+    document.getElementById("forYouSelectPhotoBtn")?.addEventListener("click", () => {
+      pFileInput?.click();
+    });
+
+    pFileInput?.addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
       e.target.value = "";
       if (!file) return;
       try {
-        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Optimizando foto...";
-        let dataUrl = await compressImageDataUrl(file, 1280, 0.8);
-        if (dataUrl.length > 740000) dataUrl = await compressImageDataUrl(file, 960, 0.68);
-        stagedForYouPhotoDataUrl = dataUrl;
-        if (forYouPhotoPreviewImg) forYouPhotoPreviewImg.src = dataUrl;
-        if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = false;
-        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Foto lista para publicar ✓";
+        let dataUrl = await compressImageDataUrl(file, 1280, 0.82);
+        if (dataUrl.length > 750000) dataUrl = await compressImageDataUrl(file, 960, 0.7);
+        stagedStudioPhotoDataUrl = dataUrl;
+        if (pPreviewImg) pPreviewImg.src = dataUrl;
+        if (pPreviewWrap) pPreviewWrap.hidden = false;
       } catch {
-        if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Formato de imagen no compatible.";
+        // Fallback simple
       }
     });
 
-    // Controles multimedia en Para ti (Video y Código)
-    const forYouVideoWrap = document.getElementById("forYouVideoInputWrap");
-    const forYouVideoUrlInput = document.getElementById("forYouVideoUrlInput");
-    const forYouCodeWrap = document.getElementById("forYouCodeSnippetWrap");
-    const forYouCodeTitleInput = document.getElementById("forYouCodeTitleInput");
-    const forYouCodeLangSelect = document.getElementById("forYouCodeLangSelect");
-    const forYouCodeSnippetArea = document.getElementById("forYouCodeSnippetArea");
-    const forYouPostKind = document.getElementById("forYouPostKind");
-
-    document.getElementById("forYouToggleVideoBtn")?.addEventListener("click", () => {
-      if (!forYouVideoWrap) return;
-      const isHidden = forYouVideoWrap.style.display === "none" || !forYouVideoWrap.style.display;
-      forYouVideoWrap.style.display = isHidden ? "block" : "none";
-      if (isHidden) forYouVideoUrlInput?.focus();
+    document.getElementById("forYouClearPhotoPreviewBtn")?.addEventListener("click", () => {
+      stagedStudioPhotoDataUrl = "";
+      if (pPreviewWrap) pPreviewWrap.hidden = true;
+      if (pPreviewImg) pPreviewImg.src = "";
     });
 
-    document.getElementById("forYouToggleCodeBtn")?.addEventListener("click", () => {
-      if (!forYouCodeWrap) return;
-      const isHidden = forYouCodeWrap.style.display === "none" || !forYouCodeWrap.style.display;
-      forYouCodeWrap.style.display = isHidden ? "flex" : "none";
-      if (isHidden) forYouCodeSnippetArea?.focus();
-    });
-
-    forYouPostKind?.addEventListener("change", () => {
-      const val = forYouPostKind.value;
-      if (val === "video" && forYouVideoWrap) {
-        forYouVideoWrap.style.display = "block";
-        forYouVideoUrlInput?.focus();
-      } else if (val === "code_snippet" && forYouCodeWrap) {
-        forYouCodeWrap.style.display = "flex";
-        forYouCodeSnippetArea?.focus();
+    // Cerrar al hacer clic en el backdrop oscuro
+    forYouCreateModal?.addEventListener("click", (e) => {
+      if (e.target === forYouCreateModal) {
+        closeForYouCreateModal();
       }
     });
 
-    document.getElementById("forYouRemovePhotoBtn")?.addEventListener("click", () => {
-      stagedForYouPhotoDataUrl = "";
-      if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
-      if (forYouComposerFeedback) forYouComposerFeedback.textContent = "";
+    // Cerrar con la tecla [Escape]
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && forYouCreateModal && !forYouCreateModal.hidden) {
+        closeForYouCreateModal();
+      }
     });
 
+    // Envío del Estudio de Publicación Completo
     document.getElementById("forYouComposerForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!activeAuthUser || !cloudHooks.publishPost) return;
-      const capEl = document.getElementById("forYouPostCaption");
-      const kindEl = document.getElementById("forYouPostKind");
-      const caption = (capEl?.value || "").trim();
+      if (!activeAuthUser || !cloudHooks.publishPost) {
+        signInAndEnterWorkspace("para-ti.html");
+        return;
+      }
 
-      const videoUrl = (forYouVideoUrlInput?.value || "").trim();
-      const codeText = (forYouCodeSnippetArea?.value || "").trim();
-      const codeTitle = (forYouCodeTitleInput?.value || "").trim() || "Snippet de código";
-      const codeLang = forYouCodeLangSelect?.value || "javascript";
+      const titleEl = document.getElementById("forYouPostTitle");
+      const capEl = document.getElementById("forYouPostCaption");
+      const codeArea = document.getElementById("forYouCodeSnippetArea");
+      const codeTitle = document.getElementById("forYouCodeTitleInput");
+      const codeLang = document.getElementById("forYouCodeLangSelect");
+
+      const postTitle = (titleEl?.value || "").trim();
+      const caption = (capEl?.value || "").trim();
+      const codeText = (codeArea?.value || "").trim();
+
+      const finalVideoUrl = (stagedStudioVideoUrl || vUrlInput?.value || "").trim();
 
       let codeSnippet = null;
       if (codeText) {
-        codeSnippet = { code: codeText, title: codeTitle, language: codeLang };
+        codeSnippet = {
+          code: codeText,
+          title: (codeTitle?.value || "").trim() || "Snippet de código",
+          language: codeLang?.value || "javascript"
+        };
       }
 
-      let mediaType = "none";
-      if (stagedForYouPhotoDataUrl) mediaType = "photo";
-      else if (videoUrl) mediaType = "video";
-      else if (codeSnippet) mediaType = "code";
-
-      if (!caption && !stagedForYouPhotoDataUrl && !videoUrl && !codeSnippet) {
+      if (!caption && !finalVideoUrl && !stagedStudioPhotoDataUrl && !codeSnippet && !postTitle) {
         capEl?.focus();
         return;
       }
 
-      const finalCaption = caption || (mediaType === "video" ? "Muestra de video" : mediaType === "code" ? codeTitle : "Publicación en Para ti");
+      let mediaType = "none";
+      if (finalVideoUrl) mediaType = "video";
+      else if (stagedStudioPhotoDataUrl) mediaType = "photo";
+      else if (codeSnippet) mediaType = "code";
 
-      const btn = document.getElementById("forYouPublishBtn");
-      if (btn) btn.disabled = true;
-      await cloudHooks
-        .publishPost({
-          kind: kindEl?.value || (mediaType === "video" ? "video" : mediaType === "code" ? "code_snippet" : "portfolio"),
+      const finalCaption = caption || postTitle || (mediaType === "video" ? "Muestra de video" : "Publicación");
+
+      const feedback = document.getElementById("forYouComposerFeedback");
+      const publishBtn = document.getElementById("forYouPublishBtn");
+      if (publishBtn) publishBtn.disabled = true;
+      if (feedback) feedback.textContent = "Publicando en Para ti...";
+
+      try {
+        await cloudHooks.publishPost({
+          title: postTitle,
           caption: finalCaption,
-          photoUrl: stagedForYouPhotoDataUrl,
+          kind: mediaType === "video" ? "video" : mediaType === "photo" ? "photo" : mediaType === "code" ? "code_snippet" : "post",
           mediaType,
-          videoUrl,
+          videoUrl: finalVideoUrl,
+          videoDurationSec: stagedStudioVideoDuration || null,
+          photoUrl: stagedStudioPhotoDataUrl,
           codeSnippet
-        })
-        .catch(() => {});
+        });
 
-      if (capEl) capEl.value = "";
-      stagedForYouPhotoDataUrl = "";
-      if (forYouPhotoPreviewWrap) forYouPhotoPreviewWrap.hidden = true;
-      if (forYouVideoUrlInput) forYouVideoUrlInput.value = "";
-      if (forYouVideoWrap) forYouVideoWrap.style.display = "none";
-      if (forYouCodeSnippetArea) forYouCodeSnippetArea.value = "";
-      if (forYouCodeTitleInput) forYouCodeTitleInput.value = "";
-      if (forYouCodeWrap) forYouCodeWrap.style.display = "none";
+        if (feedback) feedback.textContent = "Publicado con éxito ✓";
+        setTimeout(() => {
+          closeForYouCreateModal();
+        }, 550);
+      } catch (err) {
+        if (feedback) feedback.textContent = "Error al publicar. Inténtalo de nuevo.";
+      } finally {
+        if (publishBtn) publishBtn.disabled = false;
+      }
+    });
 
-      if (forYouComposerFeedback) forYouComposerFeedback.textContent = "Lanzado en Para ti y en tu perfil ✓";
-      if (btn) btn.disabled = false;
+    // Cerrar menús desplegables de opciones al hacer clic fuera con transición fluida
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".feed-post-options-wrap")) {
+        document.querySelectorAll(".feed-options-dropdown.is-open").forEach((d) => d.classList.remove("is-open"));
+        document.querySelectorAll(".feed-options-btn.active").forEach((b) => b.classList.remove("active"));
+      }
     });
 
     // Publicador del Muro Social con foto adjunta
@@ -4910,7 +6234,9 @@ if (isFirebaseConfigured) {
           if (isCreator) t.appendChild(createCreatorBadgeEl(true));
           const s = document.createElement("span");
           s.className = "open-row-sub";
-          s.textContent = `${prof?.role || "Quiere conectar contigo"} · ID: ${prof?.internalId || deriveInternalId(otherUid)}`;
+          s.textContent = isAdminUser(activeAuthUser)
+            ? `${prof?.role || "Quiere conectar contigo"} · ID: ${prof?.internalId || deriveInternalId(otherUid)}`
+            : `${prof?.role || "Quiere conectar contigo"}`;
           info.appendChild(t);
           info.appendChild(s);
 
@@ -4958,7 +6284,9 @@ if (isFirebaseConfigured) {
             if (isCreator) t.appendChild(createCreatorBadgeEl(true));
             const s = document.createElement("span");
             s.className = "open-row-sub";
-            s.textContent = `${prof?.role || "Especialista"} · ${prof?.internalId || deriveInternalId(otherUid)}`;
+            s.textContent = isAdminUser(activeAuthUser)
+              ? `${prof?.role || "Especialista"} · ${prof?.internalId || deriveInternalId(otherUid)}`
+              : `${prof?.role || "Especialista"}`;
             info.appendChild(t);
             info.appendChild(s);
 
@@ -5729,6 +7057,170 @@ if (isFirebaseConfigured) {
       });
     };
 
+    let unsubscribeAdminPendingComments = null;
+    const attachAdminModerationListener = (user) => {
+      if (unsubscribeAdminPendingComments) unsubscribeAdminPendingComments();
+      if (!isAdminUser(user)) return;
+
+      const pendingListEl = document.getElementById("adminPendingCommentsList");
+      const badgeCount = document.getElementById("adminPendingCountBadge");
+      if (!pendingListEl) return;
+
+      if (cloudHooks.subscribeAdminPendingComments) {
+        unsubscribeAdminPendingComments = cloudHooks.subscribeAdminPendingComments((pendingList) => {
+          if (badgeCount) badgeCount.textContent = `${pendingList.length} EN REVISIÓN`;
+          pendingListEl.textContent = "";
+
+          if (pendingList.length === 0) {
+            const emptyP = document.createElement("p");
+            emptyP.style.fontSize = "0.86rem";
+            emptyP.style.color = "var(--muted)";
+            emptyP.textContent = "Bandeja limpia: no hay comentarios en duda pendientes de moderación ✓";
+            pendingListEl.appendChild(emptyP);
+            return;
+          }
+
+          pendingList.forEach((item) => {
+            const card = document.createElement("article");
+            card.className = "moderation-comment-card";
+
+            const meta = document.createElement("div");
+            meta.className = "comment-meta";
+
+            const left = document.createElement("div");
+            left.style.display = "flex";
+            left.style.alignItems = "center";
+            left.style.gap = "8px";
+            left.style.flexWrap = "wrap";
+
+            const nameStrong = document.createElement("strong");
+            nameStrong.style.fontSize = "0.85rem";
+            nameStrong.textContent = item.authorName || "Especialista";
+
+            const handleSpan = document.createElement("span");
+            handleSpan.className = "mono";
+            handleSpan.style.fontSize = "0.74rem";
+            handleSpan.style.color = "var(--muted)";
+            handleSpan.textContent = `@${item.authorHandle || "usuario"} (${item.authorInternalId || "ID"})`;
+
+            const scorePill = document.createElement("span");
+            const authorScore = item.authorScore ?? 10;
+            scorePill.className = `conduct-pill mono score-${authorScore <= 3 ? "bad" : authorScore <= 7 ? "warn" : "good"}`;
+            scorePill.textContent = `Conducta: ${authorScore}/10`;
+
+            left.appendChild(nameStrong);
+            left.appendChild(handleSpan);
+            left.appendChild(scorePill);
+
+            const reasonSpan = document.createElement("span");
+            reasonSpan.className = "mono";
+            reasonSpan.style.fontSize = "0.72rem";
+            reasonSpan.style.color = "var(--gold)";
+            reasonSpan.textContent = item.flagReason || "Expresión ambigua";
+
+            meta.appendChild(left);
+            meta.appendChild(reasonSpan);
+
+            const txt = document.createElement("p");
+            txt.className = "post-comment-text";
+            txt.style.background = "rgba(0,0,0,0.3)";
+            txt.style.padding = "10px 14px";
+            txt.style.borderLeft = "2px solid var(--gold)";
+            txt.textContent = `«${item.commentText || ""}»`;
+
+            const actions = document.createElement("div");
+            actions.className = "comment-actions";
+
+            // Botón 1: Aprobar
+            const approveBtn = document.createElement("button");
+            approveBtn.type = "button";
+            approveBtn.className = "btn btn-white btn-sm";
+            approveBtn.style.fontSize = "0.74rem";
+            approveBtn.textContent = "✓ Aprobar comentario";
+            approveBtn.addEventListener("click", async () => {
+              approveBtn.disabled = true;
+              await cloudHooks.adminApproveComment?.({
+                pendingId: item.id,
+                postId: item.postId,
+                commentId: item.commentId
+              });
+            });
+            actions.appendChild(approveBtn);
+
+            // Botón 2: Eliminar y sancionar (-2 puntos de conducta)
+            const sanctionBtn = document.createElement("button");
+            sanctionBtn.type = "button";
+            sanctionBtn.className = "btn btn-ghost btn-sm";
+            sanctionBtn.style.fontSize = "0.74rem";
+            sanctionBtn.style.color = "#f1c40f";
+            sanctionBtn.textContent = "✕ Eliminar y sancionar (-2 pts)";
+            sanctionBtn.addEventListener("click", async () => {
+              sanctionBtn.disabled = true;
+              await cloudHooks.adminRejectAndSanctionComment?.({
+                pendingId: item.id,
+                postId: item.postId,
+                commentId: item.commentId,
+                authorUid: item.authorUid
+              });
+            });
+            actions.appendChild(sanctionBtn);
+
+            // Botón 3: Banear cuenta permanente (1/10)
+            const banBtn = document.createElement("button");
+            banBtn.type = "button";
+            banBtn.className = "text-action-btn";
+            banBtn.style.fontSize = "0.74rem";
+            banBtn.style.color = "#ff5555";
+            banBtn.textContent = "🚫 Banear cuenta (1/10)";
+            banBtn.addEventListener("click", async () => {
+              if (confirm(`¿Banear permanentemente la cuenta de ${item.authorName} y fijar conducta en 1/10?`)) {
+                banBtn.disabled = true;
+                await cloudHooks.adminBanFromComment?.({
+                  pendingId: item.id,
+                  postId: item.postId,
+                  commentId: item.commentId,
+                  authorUid: item.authorUid
+                });
+              }
+            });
+            actions.appendChild(banBtn);
+
+            card.appendChild(meta);
+            card.appendChild(txt);
+            card.appendChild(actions);
+            pendingListEl.appendChild(card);
+          });
+        });
+      }
+    };
+
+    // Formulario de gestión manual de conducta (1 al 10)
+    document.getElementById("adminConductScoreForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const targetInp = document.getElementById("adminConductTargetInput");
+      const scoreSel = document.getElementById("adminConductScoreSelect");
+      const noteInp = document.getElementById("adminConductNoteInput");
+      const fb = document.getElementById("adminConductFeedback");
+
+      const target = (targetInp?.value || "").trim();
+      const score = Number(scoreSel?.value) || 10;
+      const note = (noteInp?.value || "").trim();
+
+      if (!target || !cloudHooks.adminUpdateUserConduct) return;
+      try {
+        await cloudHooks.adminUpdateUserConduct(target, score, note);
+        if (fb) {
+          fb.hidden = false;
+          fb.textContent = `Conducta de ${target} actualizada a ${score}/10 (${getConductLabel(score)}) ✓`;
+        }
+      } catch (err) {
+        if (fb) {
+          fb.hidden = false;
+          fb.textContent = err?.message || "Error al actualizar conducta.";
+        }
+      }
+    });
+
     // Escuchar baúl privado del usuario
     let unsubscribeVault = null;
     const attachVaultListener = (user) => {
@@ -5774,12 +7266,35 @@ if (isFirebaseConfigured) {
         await ensureUserCryptoKeys(user);
         await ensureUserProfileExists(user);
 
+        const myTier = isCreatorAccount(myInternalId, user.uid) ? "creator" : (currentOwnProfile?.membershipTier || "standard");
+        const dockHandleEl = document.getElementById("dockUserHandle");
+        if (dockHandleEl) {
+          dockHandleEl.textContent = `@${currentOwnProfile?.handle || sanitizeHandle(user.email?.split("@")[0] || "usuario")}`;
+        }
+        const dockCreatorSlot = document.getElementById("dockCreatorSlot");
+        if (dockCreatorSlot) {
+          mountCreatorBadgeSlot(dockCreatorSlot, isCreatorAccount(myInternalId, user.uid), true, myTier);
+        }
+
+        const sessionCache = {
+          uid: user.uid,
+          displayName: currentOwnProfile?.displayName || user.displayName || user.email || "Cuenta",
+          handle: currentOwnProfile?.handle || sanitizeHandle(user.email?.split("@")[0] || "usuario"),
+          email: user.email || "",
+          photoURL: currentOwnProfile?.photoURL || user.photoURL || "",
+          internalId: myInternalId,
+          membershipTier: myTier
+        };
+        try {
+          localStorage.setItem("xuanii_auth_session", JSON.stringify(sessionCache));
+          document.documentElement.classList.add("xuanii-auth-cached");
+        } catch (e) {}
+
         if (navUserAvatar) {
           const isCreator = isCreatorAccount(myInternalId, user.uid);
-          const tier = isCreator ? "creator" : (currentOwnProfile?.membershipTier || "standard");
           navUserAvatar.classList.toggle("creator-avatar-ring", isCreator);
-          navUserAvatar.classList.toggle("pro-avatar-ring", tier === "pro");
-          navUserAvatar.classList.toggle("plus-avatar-ring", tier === "plus");
+          navUserAvatar.classList.toggle("pro-avatar-ring", myTier === "pro");
+          navUserAvatar.classList.toggle("plus-avatar-ring", myTier === "plus");
         }
 
         prefillKnownUserFields();
@@ -5788,6 +7303,17 @@ if (isFirebaseConfigured) {
         attachVaultListener(user);
         attachConversationsListener(user);
         attachAdminReportsListener(user);
+        attachAdminModerationListener(user);
+
+        // Cargar creadores seguidos y publicaciones guardadas
+        const cachedFollowing = readJson(`endha_following_${user.uid}`, []);
+        const profFollowing = Array.isArray(currentOwnProfile?.following) ? currentOwnProfile.following : cachedFollowing;
+        myFollowingSet = new Set(profFollowing);
+
+        const cachedSaved = readJson(`endha_saved_${user.uid}`, []);
+        const profSaved = Array.isArray(currentOwnProfile?.savedPosts) ? currentOwnProfile.savedPosts : cachedSaved;
+        mySavedPostsSet = new Set(profSaved);
+
         renderFeedAndOwnPortfolio();
 
         if (requestedChatUid && requestedChatUid !== user.uid) {
@@ -5807,6 +7333,11 @@ if (isFirebaseConfigured) {
           { merge: true }
         ).catch(() => {});
       } else {
+        try {
+          localStorage.removeItem("xuanii_auth_session");
+          document.documentElement.classList.remove("xuanii-auth-cached");
+        } catch (e) {}
+        cachedAuthSession = null;
         currentOwnProfile = null;
         myCryptoKeys = null;
         myConnectionsMap = new Map();
@@ -5818,6 +7349,9 @@ if (isFirebaseConfigured) {
         if (unsubscribeActiveConvDoc) unsubscribeActiveConvDoc();
         if (unsubscribeActiveMessages) unsubscribeActiveMessages();
         if (unsubscribeAdminReports) unsubscribeAdminReports();
+        if (unsubscribeAdminPendingComments) unsubscribeAdminPendingComments();
+        myFollowingSet.clear();
+        mySavedPostsSet.clear();
         if (navSignInBtn) navSignInBtn.hidden = false;
         if (navUserChip) navUserChip.hidden = true;
         if (navUserAvatar) {

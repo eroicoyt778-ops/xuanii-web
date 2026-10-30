@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Xuanii — Red de talento digital, empleo y herramientas creativas</title>
+  <title>EndHa — Red de talento digital, empleo y herramientas creativas · by Xuanii</title>
   <meta name="description" content="Conecta con editores de video, retocadores fotográficos, diseñadores y desarrolladores verificados. Consigue empleo digital, muestra tu portafolio real y chatea con cifrado extremo a extremo." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="theme-boot.js"></script>
@@ -37,20 +37,16 @@
         >
           <span class="dock-burger-box" aria-hidden="true">
             <span class="dock-line dock-line-top"></span>
-            <span class="dock-line dock-line-mid"></span>
             <span class="dock-line dock-line-bot"></span>
           </span>
         </button>
 
-        <div class="nav-vertical-divider" aria-hidden="true"></div>
-
-        <a href="index.html" class="brand" aria-label="Xuanii Inicio">
+        <a href="index.html" class="brand" aria-label="EndHa Inicio">
           <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+            <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+            <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
           </svg>
-          <span class="brand-text">xuanii</span>
+          <span class="brand-text">EndHa</span>
         </a>
       </div>
 
@@ -66,26 +62,6 @@
           </svg>
           <span>Acceso con Google</span>
         </button>
-
-        <div class="nav-profile-chip" id="navUserChip" hidden>
-          <a href="cuenta.html?tab=profile" class="nav-profile-anchor" id="navProfileLink" title="Ir a mi Perfil Profesional">
-            <div class="nav-avatar-shell">
-              <img id="navUserAvatar" src="favicon.svg" alt="" class="nav-avatar-img" />
-              <span class="nav-presence-badge" id="navPresenceIndicator" title="Disponible"></span>
-            </div>
-            <div class="nav-profile-meta">
-              <span id="navUserName" class="nav-user-label">Perfil</span>
-              <span class="nav-role-sub mono">Perfil Profesional</span>
-            </div>
-          </a>
-          <button class="nav-logout-btn" id="navSignOutBtn" type="button" aria-label="Cerrar sesión" title="Cerrar sesión">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
   </header>
@@ -96,26 +72,16 @@
       <div class="dock-head">
         <div class="dock-brand-line">
           <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-            <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-            <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+            <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+            <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
           </svg>
-          <span class="dock-title">Espacio de Trabajo</span>
+          <span class="dock-title">EndHa</span>
         </div>
         <button class="dock-close-btn" id="dockCloseBtn" type="button" aria-label="Cerrar panel">✕</button>
       </div>
 
-      <div class="dock-cta-box">
-        <button class="btn btn-dock-publish" id="dockQuickPublishBtn" type="button">
-          <svg class="dock-icon-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          <span>Publicar Contenido</span>
-          <span class="dock-cta-badge mono">Foto / Video / Código</span>
-        </button>
-      </div>
-
-      <nav class="dock-nav" aria-label="Navegación principal">
+      <nav class="dock-nav" id="dockNav" aria-label="Navegación principal">
+        <span class="dock-indicator-bar" id="dockIndicatorBar" aria-hidden="true"></span>
         <span class="dock-group-title mono">FEED & DESCUBRIMIENTO</span>
         <a href="para-ti.html" class="dock-nav-item" id="dockNavParaTi">
           <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -124,7 +90,7 @@
           </svg>
           <div class="dock-nav-text">
             <span class="dock-nav-label">Para ti</span>
-            <span class="dock-nav-sub">Fotos, videos y talento en vivo</span>
+            <span class="dock-nav-sub">Publicaciones, dudas y comunidad</span>
           </div>
         </a>
 
@@ -194,9 +160,24 @@
       </nav>
 
       <div class="dock-foot">
-        <div class="dock-id-pill mono" id="dockInternalIdBadge">
-          ID: XN-00000000
-        </div>
+        <a href="cuenta.html?tab=profile" class="dock-profile-row" id="navUserChip" title="Ir a mi perfil" hidden>
+          <div class="dock-avatar-shell">
+            <img id="navUserAvatar" src="favicon.svg" alt="" class="dock-avatar-img" />
+            <span class="nav-presence-badge" id="navPresenceIndicator" title="Disponible"></span>
+          </div>
+          <div class="dock-profile-meta">
+            <div class="dock-profile-nameline">
+              <span id="navUserName" class="dock-user-label">Perfil</span>
+              <span id="dockCreatorSlot"></span>
+            </div>
+            <span id="dockUserHandle" class="dock-handle mono">@usuario</span>
+          </div>
+          <div class="dock-profile-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
         <span class="dock-esc-hint mono">Presiona [Esc] para cerrar</span>
       </div>
     </aside>
@@ -404,14 +385,13 @@
     <div class="container footer-inner">
       <a href="index.html" class="brand">
         <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <path d="M5 5H13.5L27 27H18.5L5 5Z" fill="currentColor" />
-          <path d="M18.5 5H27L21.35 14.21L17.1 7.28L18.5 5Z" fill="currentColor" />
-          <path d="M13.5 27H5L10.65 17.79L14.9 24.72L13.5 27Z" fill="currentColor" />
+          <path d="M5 5H19.5L15.5 9.5H10.5V13.5H17.5L14 18H10.5V22.5H19.5L15.5 27H5V5Z" fill="currentColor" />
+          <path d="M22 5H27V27H22V18.5H18L21.5 14H22V5Z" fill="currentColor" />
         </svg>
-        <span class="brand-text">xuanii</span>
+        <span class="brand-text">EndHa</span>
       </a>
 
-      <span class="footer-copy mono">© 2026 Xuanii</span>
+      <span class="footer-copy mono">© 2026 EndHa · by Xuanii</span>
 
       <div class="footer-links">
         <a href="para-ti.html">Para ti</a>
@@ -425,43 +405,132 @@
     </div>
   </footer>
 
-  <!-- DRAWER LATERAL DE PERFIL COMPLETO, GALERÍA DE FOTOS Y ESTRELLAS -->
+  <!-- DRAWER LATERAL DE PERFIL ESTILO TIKTOK / RED SOCIAL -->
   <div class="inspector-backdrop" id="profileInspectorBackdrop" hidden>
-    <aside class="inspector-drawer" role="dialog" aria-modal="true" aria-labelledby="inspName">
+    <aside class="inspector-drawer inspector-drawer-tiktok" role="dialog" aria-modal="true" aria-labelledby="inspName">
+      <!-- CABECERA SUPERIOR: ID KICKER + BOTÓN COMPARTIR + CERRAR -->
       <div class="modal-head" style="margin-bottom: 0;">
         <span class="mono modal-kicker" id="inspInternalId">ID: XN-00000000</span>
-        <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
-      </div>
-
-      <div class="profile-identity">
-        <img id="inspAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" style="width: 64px; height: 64px;" />
-        <div class="profile-meta-stack">
-          <div class="profile-name-line">
-            <h3 id="inspName" style="font-size: 1.4rem;">Especialista</h3>
-            <span id="inspCreatorSlot"></span>
-            <span id="inspHandle" class="profile-handle mono">@usuario</span>
-          </div>
-          <div class="profile-role-line">
-            <span id="inspRole" class="profile-role">Especialidad</span>
-            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
-          </div>
-          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-tiktok-share" id="inspShareProfileBtn" type="button" title="Copiar enlace del perfil" aria-label="Compartir perfil">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+          </button>
+          <button class="modal-close" id="closeInspectorBtn" type="button" aria-label="Cerrar">✕</button>
         </div>
       </div>
 
-      <p id="inspBio" class="profile-bio"></p>
-      <div id="inspSkills" class="skills-tags-line mono"></div>
+      <!-- HERO DEL PERFIL: AVATAR GRANDE + NOMBRES + INSIGNIAS -->
+      <div class="profile-tiktok-hero">
+        <div class="profile-tiktok-avatar-wrap">
+          <img id="inspAvatar" src="favicon.svg" alt="" class="profile-tiktok-avatar" />
+        </div>
+        <div class="profile-tiktok-names">
+          <div class="profile-tiktok-title-row">
+            <h3 id="inspName" class="profile-tiktok-name">Especialista</h3>
+            <span id="inspCreatorSlot"></span>
+          </div>
+          <span id="inspHandle" class="profile-tiktok-handle mono">@usuario</span>
+          <div class="profile-tiktok-meta-pills">
+            <span id="inspRole" class="profile-role">Especialidad</span>
+            <span id="inspSituation" class="profile-situation-tag mono">Disponible</span>
+            <span id="inspConductBadge" class="conduct-pill score-good mono">Conducta: 10/10</span>
+          </div>
+        </div>
+      </div>
 
-      <div class="inline-actions" id="inspActionButtons"></div>
+      <!-- BARRA DE ACCIONES TIKTOK: SEGUIR / MENSAJE / EDITAR -->
+      <div class="profile-tiktok-actions-bar" id="inspActionButtons"></div>
       <div id="inspActionFeedback" class="form-feedback" hidden></div>
 
-      <div class="section-divider-top" style="padding-top: 24px;">
-        <span class="open-eyebrow mono" style="margin-bottom: 10px;">PORTAFOLIO Y TRABAJOS PUBLICADOS</span>
+      <!-- CONTADORES SOCIALES TIKTOK: SIGUIENDO / SEGUIDORES / ME GUSTA -->
+      <div class="profile-tiktok-stats-bar">
+        <div class="tiktok-stat-box">
+          <strong id="inspFollowingCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Siguiendo</span>
+        </div>
+        <div class="tiktok-stat-divider" aria-hidden="true"></div>
+        <div class="tiktok-stat-box">
+          <strong id="inspFollowersCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Seguidores</span>
+        </div>
+        <div class="tiktok-stat-divider" aria-hidden="true"></div>
+        <div class="tiktok-stat-box">
+          <strong id="inspLikesCount" class="tiktok-stat-num">0</strong>
+          <span class="tiktok-stat-label">Me gusta</span>
+        </div>
+      </div>
+
+      <!-- BIOGRAFÍA Y HABILIDADES -->
+      <div class="profile-tiktok-bio-card">
+        <p id="inspBio" class="profile-bio"></p>
+        <div id="inspSkills" class="skills-tags-line mono"></div>
+      </div>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN DEL PERFIL (TIKTOK STYLE) -->
+      <div class="profile-tiktok-tabs-nav" role="tablist">
+        <button type="button" class="tiktok-tab-btn active" id="inspTabPostsBtn" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span>Publicaciones</span>
+          <span class="tiktok-tab-counter" id="inspTabPostsCounter">0</span>
+        </button>
+        <button type="button" class="tiktok-tab-btn disabled" id="inspTabPortfolioBtn" role="tab" aria-selected="false" title="Opción desactivada temporalmente">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span>Portafolio</span>
+          <span class="tiktok-tab-pill-locked">Próximamente</span>
+        </button>
+        <button type="button" class="tiktok-tab-btn" id="inspTabReviewsBtn" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Reseñas</span>
+          <span class="tiktok-tab-counter" id="inspTabReviewsCounter">0</span>
+        </button>
+      </div>
+
+      <!-- PANEL 1: PUBLICACIONES EN SCROLL TIPO FACEBOOK CON PAGINACIÓN ANTI-LAG -->
+      <div class="profile-tiktok-panel" id="inspPanelPosts">
+        <div id="inspUserPostsStream" class="profile-posts-stream"></div>
+        <div id="inspPostsPaginationWrap" class="profile-pagination-wrap" hidden>
+          <button type="button" id="inspLoadMorePostsBtn" class="btn-load-more-profile">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span id="inspLoadMoreLabel">Cargar más publicaciones</span>
+          </button>
+          <span class="mono profile-pagination-counter" id="inspPostsCounter"></span>
+        </div>
+        <div id="inspPostsAllLoaded" class="profile-all-loaded mono" hidden>
+          ✓ Has visto todas las publicaciones
+        </div>
+        <div id="inspPostsEmpty" class="profile-posts-empty mono" hidden>
+          Este creador aún no ha compartido publicaciones en su perfil.
+        </div>
+      </div>
+
+      <!-- PANEL 2: PORTAFOLIO (DESACTIVADO / OCULTO) -->
+      <div class="profile-tiktok-panel" id="inspPanelPortfolio" hidden>
         <div id="inspPortfolioList" class="portfolio-gallery-grid"></div>
       </div>
 
-      <div class="section-divider-top" style="padding-top: 24px;">
-        <span class="open-eyebrow mono" style="margin-bottom: 12px;">VALORACIONES DE TRABAJOS (ESTRELLAS)</span>
+      <!-- PANEL 3: RESEÑAS Y VALORACIONES -->
+      <div class="profile-tiktok-panel" id="inspPanelReviews" hidden>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div id="inspStarsSummary" class="stars-inline mono"></div>
+        </div>
 
         <form id="inspReviewForm" class="open-form" style="gap: 16px; margin-bottom: 28px;" novalidate hidden>
           <div>

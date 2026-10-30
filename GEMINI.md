@@ -15,7 +15,7 @@
   - `productos.html` — Ficha oficial de **PhotoStun** (con esquema interactivo de curva tonal y registro funcional de acceso anticipado).
   - `perfiles.html` — Directorio público en tiempo real de miembros reales de la plataforma disponibles para trabajos, encargos y proyectos.
   - `novedades.html` — Línea de tiempo abierta con avances y hoja de ruta reales.
-  - `contacto.html` — Buzón funcional de propuestas, ideas de herramientas y mensajes directos por correo (`thexsactc@gmail.com`).
+  - `contacto.html` — Buzón funcional de propuestas, ideas de herramientas y mensajes directos por correo (`contacto@xuanii.com`).
   - `cuenta.html` (*Mi espacio*, protegido tras login con Google) — Al iniciar sesión redirige automáticamente aquí y desbloquea: **Mis aplicaciones** (lanzador conectado a **PhotoStun** y futuras apps), **Mi perfil** (editor público con `@alias`, especialidad y disponibilidad para trabajos), **Mensajes y trabajos** (chat directo en tiempo real entre miembros vía Firestore) y **Ajustes**.
   - `privacidad.html` — Política de privacidad y condiciones de uso.
 
