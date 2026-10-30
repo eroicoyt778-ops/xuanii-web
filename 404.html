@@ -8,6 +8,10 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script>
     (function () {
+      if (window.location.protocol === "http:" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+        window.location.replace("https://" + window.location.hostname + (window.location.port ? ":" + window.location.port : "") + window.location.pathname + window.location.search + window.location.hash);
+        return;
+      }
       var p = window.location.pathname;
       var q = window.location.search || '';
       var h = window.location.hash || '';
