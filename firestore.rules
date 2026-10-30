@@ -93,6 +93,21 @@ service cloud.firestore {
       allow delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
     }
 
+    // Registro global de nombres de usuario únicos (@handle, max 25 caracteres)
+    match /usernames/{handle} {
+      allow read: if true;
+      allow create: if isNotBanned()
+                    && request.resource.data.uid == request.auth.uid
+                    && handle.size() >= 3
+                    && handle.size() <= 25
+                    && !exists(/databases/$(database)/documents/usernames/$(handle));
+      allow update: if isNotBanned()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn()
+                    && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
     // Calificaciones reales de 1 a 5 estrellas por trabajos realizados (1 reseña única por par de usuarios)
     match /reviews/{reviewId} {
       allow read: if true;

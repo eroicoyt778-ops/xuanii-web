@@ -182,14 +182,109 @@ const sanitizeHandle = (raw, fallbackSeed = "usuario") => {
     .toLowerCase()
     .replace(/^@+/, "")
     .replace(/[^a-z0-9_.]/g, "")
-    .slice(0, 28);
-  if (cleaned.length >= 2) return cleaned;
+    .slice(0, 25);
+  if (cleaned.length >= 3) return cleaned;
   return (
     String(fallbackSeed)
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "")
-      .slice(0, 16) || "usuario"
+      .slice(0, 25) || "usuario"
   );
+};
+
+// Comprobador de disponibilidad y unicidad de nombre de usuario (@handle)
+let checkHandleAvailability = async (rawHandle, currentUid) => {
+  const clean = String(rawHandle || "")
+    .toLowerCase()
+    .replace(/^@+/, "")
+    .replace(/[^a-z0-9_.]/g, "")
+    .slice(0, 25);
+
+  if (!clean || clean.length < 3) {
+    return {
+      available: false,
+      clean,
+      message: "El nombre de usuario debe tener mínimo 3 caracteres."
+    };
+  }
+
+  if (clean.length > 25) {
+    return {
+      available: false,
+      clean,
+      message: "El nombre de usuario no puede superar los 25 caracteres."
+    };
+  }
+
+  // 1. Comprobación instantánea en memoria local contra perfiles sincronizados
+  if (profilesByUid && profilesByUid.size > 0) {
+    for (const [uid, p] of profilesByUid.entries()) {
+      if (uid !== currentUid && String(p?.handle || "").toLowerCase() === clean) {
+        return {
+          available: false,
+          clean,
+          message: `@${clean} ya está registrado por otro especialista. Elige otro.`
+        };
+      }
+    }
+  }
+
+  return {
+    available: true,
+    clean,
+    message: `@${clean} está disponible ✓`
+  };
+};
+
+const wireHandleLiveValidator = (inputEl, hintEl, submitBtn) => {
+  if (!inputEl || !hintEl) return;
+  let timer = null;
+  const validate = async () => {
+    const raw = inputEl.value.trim();
+    if (!raw) {
+      hintEl.style.display = "none";
+      hintEl.textContent = "";
+      inputEl.style.borderColor = "";
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    const clean = raw.toLowerCase().replace(/^@+/, "").replace(/[^a-z0-9_.]/g, "").slice(0, 25);
+    if (clean !== raw) {
+      inputEl.value = clean;
+    }
+    if (clean.length < 3) {
+      hintEl.style.display = "block";
+      hintEl.style.color = "#ef4444";
+      hintEl.textContent = "Mínimo 3 caracteres (a-z, 0-9, punto o guion bajo).";
+      inputEl.style.borderColor = "#ef4444";
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
+    hintEl.style.display = "block";
+    hintEl.style.color = "#94a3b8";
+    hintEl.textContent = "Verificando disponibilidad...";
+
+    const res = await checkHandleAvailability(clean, activeAuthUser?.uid);
+    if (res.available) {
+      hintEl.style.display = "block";
+      hintEl.style.color = "#10b981";
+      hintEl.textContent = res.message;
+      inputEl.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      if (submitBtn) submitBtn.disabled = false;
+    } else {
+      hintEl.style.display = "block";
+      hintEl.style.color = "#ef4444";
+      hintEl.textContent = res.message;
+      inputEl.style.borderColor = "#ef4444";
+      if (submitBtn) submitBtn.disabled = true;
+    }
+  };
+
+  inputEl.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(validate, 200);
+  });
+  inputEl.addEventListener("blur", validate);
 };
 
 const parseSkillsList = (raw) => {
@@ -3461,38 +3556,64 @@ profileEditForm?.addEventListener("submit", async (e) => {
   }
 
   const saveBtn = document.getElementById("profileSaveBtn");
+  const hintEl = document.getElementById("profileHandleHint");
   if (saveBtn) saveBtn.disabled = true;
 
-  await cloudHooks.saveProfile({
-    displayName,
-    handle,
-    category,
-    workSituation,
-    role,
-    skills,
-    bio,
-    availableForWork,
-    isPublic,
-    developerProfile,
-    onboardingDone: true
-  });
+  try {
+    await cloudHooks.saveProfile({
+      displayName,
+      handle,
+      category,
+      workSituation,
+      role,
+      skills,
+      bio,
+      availableForWork,
+      isPublic,
+      developerProfile,
+      onboardingDone: true
+    });
 
-  if (profileHandleEl) profileHandleEl.value = handle;
-  syncProfilePreview();
-  renderAccountWorkspace();
-  renderMyRealProfile?.();
-  if (saveBtn) saveBtn.disabled = false;
+    if (profileHandleEl) profileHandleEl.value = handle;
+    syncProfilePreview();
+    renderAccountWorkspace();
+    renderMyRealProfile?.();
 
-  if (profileSaveFeedback) {
-    profileSaveFeedback.hidden = false;
-    profileSaveFeedback.textContent = "Perfil profesional sincronizado en la nube ✓";
-    setTimeout(() => {
-      const editModal = document.getElementById("myProfileEditModal");
-      if (editModal) editModal.hidden = true;
-      profileSaveFeedback.hidden = true;
-    }, 1100);
+    if (profileSaveFeedback) {
+      profileSaveFeedback.hidden = false;
+      profileSaveFeedback.style.color = "#10b981";
+      profileSaveFeedback.textContent = "Perfil profesional sincronizado en la nube ✓";
+      setTimeout(() => {
+        const editModal = document.getElementById("myProfileEditModal");
+        if (editModal) editModal.hidden = true;
+        profileSaveFeedback.hidden = true;
+      }, 1100);
+    }
+  } catch (err) {
+    if (hintEl) {
+      hintEl.style.display = "block";
+      hintEl.style.color = "#ef4444";
+      hintEl.textContent = err?.message || "Ese nombre de usuario ya está registrado por otra persona.";
+    }
+    if (profileHandleEl) {
+      profileHandleEl.style.borderColor = "#ef4444";
+    }
+    if (profileSaveFeedback) {
+      profileSaveFeedback.hidden = false;
+      profileSaveFeedback.style.color = "#ef4444";
+      profileSaveFeedback.textContent = err?.message || "No se pudo guardar: nombre de usuario repetido.";
+    }
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
   }
 });
+
+// Inicializar validador en vivo para nombre de usuario único en el modal de edición
+wireHandleLiveValidator(
+  profileHandleEl,
+  document.getElementById("profileHandleHint"),
+  document.getElementById("profileSaveBtn")
+);
 
 // Renderizado general del estado de sesión y bloqueo por baneo
 const renderAccountWorkspace = () => {
@@ -3938,6 +4059,7 @@ if (isFirebaseConfigured) {
         getFirestore,
         doc,
         getDoc,
+        getDocs,
         setDoc,
         addDoc,
         updateDoc,
@@ -3962,6 +4084,52 @@ if (isFirebaseConfigured) {
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
+
+    // Comprobador conectado a Firestore para garantizar que los nombres de usuario no se repitan
+    const localCheckHandle = checkHandleAvailability;
+    checkHandleAvailability = async (rawHandle, currentUid) => {
+      const baseRes = await localCheckHandle(rawHandle, currentUid);
+      if (!baseRes.available) return baseRes;
+      const clean = baseRes.clean;
+
+      // 1. Verificación directa en la colección 'usernames/{handle}'
+      try {
+        const uDoc = await getDoc(doc(db, "usernames", clean));
+        if (uDoc.exists()) {
+          const uData = uDoc.data();
+          if (uData && uData.uid && uData.uid !== currentUid) {
+            return {
+              available: false,
+              clean,
+              message: `@${clean} ya está registrado por otro especialista. Elige otro.`
+            };
+          }
+        }
+      } catch (e) {
+        // Fallback a consulta general
+      }
+
+      // 2. Consulta en la colección 'profiles'
+      try {
+        const q = query(collection(db, "profiles"), where("handle", "==", clean));
+        const qSnap = await getDocs(q);
+        for (const d of qSnap.docs) {
+          if (d.id !== currentUid) {
+            return {
+              available: false,
+              clean,
+              message: `@${clean} ya está registrado por otro especialista. Elige otro.`
+            };
+          }
+        }
+      } catch (e) {}
+
+      return {
+        available: true,
+        clean,
+        message: `@${clean} está disponible ✓`
+      };
+    };
 
     // Hooks hacia Cloud Firestore
     cloudHooks.saveSubmission = (entry) =>
@@ -3996,11 +4164,39 @@ if (isFirebaseConfigured) {
       if (!user) return;
       const internalId = deriveInternalId(user.uid);
       const isCreator = isCreatorAccount(internalId, user.uid);
+      const targetHandle = sanitizeHandle(fields.handle, user.displayName);
+
+      // Verificación estricta de que el nombre de usuario no esté repetido
+      const checkRes = await checkHandleAvailability(targetHandle, user.uid);
+      if (!checkRes.available) {
+        throw new Error(checkRes.message);
+      }
+
+      // Liberar handle anterior si cambió de nombre de usuario
+      const previousHandle = currentOwnProfile?.handle ? sanitizeHandle(currentOwnProfile.handle) : null;
+      if (previousHandle && previousHandle !== targetHandle) {
+        try {
+          await deleteDoc(doc(db, "usernames", previousHandle));
+        } catch (e) {}
+      }
+
+      // Reservar nuevo handle en Firestore (colección usernames)
+      try {
+        await setDoc(doc(db, "usernames", targetHandle), {
+          uid: user.uid,
+          internalId,
+          updatedAtMs: Date.now(),
+          updatedAt: serverTimestamp()
+        });
+      } catch (e) {
+        console.warn("Aviso al reservar handle:", e);
+      }
+
       const payload = {
         uid: user.uid,
         internalId,
         displayName: String(fields.displayName || user.displayName || "Especialista").slice(0, 80),
-        handle: sanitizeHandle(fields.handle, user.displayName),
+        handle: targetHandle,
         category: fields.category || "video",
         workSituation: fields.workSituation || "freelance_ready",
         role: String(fields.role || CATEGORY_LABELS[fields.category] || "Especialista digital").slice(0, 80),
@@ -4594,11 +4790,19 @@ if (isFirebaseConfigured) {
       }
     };
 
+    // Validación en tiempo real para el modal de onboarding
+    wireHandleLiveValidator(
+      document.getElementById("onboardHandle"),
+      document.getElementById("onboardHandleHint"),
+      document.getElementById("onboardSubmitBtn")
+    );
+
     document.getElementById("onboardingForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!activeAuthUser || !cloudHooks.saveProfile) return;
+      const handleInput = document.getElementById("onboardHandle");
       const handle = sanitizeHandle(
-        document.getElementById("onboardHandle")?.value,
+        handleInput?.value,
         activeAuthUser.displayName
       );
       const category = document.getElementById("onboardCategory")?.value || "video";
@@ -4608,26 +4812,39 @@ if (isFirebaseConfigured) {
       const availableForWork = workSituation === "seeking_job" || workSituation === "freelance_ready";
 
       const btn = document.getElementById("onboardSubmitBtn");
+      const hint = document.getElementById("onboardHandleHint");
       if (btn) btn.disabled = true;
 
-      await cloudHooks.saveProfile({
-        displayName: currentOwnProfile?.displayName || activeAuthUser.displayName || "Especialista",
-        handle,
-        category,
-        workSituation,
-        role,
-        skills: currentOwnProfile?.skills || [],
-        bio: currentOwnProfile?.bio || role,
-        availableForWork,
-        isPublic: true,
-        onboardingDone: true
-      });
+      try {
+        await cloudHooks.saveProfile({
+          displayName: currentOwnProfile?.displayName || activeAuthUser.displayName || "Especialista",
+          handle,
+          category,
+          workSituation,
+          role,
+          skills: currentOwnProfile?.skills || [],
+          bio: currentOwnProfile?.bio || role,
+          availableForWork,
+          isPublic: true,
+          onboardingDone: true
+        });
 
-      populateProfileForm(currentOwnProfile);
-      renderMyRealProfile?.();
-      renderAccountWorkspace();
-      if (btn) btn.disabled = false;
-      if (onboardingModal) onboardingModal.hidden = true;
+        populateProfileForm(currentOwnProfile);
+        renderMyRealProfile?.();
+        renderAccountWorkspace();
+        if (onboardingModal) onboardingModal.hidden = true;
+      } catch (err) {
+        if (hint) {
+          hint.style.display = "block";
+          hint.style.color = "#ef4444";
+          hint.textContent = err?.message || "Ese nombre de usuario ya está registrado por otro especialista.";
+        }
+        if (handleInput) {
+          handleInput.style.borderColor = "#ef4444";
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     });
 
     // Inicio y cierre de sesión con Google (URLs limpias)

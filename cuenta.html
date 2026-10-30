@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi Perfil y Espacio de Trabajo — EndHa</title>
+  <title>EndHa — Mi Perfil Profesional y Portafolio</title>
   <meta name="description" content="Tu perfil profesional y espacio de trabajo en EndHa. Publica fotos, videos, código fuente, recibe valoraciones con estrellas, comunidades y mensajes cifrados extremo a extremo." />
   <meta name="application-name" content="EndHa" />
   <meta name="apple-mobile-web-app-title" content="EndHa" />
@@ -13,7 +13,7 @@
   <meta property="og:site_name" content="EndHa" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://endha.xuanii.com/cuenta" />
-  <meta property="og:title" content="Mi Perfil Profesional · EndHa" />
+  <meta property="og:title" content="EndHa — Mi Perfil Profesional y Portafolio" />
   <meta property="og:description" content="Espacio de trabajo, portafolio y reputación profesional verificada en EndHa." />
   <meta property="og:image" content="https://endha.xuanii.com/favicon.svg" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=2.2.5" />
+  <link rel="stylesheet" href="styles.css?v=2.2.6" />
 </head>
 <body>
   <!-- Fondo de seda monocromática fluida con desvanecido suave hacia negro obsidiana -->
@@ -702,8 +702,9 @@
                     </div>
 
                     <div class="field-line">
-                      <label for="profileHandle" class="mono">NOMBRE DE USUARIO (@USUARIO)</label>
-                      <input type="text" id="profileHandle" class="line-input mono" maxlength="28" placeholder="ej. carlos.editor" required />
+                      <label for="profileHandle" class="mono">NOMBRE DE USUARIO (@USUARIO · MÁX. 25 CARACTERES)</label>
+                      <input type="text" id="profileHandle" class="line-input mono" maxlength="25" placeholder="ej. carlos.editor" required autocomplete="off" />
+                      <small id="profileHandleHint" class="handle-hint mono" style="font-size:0.75rem; margin-top:5px; display:none;"></small>
                     </div>
 
                     <div class="field-line">
@@ -1038,8 +1039,9 @@
 
       <form id="onboardingForm" class="open-form" style="gap: 20px;" novalidate>
         <div class="field-line">
-          <label for="onboardHandle" class="mono">TU NOMBRE DE USUARIO (@USUARIO)</label>
-          <input type="text" id="onboardHandle" class="line-input mono" maxlength="28" placeholder="ej. alex.visual" required />
+          <label for="onboardHandle" class="mono">TU NOMBRE DE USUARIO (@USUARIO · MÁX. 25 CARACTERES)</label>
+          <input type="text" id="onboardHandle" class="line-input mono" maxlength="25" placeholder="ej. alex.visual" required autocomplete="off" />
+          <small id="onboardHandleHint" class="handle-hint mono" style="font-size:0.75rem; margin-top:5px; display:none;"></small>
         </div>
 
         <div class="field-line">
@@ -1328,7 +1330,7 @@
     </div>
   </div>
 
-  <script src="firebase-config.js?v=2.2.5"></script>
-  <script type="module" src="app.js?v=2.2.5"></script>
+  <script src="firebase-config.js?v=2.2.6"></script>
+  <script type="module" src="app.js?v=2.2.6"></script>
 </body>
 </html>
