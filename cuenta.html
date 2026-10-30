@@ -269,7 +269,7 @@
                 <span>Empleo y Portafolio</span>
               </button>
               <button type="button" class="studio-nav-btn" data-ws-tab="profile">
-                <span>Configurar Perfil</span>
+                <span>Mi Perfil</span>
               </button>
               <button type="button" class="studio-nav-btn" data-ws-tab="plans" id="wsPlansTabBtn">
                 <span>Planes y Membresías</span>
@@ -602,148 +602,243 @@
             </div>
           </section>
 
-          <!-- 5. MI PERFIL PROFESIONAL, ESPECIALIDAD, EMPLEO Y GALERÍA DE FOTOS -->
+          <!-- 5. MI PERFIL PROFESIONAL (ESTILO TIKTOK + FACEBOOK) -->
           <section id="wsPanel-profile" class="workspace-panel" hidden>
-            <div class="studio-top-bar">
-              <div>
-                <span class="open-eyebrow mono" style="margin-bottom: 6px;">IDENTIDAD Y PORTAFOLIO</span>
-                <h2>Configuración de perfil profesional</h2>
+            <div class="profile-real-stage">
+              <!-- Cabecera / Hero estilo TikTok -->
+              <div class="profile-tiktok-hero">
+                <div class="profile-tiktok-avatar-wrap">
+                  <img id="myProfileAvatar" src="favicon.svg" alt="" class="profile-tiktok-avatar" />
+                </div>
+                <div class="profile-tiktok-names">
+                  <div class="profile-tiktok-title-row">
+                    <h2 id="myProfileName" class="profile-tiktok-name">Mi perfil</h2>
+                    <span id="myProfileCreatorSlot"></span>
+                  </div>
+                  <span id="myProfileHandle" class="profile-tiktok-handle mono">@usuario</span>
+                  <div class="profile-tiktok-meta-pills">
+                    <span id="myProfileRole" class="profile-role">Especialista</span>
+                    <span id="myProfileSituation" class="profile-situation-tag mono">Disponible</span>
+                    <span id="myProfileConductBadge" class="conduct-pill mono score-good">Conducta: 10/10</span>
+                    <span id="myProfileInternalId" class="mono id-tag-mono" title="Click para copiar ID" style="cursor: pointer;">ID: XN-00000000</span>
+                  </div>
+                </div>
+                <!-- Barra de acciones: Editar perfil, Compartir enlace, Nueva publicación -->
+                <div class="profile-tiktok-actions-bar">
+                  <button type="button" class="btn btn-white btn-sm" id="myProfileEditOpenBtn">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Editar perfil</span>
+                  </button>
+                  <button type="button" class="btn-tiktok-share" id="myProfileShareBtn" title="Copiar enlace público de mi perfil">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                  </button>
+                  <a href="para-ti.html" class="btn btn-ghost btn-sm" style="text-decoration: none;">
+                    <span>+ Nueva publicación</span>
+                  </a>
+                </div>
               </div>
-              <button type="button" class="link-editorial" id="previewOwnInspectorBtn" style="background: transparent; border: none; cursor: pointer;">
-                Ver mi ficha pública y estrellas <span class="arrow">→</span>
-              </button>
+
+              <!-- Feedback / Toast de acciones -->
+              <div class="form-feedback mono" id="myProfileActionFeedback" hidden></div>
+
+              <!-- Barra de Métricas estilo TikTok -->
+              <div class="profile-tiktok-stats-bar">
+                <div class="tiktok-stat-box">
+                  <strong class="tiktok-stat-num" id="myProfileFollowingCount">0</strong>
+                  <span class="tiktok-stat-label">Siguiendo</span>
+                </div>
+                <div class="tiktok-stat-divider"></div>
+                <div class="tiktok-stat-box">
+                  <strong class="tiktok-stat-num" id="myProfileFollowersCount">0</strong>
+                  <span class="tiktok-stat-label">Seguidores</span>
+                </div>
+                <div class="tiktok-stat-divider"></div>
+                <div class="tiktok-stat-box">
+                  <strong class="tiktok-stat-num" id="myProfileLikesCount">0</strong>
+                  <span class="tiktok-stat-label">Me gusta</span>
+                </div>
+                <div class="tiktok-stat-divider"></div>
+                <div class="tiktok-stat-box">
+                  <strong class="tiktok-stat-num" id="myProfileStarsSummary">★ --</strong>
+                  <span class="tiktok-stat-label">Calificación</span>
+                </div>
+              </div>
+
+              <!-- Tarjeta de Bio y Habilidades -->
+              <div class="profile-tiktok-bio-card">
+                <p id="myProfileBio" class="profile-bio" style="margin: 0; font-size: 0.92rem; color: var(--silver-bright); line-height: 1.5;"></p>
+                <div id="myProfileSkills" class="skills-tags-line mono" style="margin-top: 4px;"></div>
+              </div>
+
+              <!-- Pestañas de Navegación estilo TikTok -->
+              <div class="profile-tiktok-tabs-nav" role="tablist">
+                <button type="button" class="tiktok-tab-btn active" id="myTabPostsBtn" role="tab">
+                  <span>Publicaciones</span>
+                  <span class="tiktok-tab-counter" id="myTabPostsCounter">0</span>
+                </button>
+                <button type="button" class="tiktok-tab-btn disabled" id="myTabPortfolioBtn" role="tab" title="Portafolio próximamente">
+                  <span>Portafolio</span>
+                  <span class="tiktok-tab-pill-locked">Próximamente</span>
+                </button>
+                <button type="button" class="tiktok-tab-btn" id="myTabReviewsBtn" role="tab">
+                  <span>Reseñas</span>
+                  <span class="tiktok-tab-counter" id="myTabReviewsCounter">0</span>
+                </button>
+              </div>
+
+              <!-- Panel de Publicaciones: Feed vertical estilo Facebook con paginación anti-lag -->
+              <div class="profile-tiktok-panel" id="myPanelPosts">
+                <div id="myProfilePostsStream" class="profile-posts-stream"></div>
+                <div id="myProfilePaginationWrap" class="profile-pagination-wrap" hidden>
+                  <button type="button" id="myProfileLoadMorePostsBtn" class="btn-load-more-profile">
+                    <span>↓ Cargar más publicaciones</span>
+                  </button>
+                  <span class="mono profile-pagination-counter" id="myProfilePostsCounter"></span>
+                </div>
+                <div id="myProfilePostsAllLoaded" class="profile-all-loaded mono" hidden>
+                  Has visto todas tus publicaciones.
+                </div>
+                <div id="myProfilePostsEmpty" class="profile-posts-empty mono" hidden>
+                  <p>Aún no has compartido publicaciones en tu perfil.</p>
+                  <a href="para-ti.html" class="btn btn-white btn-sm" style="margin-top: 12px; display: inline-flex; text-decoration: none;">Crear mi primera publicación</a>
+                </div>
+              </div>
+
+              <!-- Panel de Portafolio (Desactivado / Próximamente) -->
+              <div class="profile-tiktok-panel" id="myPanelPortfolio" hidden>
+                <div class="profile-portfolio-locked-card">
+                  <div class="mono" style="font-size: 0.85rem; color: var(--silver-bright); margin-bottom: 6px;">PORTAFOLIO EN DESARROLLO</div>
+                  <p style="font-size: 0.84rem; color: var(--muted); margin: 0;">Próximamente podrás organizar colecciones de entregables, muestras de proyectos y archivos con clientes verificados.</p>
+                </div>
+                <div id="ownProfilePortfolioGrid" style="display: none;"></div>
+              </div>
+
+              <!-- Panel de Reseñas recibidas -->
+              <div class="profile-tiktok-panel" id="myPanelReviews" hidden>
+                <div id="myProfileReviewsStream" class="reviews-feed-stream"></div>
+                <div id="myProfileReviewsEmpty" class="profile-posts-empty mono" hidden>
+                  <p>Aún no has recibido valoraciones o reseñas de clientes.</p>
+                </div>
+              </div>
             </div>
 
-            <div class="split-editorial">
-              <div class="editorial-stack">
-                <div class="arch-col">
-                  <span class="col-index mono">FICHA EN VIVO</span>
-                  <div class="profile-identity" style="margin-top: 10px;">
-                    <img id="profilePreviewAvatar" src="favicon.svg" alt="" class="profile-avatar-lg" />
-                    <div class="profile-meta-stack">
-                      <div class="profile-name-line">
-                        <h3 id="profilePreviewName">Tu nombre</h3>
-                        <span id="previewCreatorSlot"></span>
-                        <span id="profilePreviewHandle" class="profile-handle mono">@usuario</span>
+            <!-- Modal de Edición de Perfil (Diseño flotante obsidian) -->
+            <div class="inspector-backdrop" id="myProfileEditModal" hidden>
+              <div class="inspector-drawer" style="max-width: 620px;">
+                <div class="inspector-header">
+                  <div>
+                    <span class="mono modal-kicker">INFORMACIÓN PROFESIONAL</span>
+                    <h3 style="margin: 0; font-size: 1.25rem;">Editar mi perfil</h3>
+                  </div>
+                  <button type="button" class="btn-close-editorial" id="myProfileEditCloseBtn" aria-label="Cerrar modal">✕</button>
+                </div>
+                <div class="inspector-body" style="padding-top: 10px;">
+                  <form class="open-form" id="profileEditForm" novalidate>
+                    <div class="field-line">
+                      <label for="profileDisplayName" class="mono">NOMBRE O ESTUDIO</label>
+                      <input type="text" id="profileDisplayName" class="line-input" maxlength="80" placeholder="Tu nombre profesional" required />
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileHandle" class="mono">NOMBRE DE USUARIO (@USUARIO)</label>
+                      <input type="text" id="profileHandle" class="line-input mono" maxlength="28" placeholder="ej. carlos.editor" required />
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileCategory" class="mono">ÁREA DIGITAL PRINCIPAL</label>
+                      <select id="profileCategory" class="line-select">
+                        <option value="video">Edición de Video y Postproducción</option>
+                        <option value="photo">Edición de Foto y Retoque Digital</option>
+                        <option value="design">Diseño Gráfico, Branding y UI/UX</option>
+                        <option value="dev">Desarrollo Web, Software y Apps</option>
+                        <option value="motion3d">Motion Graphics, Animación y 3D</option>
+                        <option value="audio">Producción de Audio, Música y Locución</option>
+                        <option value="marketing">Contenido Digital y Redes Sociales</option>
+                        <option value="client">Contratación / Productor de Proyectos</option>
+                      </select>
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileWorkSituation" class="mono">SITUACIÓN LABORAL ACTUAL</label>
+                      <select id="profileWorkSituation" class="line-select">
+                        <option value="seeking_job">Sin empleo fijo · Buscando trabajo o encargos</option>
+                        <option value="freelance_ready">Independiente / Freelance · Aceptando clientes</option>
+                        <option value="employed_open">Con trabajo actual · Abierto a proyectos extra</option>
+                        <option value="hiring">Buscando contratar especialistas digitales</option>
+                      </select>
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileRole" class="mono">TÍTULO ESPECÍFICO DE TU OFICIO</label>
+                      <input type="text" id="profileRole" class="line-input" maxlength="80" placeholder="Ej. Editor de video documental y reels · Colorista" />
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileSkills" class="mono">PROGRAMAS Y HABILIDADES (SEPARADOS POR COMA)</label>
+                      <input type="text" id="profileSkills" class="line-input" maxlength="140" placeholder="Ej. Premiere Pro, After Effects, PhotoStun, Retoque RAW, Figma" />
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileBio" class="mono">DE QUÉ TRATA TU TRABAJO Y QUÉ OFRECES</label>
+                      <textarea id="profileBio" class="line-textarea" maxlength="700" placeholder="Explica en detalle qué tipo de trabajos realizas, tu experiencia, tiempos de entrega o qué tipo de empleo buscas..."></textarea>
+                    </div>
+
+                    <div class="field-line">
+                      <label for="profileGitHubUser" class="mono">USUARIO DE GITHUB (PARA DESARROLLADORES Y REPOSITORIOS)</label>
+                      <div style="display: flex; gap: 8px;">
+                        <input type="text" id="profileGitHubUser" class="line-input mono" maxlength="40" placeholder="ej. torvalds o mi-usuario" />
+                        <button type="button" class="btn btn-ghost btn-sm" id="verifyGitHubBtn">Verificar</button>
                       </div>
-                      <span id="profilePreviewRole" class="profile-role">Especialista digital</span>
-                      <span id="profilePreviewSituation" class="mono" style="font-size: 0.75rem; color: var(--silver);">Disponible para proyectos</span>
-                      <span id="profilePreviewInternalId" class="id-tag-mono mono" style="margin-top: 4px;">ID: XN-...</span>
-                      <div id="profilePreviewSkills" class="skills-tags-line mono"></div>
+                      <span id="profileGitHubFeedback" class="mono" style="font-size: 0.74rem; color: var(--silver); margin-top: 5px; display: block;"></span>
                     </div>
-                  </div>
-                </div>
 
-                <!-- Puntuación de reputación profesional -->
-                <div class="arch-col" id="profileReputationCol">
-                  <span class="col-index mono">PUNTUACIÓN DE REPUTACIÓN</span>
-                  <div style="display: flex; align-items: baseline; gap: 8px; margin: 8px 0;">
-                    <span id="profileRepScoreNum" style="font-size: 2.2rem; font-weight: 800; color: var(--white); line-height: 1;">--</span>
-                    <span class="mono" style="font-size: 0.8rem; color: var(--muted);">/ 100 PTS</span>
-                  </div>
-                  <span id="profileRepBadgeLabel" class="rep-badge-tag mono">Calculando reputación...</span>
-                  <p style="font-size: 0.8rem; color: var(--muted); margin-top: 8px;">
-                    Se calcula mediante estrellas verificadas de clientes, entregables de portafolio, repositorio GitHub conectado y membresía.
-                  </p>
-                </div>
+                    <div class="open-rows">
+                      <div class="open-row">
+                        <div>
+                          <span class="open-row-title">Visible en Talento y Empleo</span>
+                          <span class="open-row-sub">Permite que clientes y creadores te encuentren en el directorio.</span>
+                        </div>
+                        <button type="button" class="open-toggle-btn" id="profilePublicBtn" data-active="true">
+                          PÚBLICO
+                        </button>
+                      </div>
+                    </div>
 
-                <!-- Subir foto directa al registro/portafolio del perfil -->
-                <div class="arch-col">
-                  <span class="col-index mono">SUBIR FOTO A MI PORTAFOLIO</span>
-                  <p style="margin-bottom: 14px;">Mantén tus mejores trabajos guardados y visibles en tu perfil profesional.</p>
-                  <input type="file" id="profileQuickPhotoInput" accept="image/*" hidden />
-                  <input type="text" id="profileQuickPhotoCaption" class="line-input" maxlength="200" placeholder="Título o detalle de esta foto..." style="margin-bottom: 14px;" />
-                  <button type="button" class="btn btn-white btn-sm" id="profileQuickPhotoBtn">
-                    Elegir y guardar foto <span class="arrow">↑</span>
-                  </button>
+                    <div class="inline-actions" style="margin-top: 14px;">
+                      <button type="submit" class="btn btn-white" id="profileSaveBtn">
+                        Guardar cambios en la nube <span class="arrow">→</span>
+                      </button>
+                    </div>
+
+                    <div class="form-feedback" id="profileSaveFeedback" hidden></div>
+
+                    <!-- Campos auxiliares ocultos para compatibilidad -->
+                    <div style="display: none;">
+                      <input type="file" id="profileQuickPhotoInput" accept="image/*" />
+                      <input type="text" id="profileQuickPhotoCaption" />
+                      <button type="button" id="profileQuickPhotoBtn"></button>
+                      <span id="profilePreviewName"></span>
+                      <span id="profilePreviewHandle"></span>
+                      <span id="profilePreviewRole"></span>
+                      <span id="profilePreviewSituation"></span>
+                      <span id="profilePreviewInternalId"></span>
+                      <div id="profilePreviewSkills"></div>
+                      <span id="previewCreatorSlot"></span>
+                      <img id="profilePreviewAvatar" src="favicon.svg" alt="" />
+                      <button type="button" id="previewOwnInspectorBtn"></button>
+                    </div>
+                  </form>
                 </div>
               </div>
-
-              <form class="open-form" id="profileEditForm" novalidate>
-                <div class="field-line">
-                  <label for="profileDisplayName" class="mono">NOMBRE O ESTUDIO</label>
-                  <input type="text" id="profileDisplayName" class="line-input" maxlength="80" placeholder="Tu nombre profesional" required />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileHandle" class="mono">NOMBRE DE USUARIO (@USUARIO)</label>
-                  <input type="text" id="profileHandle" class="line-input mono" maxlength="28" placeholder="ej. carlos.editor" required />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileCategory" class="mono">ÁREA DIGITAL PRINCIPAL</label>
-                  <select id="profileCategory" class="line-select">
-                    <option value="video">Edición de Video y Postproducción</option>
-                    <option value="photo">Edición de Foto y Retoque Digital</option>
-                    <option value="design">Diseño Gráfico, Branding y UI/UX</option>
-                    <option value="dev">Desarrollo Web, Software y Apps</option>
-                    <option value="motion3d">Motion Graphics, Animación y 3D</option>
-                    <option value="audio">Producción de Audio, Música y Locución</option>
-                    <option value="marketing">Contenido Digital y Redes Sociales</option>
-                    <option value="client">Contratación / Productor de Proyectos</option>
-                  </select>
-                </div>
-
-                <div class="field-line">
-                  <label for="profileWorkSituation" class="mono">SITUACIÓN LABORAL ACTUAL</label>
-                  <select id="profileWorkSituation" class="line-select">
-                    <option value="seeking_job">Sin empleo fijo · Buscando trabajo o encargos</option>
-                    <option value="freelance_ready">Independiente / Freelance · Aceptando clientes</option>
-                    <option value="employed_open">Con trabajo actual · Abierto a proyectos extra</option>
-                    <option value="hiring">Buscando contratar especialistas digitales</option>
-                  </select>
-                </div>
-
-                <div class="field-line">
-                  <label for="profileRole" class="mono">TÍTULO ESPECÍFICO DE TU OFICIO</label>
-                  <input type="text" id="profileRole" class="line-input" maxlength="80" placeholder="Ej. Editor de video documental y reels · Colorista" />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileSkills" class="mono">PROGRAMAS Y HABILIDADES (SEPARADOS POR COMA)</label>
-                  <input type="text" id="profileSkills" class="line-input" maxlength="140" placeholder="Ej. Premiere Pro, After Effects, PhotoStun, Retoque RAW, Figma" />
-                </div>
-
-                <div class="field-line">
-                  <label for="profileBio" class="mono">DE QUÉ TRATA TU TRABAJO Y QUÉ OFRECES</label>
-                  <textarea id="profileBio" class="line-textarea" maxlength="700" placeholder="Explica en detalle qué tipo de trabajos realizas, tu experiencia, tiempos de entrega o qué tipo de empleo buscas..."></textarea>
-                </div>
-
-                <div class="field-line">
-                  <label for="profileGitHubUser" class="mono">USUARIO DE GITHUB (PARA DESARROLLADORES Y REPOSITORIOS)</label>
-                  <div style="display: flex; gap: 8px;">
-                    <input type="text" id="profileGitHubUser" class="line-input mono" maxlength="40" placeholder="ej. torvalds o mi-usuario" />
-                    <button type="button" class="btn btn-ghost btn-sm" id="verifyGitHubBtn">Verificar</button>
-                  </div>
-                  <span id="profileGitHubFeedback" class="mono" style="font-size: 0.74rem; color: var(--silver); margin-top: 5px; display: block;"></span>
-                </div>
-
-                <div class="open-rows">
-                  <div class="open-row">
-                    <div>
-                      <span class="open-row-title">Visible en Talento y Empleo</span>
-                      <span class="open-row-sub">Permite que clientes y creadores te encuentren en el directorio.</span>
-                    </div>
-                    <button type="button" class="open-toggle-btn" id="profilePublicBtn" data-active="true">
-                      PÚBLICO
-                    </button>
-                  </div>
-                </div>
-
-                <div class="inline-actions">
-                  <button type="submit" class="btn btn-white" id="profileSaveBtn">
-                    Guardar perfil en la nube <span class="arrow">→</span>
-                  </button>
-                </div>
-
-                <div class="form-feedback" id="profileSaveFeedback" hidden></div>
-              </form>
-            </div>
-
-            <!-- Galería propia del usuario -->
-            <div class="section-soft-divider">
-              <span class="open-eyebrow mono">MIS FOTOS Y PUBLICACIONES GUARDADAS EN EL PERFIL</span>
-              <div id="ownProfilePortfolioGrid" class="portfolio-gallery-grid"></div>
             </div>
           </section>
 

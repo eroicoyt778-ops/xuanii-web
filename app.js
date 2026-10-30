@@ -2045,6 +2045,9 @@ const switchWorkspaceTab = (tabName) => {
   if (tabName === "employment") {
     mountEmploymentSmartModule(document.getElementById("employmentSmartContainer"), currentOwnProfile);
   }
+  if (tabName === "profile") {
+    renderMyRealProfile?.();
+  }
 
   // Sincronizar item activo en el Dock lateral y mover su indicador
   const dockMap = {
@@ -2733,10 +2736,298 @@ document.getElementById("inspReviewForm")?.addEventListener("submit", async (e) 
   }
 });
 
+let myProfileCurrentPage = 1;
+const MY_PROFILE_POSTS_PER_PAGE = 4;
+
+const renderMyRealProfile = () => {
+  const panel = document.getElementById("wsPanel-profile");
+  if (!panel) return;
+
+  const targetUid = activeAuthUser?.uid || currentOwnProfile?.uid;
+  if (!targetUid) return;
+
+  const prof = currentOwnProfile || profilesByUid.get(targetUid) || {
+    displayName: activeAuthUser?.displayName || "Mi perfil",
+    photoURL: activeAuthUser?.photoURL || "favicon.svg",
+    handle: sanitizeHandle(activeAuthUser?.email?.split("@")[0] || "usuario")
+  };
+
+  const internalId = prof.internalId || deriveInternalId(targetUid);
+  const isTargetCreator = isCreatorAccount(internalId, targetUid);
+  const myTier = isTargetCreator ? "creator" : (prof.membershipTier || "standard");
+  const stats = getRatingStats(targetUid);
+
+  // Avatar
+  const avatarEl = document.getElementById("myProfileAvatar");
+  if (avatarEl) {
+    avatarEl.src = prof.photoURL || activeAuthUser?.photoURL || "favicon.svg";
+    avatarEl.className = isTargetCreator
+      ? "profile-tiktok-avatar creator-avatar-ring"
+      : "profile-tiktok-avatar";
+    avatarEl.onerror = () => { avatarEl.src = "favicon.svg"; };
+  }
+
+  // Name, Creator badge, Handle
+  const nameEl = document.getElementById("myProfileName");
+  if (nameEl) nameEl.textContent = prof.displayName || activeAuthUser?.displayName || "Mi perfil";
+
+  const slotEl = document.getElementById("myProfileCreatorSlot");
+  mountCreatorBadgeSlot(slotEl, isTargetCreator, false);
+
+  const handleEl = document.getElementById("myProfileHandle");
+  if (handleEl) handleEl.textContent = `@${prof.handle || sanitizeHandle(activeAuthUser?.email?.split("@")[0] || "usuario")}`;
+
+  // Role, Situation, Conduct, ID
+  const roleEl = document.getElementById("myProfileRole");
+  if (roleEl) roleEl.textContent = prof.role || CATEGORY_LABELS[prof.category] || "Especialista digital";
+
+  const sitEl = document.getElementById("myProfileSituation");
+  if (sitEl) sitEl.textContent = SITUATION_LABELS[prof.workSituation] || "Disponible para proyectos";
+
+  const conductEl = document.getElementById("myProfileConductBadge");
+  const conductScore = typeof prof.behaviorScore === "number" ? prof.behaviorScore : 10;
+  if (conductEl) {
+    conductEl.textContent = `Conducta: ${conductScore}/10 · ${getConductLabel(conductScore)}`;
+    conductEl.className = `conduct-pill mono score-${conductScore <= 3 ? "bad" : conductScore <= 7 ? "warn" : "good"}`;
+  }
+
+  const idEl = document.getElementById("myProfileInternalId");
+  if (idEl) {
+    idEl.textContent = `ID: ${internalId}`;
+    idEl.onclick = () => copyTextWithFeedback(internalId, idEl);
+  }
+
+  // Bio & Skills
+  const bioEl = document.getElementById("myProfileBio");
+  if (bioEl) bioEl.textContent = prof.bio || "Sin descripción profesional aún. Pulsa 'Editar perfil' para redactar tu presentación.";
+
+  const skillsEl = document.getElementById("myProfileSkills");
+  renderSkillTagsInto(skillsEl, prof.skills);
+
+  // User posts & Metrics
+  const myPosts = allPostsList.filter((p) => p.authorUid === targetUid);
+  myPosts.sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+
+  const followingCount = Array.isArray(prof.following) ? prof.following.length : myFollowingSet.size;
+  const followersCount = allProfilesList.filter((p) => Array.isArray(p.following) && p.following.includes(targetUid)).length;
+  const totalLikes = myPosts.reduce((acc, p) => acc + (Array.isArray(p.likes) ? p.likes.length : 0), 0);
+
+  const formatTiktokNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return String(num || 0);
+  };
+
+  const followingCountEl = document.getElementById("myProfileFollowingCount");
+  const followersCountEl = document.getElementById("myProfileFollowersCount");
+  const likesCountEl = document.getElementById("myProfileLikesCount");
+  const starsSummaryEl = document.getElementById("myProfileStarsSummary");
+
+  if (followingCountEl) followingCountEl.textContent = formatTiktokNumber(followingCount);
+  if (followersCountEl) followersCountEl.textContent = formatTiktokNumber(followersCount);
+  if (likesCountEl) likesCountEl.textContent = formatTiktokNumber(totalLikes);
+  if (starsSummaryEl) starsSummaryEl.textContent = stats.count > 0 ? `★ ${stats.avg.toFixed(1)}` : "★ Nuevo";
+
+  // Share button
+  const shareBtn = document.getElementById("myProfileShareBtn");
+  if (shareBtn) {
+    shareBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, shareBtn);
+      triggerFluidPop(shareBtn);
+      const profileUrl = `${window.location.origin}/perfiles.html?user=${encodeURIComponent(targetUid)}`;
+      navigator.clipboard?.writeText(profileUrl).then(() => {
+        const fb = document.getElementById("myProfileActionFeedback");
+        if (fb) {
+          fb.hidden = false;
+          fb.textContent = "Enlace público de tu perfil copiado al portapapeles ✓";
+          setTimeout(() => { fb.hidden = true; }, 2600);
+        }
+      }).catch(() => {});
+    };
+  }
+
+  // Edit button & Modal handlers
+  const editOpenBtn = document.getElementById("myProfileEditOpenBtn");
+  const editModal = document.getElementById("myProfileEditModal");
+  const editCloseBtn = document.getElementById("myProfileEditCloseBtn");
+
+  if (editOpenBtn && editModal) {
+    editOpenBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, editOpenBtn);
+      populateProfileForm(currentOwnProfile || prof);
+      editModal.hidden = false;
+    };
+  }
+  if (editCloseBtn && editModal) {
+    editCloseBtn.onclick = () => {
+      editModal.hidden = true;
+    };
+  }
+  if (editModal) {
+    editModal.onclick = (e) => {
+      if (e.target === editModal) editModal.hidden = true;
+    };
+  }
+
+  // Tabs
+  const tabPostsBtn = document.getElementById("myTabPostsBtn");
+  const tabPortfolioBtn = document.getElementById("myTabPortfolioBtn");
+  const tabReviewsBtn = document.getElementById("myTabReviewsBtn");
+
+  const panelPosts = document.getElementById("myPanelPosts");
+  const panelPortfolio = document.getElementById("myPanelPortfolio");
+  const panelReviews = document.getElementById("myPanelReviews");
+
+  const postsCounter = document.getElementById("myTabPostsCounter");
+  const reviewsCounter = document.getElementById("myTabReviewsCounter");
+
+  if (postsCounter) postsCounter.textContent = myPosts.length;
+  if (reviewsCounter) reviewsCounter.textContent = stats.count;
+
+  const activateTab = (tabName) => {
+    if (tabPostsBtn) tabPostsBtn.classList.toggle("active", tabName === "posts");
+    if (tabPortfolioBtn) tabPortfolioBtn.classList.toggle("active", tabName === "portfolio");
+    if (tabReviewsBtn) tabReviewsBtn.classList.toggle("active", tabName === "reviews");
+
+    if (panelPosts) panelPosts.hidden = tabName !== "posts";
+    if (panelPortfolio) panelPortfolio.hidden = tabName !== "portfolio";
+    if (panelReviews) panelReviews.hidden = tabName !== "reviews";
+  };
+
+  if (tabPostsBtn) {
+    tabPostsBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, tabPostsBtn);
+      activateTab("posts");
+    };
+  }
+  if (tabReviewsBtn) {
+    tabReviewsBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, tabReviewsBtn);
+      activateTab("reviews");
+    };
+  }
+  if (tabPortfolioBtn) {
+    tabPortfolioBtn.onclick = (e) => {
+      e.preventDefault();
+    };
+  }
+
+  activateTab("posts");
+
+  // Render Facebook Feed with anti-lag pagination
+  const streamEl = document.getElementById("myProfilePostsStream");
+  const paginationWrap = document.getElementById("myProfilePaginationWrap");
+  const loadMoreBtn = document.getElementById("myProfileLoadMorePostsBtn");
+  const postsCountMeta = document.getElementById("myProfilePostsCounter");
+  const allLoadedEl = document.getElementById("myProfilePostsAllLoaded");
+  const emptyPostsEl = document.getElementById("myProfilePostsEmpty");
+
+  myProfileCurrentPage = 1;
+
+  const renderPostsPage = (page) => {
+    if (!streamEl) return;
+    if (page === 1) streamEl.textContent = "";
+
+    if (myPosts.length === 0) {
+      if (emptyPostsEl) emptyPostsEl.hidden = false;
+      if (paginationWrap) paginationWrap.hidden = true;
+      if (allLoadedEl) allLoadedEl.hidden = true;
+      return;
+    }
+    if (emptyPostsEl) emptyPostsEl.hidden = true;
+
+    const startIdx = (page - 1) * MY_PROFILE_POSTS_PER_PAGE;
+    const endIdx = page * MY_PROFILE_POSTS_PER_PAGE;
+    const pagePosts = myPosts.slice(startIdx, endIdx);
+
+    pagePosts.forEach((post) => {
+      if (typeof buildRichSocialPostEl === "function") {
+        const postNode = buildRichSocialPostEl(post, `my_prof_${targetUid}`);
+        streamEl.appendChild(postNode);
+      }
+    });
+
+    const loadedCount = Math.min(endIdx, myPosts.length);
+    if (postsCountMeta) {
+      postsCountMeta.textContent = `Mostrando ${loadedCount} de ${myPosts.length} publicaciones`;
+    }
+
+    if (endIdx >= myPosts.length) {
+      if (paginationWrap) paginationWrap.hidden = true;
+      if (allLoadedEl) allLoadedEl.hidden = false;
+    } else {
+      if (paginationWrap) paginationWrap.hidden = false;
+      if (allLoadedEl) allLoadedEl.hidden = true;
+    }
+  };
+
+  if (loadMoreBtn) {
+    loadMoreBtn.onclick = (e) => {
+      applyLiquidWaterRipple(e, loadMoreBtn);
+      triggerFluidPop(loadMoreBtn);
+      myProfileCurrentPage += 1;
+      renderPostsPage(myProfileCurrentPage);
+    };
+  }
+
+  renderPostsPage(1);
+
+  // Render Reviews tab
+  const reviewsStream = document.getElementById("myProfileReviewsStream");
+  const emptyReviews = document.getElementById("myProfileReviewsEmpty");
+  if (reviewsStream) {
+    reviewsStream.textContent = "";
+    if (stats.count === 0) {
+      if (emptyReviews) emptyReviews.hidden = false;
+    } else {
+      if (emptyReviews) emptyReviews.hidden = true;
+      stats.items.forEach((r) => {
+        const item = document.createElement("div");
+        item.className = "profile-review-card";
+        item.style.padding = "16px";
+        item.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+        item.style.borderRadius = "8px";
+        item.style.background = "rgba(255, 255, 255, 0.02)";
+        item.style.marginBottom = "12px";
+
+        const head = document.createElement("div");
+        head.style.display = "flex";
+        head.style.alignItems = "center";
+        head.style.flexWrap = "wrap";
+        head.style.gap = "8px";
+        const starsStr = "★".repeat(r.stars || 5) + "☆".repeat(Math.max(0, 5 - (r.stars || 5)));
+        const metaTxt = document.createElement("span");
+        metaTxt.textContent = `${starsStr} · ${r.reviewerName || "Usuario"} (@${r.reviewerHandle || "miembro"})`;
+        head.appendChild(metaTxt);
+        if (isCreatorAccount("", r.reviewerUid)) {
+          head.appendChild(createCreatorBadgeEl(true));
+        }
+        const dateTxt = document.createElement("span");
+        dateTxt.textContent = `· ${formatDateEs(r.updatedAtMs)}`;
+        head.appendChild(dateTxt);
+
+        const txt = document.createElement("p");
+        txt.style.fontSize = "0.9rem";
+        txt.style.color = "var(--silver-bright)";
+        txt.style.margin = "8px 0 0 0";
+        txt.textContent = r.comment || "";
+
+        item.appendChild(head);
+        item.appendChild(txt);
+        reviewsStream.appendChild(item);
+      });
+    }
+  }
+};
+
 const openOwnProfileInspector = () => {
   if (activeAuthUser) {
     if (typeof closeDock === "function") closeDock();
-    renderInspectorContent(activeAuthUser.uid);
+    if (window.location.pathname.endsWith("cuenta.html")) {
+      switchWorkspaceTab("profile");
+    } else {
+      renderInspectorContent(activeAuthUser.uid);
+    }
   }
 };
 
@@ -2926,20 +3217,23 @@ const profileSaveFeedback = document.getElementById("profileSaveFeedback");
 const studioPresenceSelect = document.getElementById("studioPresenceSelect");
 
 const syncProfilePreview = () => {
+  const customRole = profileRoleEl?.value.trim();
+  const cat = profileCategoryEl?.value || "video";
+  const resolvedRole = customRole || CATEGORY_LABELS[cat] || "Especialista digital";
+  const resolvedSit = profileWorkSituationEl ? (SITUATION_LABELS[profileWorkSituationEl.value] || "Disponible para proyectos") : "Disponible para proyectos";
+  const resolvedHandle = sanitizeHandle(profileHandleEl?.value, activeAuthUser?.displayName);
+
   if (profilePreviewName && profileDisplayNameEl) {
     profilePreviewName.textContent = profileDisplayNameEl.value.trim() || "Tu nombre";
   }
   if (profilePreviewHandle && profileHandleEl) {
-    profilePreviewHandle.textContent = `@${sanitizeHandle(profileHandleEl.value, activeAuthUser?.displayName)}`;
+    profilePreviewHandle.textContent = `@${resolvedHandle}`;
   }
   if (profilePreviewRole) {
-    const customRole = profileRoleEl?.value.trim();
-    const cat = profileCategoryEl?.value || "video";
-    profilePreviewRole.textContent = customRole || CATEGORY_LABELS[cat] || "Especialista digital";
+    profilePreviewRole.textContent = resolvedRole;
   }
   if (profilePreviewSituation && profileWorkSituationEl) {
-    profilePreviewSituation.textContent =
-      SITUATION_LABELS[profileWorkSituationEl.value] || "Disponible para proyectos";
+    profilePreviewSituation.textContent = resolvedSit;
   }
   if (profilePreviewInternalId && activeAuthUser) {
     const idCode = currentOwnProfile?.internalId || deriveInternalId(activeAuthUser.uid);
@@ -2964,6 +3258,20 @@ const syncProfilePreview = () => {
       profilePreviewAvatar.src = "favicon.svg";
     };
   }
+
+  // Sincronizar también con el Perfil Real estilo TikTok en cuenta.html
+  const myName = document.getElementById("myProfileName");
+  if (myName && profileDisplayNameEl) myName.textContent = profileDisplayNameEl.value.trim() || "Mi perfil";
+  const myHandle = document.getElementById("myProfileHandle");
+  if (myHandle && profileHandleEl) myHandle.textContent = `@${resolvedHandle}`;
+  const myRole = document.getElementById("myProfileRole");
+  if (myRole) myRole.textContent = resolvedRole;
+  const mySit = document.getElementById("myProfileSituation");
+  if (mySit) mySit.textContent = resolvedSit;
+  const myBio = document.getElementById("myProfileBio");
+  if (myBio && profileBioEl) myBio.textContent = profileBioEl.value.trim() || "Sin descripción profesional aún.";
+  const mySkills = document.getElementById("myProfileSkills");
+  if (mySkills && profileSkillsEl) renderSkillTagsInto(mySkills, profileSkillsEl.value);
 };
 
 const populateProfileForm = (prof) => {
@@ -3109,11 +3417,17 @@ profileEditForm?.addEventListener("submit", async (e) => {
   if (profileHandleEl) profileHandleEl.value = handle;
   syncProfilePreview();
   renderAccountWorkspace();
+  renderMyRealProfile?.();
   if (saveBtn) saveBtn.disabled = false;
 
   if (profileSaveFeedback) {
     profileSaveFeedback.hidden = false;
     profileSaveFeedback.textContent = "Perfil profesional sincronizado en la nube ✓";
+    setTimeout(() => {
+      const editModal = document.getElementById("myProfileEditModal");
+      if (editModal) editModal.hidden = true;
+      profileSaveFeedback.hidden = true;
+    }, 1100);
   }
 });
 
@@ -3228,6 +3542,10 @@ const renderAccountWorkspace = () => {
       hubPriorityBtn.textContent = "Activar acceso prioritario";
       hubPriorityBtn.disabled = false;
     }
+  }
+
+  if (document.getElementById("myProfileName")) {
+    renderMyRealProfile?.();
   }
 };
 
@@ -5520,6 +5838,11 @@ if (isFirebaseConfigured) {
             ownPortfolioGridEl.appendChild(card);
           });
         }
+      }
+
+      // Sincronizar el Perfil Real estilo TikTok en cuenta.html
+      if (typeof renderMyRealProfile === "function") {
+        renderMyRealProfile();
       }
     };
 
