@@ -6,13 +6,13 @@ const STORAGE_KEYS = {
   SUBMISSIONS: "xuanii_submissions"
 };
 
-// Cuenta oficial única del Creador de Xuanii (reconocida por ID interno e inmutable)
+// Cuenta oficial única del Creador de Xuanii (reconocida por ID interno e inmutable: XN-35BE2545)
 const CREATOR_UIDS = new Set([
-  "KVtoDRTJ7FUxZJelcicoSISSazA3"
+  "iHw8l7jKnzPp1JDCGsJ73C9I4z73"
 ]);
 
 const CREATOR_INTERNAL_IDS = new Set([
-  "XN-7808897A"
+  "XN-35BE2545"
 ]);
 
 const CATEGORY_LABELS = {
@@ -213,7 +213,7 @@ const deriveInternalId = (uid) => {
   return `XN-${partA}${partB}`;
 };
 
-// Verificador determinista de cuenta oficial del Creador (cuenta única XN-7808897A)
+// Verificador determinista de cuenta oficial del Creador (cuenta única XN-35BE2545)
 const isCreatorAccount = (internalId = "", uid = "") => {
   if (uid && CREATOR_UIDS.has(uid)) return true;
   const code = String(internalId || (uid ? deriveInternalId(uid) : ""))
