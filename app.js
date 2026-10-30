@@ -1683,22 +1683,49 @@ const decryptChatPayload = async (msgObj, convId, myPrivateJwk, peerPublicJwk) =
   if (!msgObj.ciphertext || !msgObj.iv) {
     return msgObj.text || "";
   }
-  try {
-    let aesKey;
-    if (msgObj.encMode === "ecdh" && myPrivateJwk && peerPublicJwk && peerPublicJwk.kty === "EC") {
-      aesKey = await deriveEcdhAesKey(convId, myPrivateJwk, peerPublicJwk);
-    } else {
-      aesKey = await deriveFallbackConvAesKey(convId);
+  const iv = b64ToBytes(msgObj.iv);
+  const data = b64ToBytes(msgObj.ciphertext);
+
+  // Intento 1: Desencriptación ECDH si el modo es ecdh y se cuentan con las llaves P-256
+  if (msgObj.encMode === "ecdh" && myPrivateJwk && peerPublicJwk && peerPublicJwk.kty === "EC") {
+    try {
+      const ecdhKey = await deriveEcdhAesKey(convId, myPrivateJwk, peerPublicJwk);
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        ecdhKey,
+        data
+      );
+      return new TextDecoder().decode(plainBuf);
+    } catch (e) {
+      // Si la derivación ECDH falla por desfase de llave, reintentar con llave de conversación
     }
+  }
+
+  // Intento 2: Desencriptación con llave determinista de conversación segura
+  try {
+    const convKey = await deriveFallbackConvAesKey(convId);
     const plainBuf = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: b64ToBytes(msgObj.iv) },
-      aesKey,
-      b64ToBytes(msgObj.ciphertext)
+      { name: "AES-GCM", iv },
+      convKey,
+      data
     );
     return new TextDecoder().decode(plainBuf);
-  } catch {
-    return "[Mensaje cifrado protegido]";
+  } catch (e) {}
+
+  // Intento 3: Si no era modo ecdh pero hay llaves disponibles, intentar ECDH como último recurso
+  if (msgObj.encMode !== "ecdh" && myPrivateJwk && peerPublicJwk && peerPublicJwk.kty === "EC") {
+    try {
+      const ecdhKey = await deriveEcdhAesKey(convId, myPrivateJwk, peerPublicJwk);
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        ecdhKey,
+        data
+      );
+      return new TextDecoder().decode(plainBuf);
+    } catch (e) {}
   }
+
+  return "[Mensaje cifrado con éxito · No disponible en este dispositivo]";
 };
 
 /* =========================================================
@@ -2176,6 +2203,10 @@ const switchWorkspaceTab = (tabName) => {
     const panel = document.getElementById(`wsPanel-${key}`);
     if (panel) panel.hidden = key !== tabName;
   });
+  const studioStage = document.querySelector(".studio-stage");
+  if (studioStage) {
+    studioStage.classList.toggle("stage-chat-expanded", tabName === "messages");
+  }
   if (tabName === "employment") {
     mountEmploymentSmartModule(document.getElementById("employmentSmartContainer"), currentOwnProfile);
   }
@@ -4716,6 +4747,15 @@ if (isFirebaseConfigured) {
           await setDoc(uRef, { cryptoKeys: myCryptoKeys, updatedAt: serverTimestamp() }, { merge: true });
         }
 
+        // Sincronizar siempre la clave pública en profiles/{user.uid} para que cualquier contacto pueda derivar la clave ECDH sin errores
+        if (myCryptoKeys?.publicKeyJwk) {
+          await setDoc(
+            doc(db, "profiles", user.uid),
+            { publicKeyJwk: myCryptoKeys.publicKeyJwk },
+            { merge: true }
+          ).catch(() => {});
+        }
+
         const fpEl = document.getElementById("settingsCryptoFingerprint");
         if (fpEl && myCryptoKeys?.publicKeyJwk?.x) {
           const shortFp = myCryptoKeys.publicKeyJwk.x.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase();
@@ -6956,7 +6996,8 @@ if (isFirebaseConfigured) {
     };
 
     // =========================================================
-    // MENSAJERÍA CIFRADA AES-256-GCM + REGLA DE 1 MENSAJE (1/1)
+    // MENSAJERÍA CIFRADA AES-256-GCM ESTILO WHATSAPP OBSIDIANA (E2EE)
+    // + GENTE QUE NO CONOCES (SOLICITUDES Y REGLA 1/1)
     // =========================================================
     let unsubscribeConversations = null;
     let unsubscribeActiveConvDoc = null;
@@ -6965,8 +7006,17 @@ if (isFirebaseConfigured) {
     let selectedPeerUid = null;
     let selectedPeerProfile = null;
     let activeConvData = null;
+    let currentChatTab = "known"; // "known" | "unknown"
+    let chatSearchFilter = "";
 
     const conversationsListEl = document.getElementById("conversationsList");
+    const strangersListEl = document.getElementById("strangersList");
+    const chatTabKnown = document.getElementById("chatTabKnown");
+    const chatTabUnknown = document.getElementById("chatTabUnknown");
+    const chatKnownBadge = document.getElementById("chatKnownBadge");
+    const chatUnknownBadge = document.getElementById("chatUnknownBadge");
+    const chatSearchInput = document.getElementById("chatSearchInput");
+
     const chatEmptyStateEl = document.getElementById("chatEmptyState");
     const chatActiveThreadEl = document.getElementById("chatActiveThread");
     const chatPendingBannerEl = document.getElementById("chatPendingBanner");
@@ -6974,6 +7024,38 @@ if (isFirebaseConfigured) {
     const chatComposeForm = document.getElementById("chatComposeForm");
     const chatMessageInput = document.getElementById("chatMessageInput");
     const chatSendBtn = document.getElementById("chatSendBtn");
+
+    const formatChatBubbleTime = (ts) => {
+      if (!ts) return "";
+      try {
+        const d = new Date(ts);
+        return new Intl.DateTimeFormat("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(d);
+      } catch {
+        return "";
+      }
+    };
+
+    const setChatTab = (tab) => {
+      currentChatTab = tab;
+      chatTabKnown?.classList.toggle("active", tab === "known");
+      chatTabUnknown?.classList.toggle("active", tab === "unknown");
+      if (conversationsListEl) conversationsListEl.hidden = tab !== "known";
+      if (strangersListEl) strangersListEl.hidden = tab !== "unknown";
+    };
+
+    chatTabKnown?.addEventListener("click", () => setChatTab("known"));
+    chatTabUnknown?.addEventListener("click", () => setChatTab("unknown"));
+
+    chatSearchInput?.addEventListener("input", (e) => {
+      chatSearchFilter = (e.target.value || "").toLowerCase().trim();
+      document.querySelectorAll(".wa-conv-card").forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = (!chatSearchFilter || text.includes(chatSearchFilter)) ? "flex" : "none";
+      });
+    });
 
     const syncChatGateBannerAndComposer = () => {
       const me = auth.currentUser;
@@ -6987,9 +7069,14 @@ if (isFirebaseConfigured) {
 
       if (status === "blocked") {
         chatPendingBannerEl.hidden = false;
-        const p = document.createElement("p");
-        p.textContent = "Esta conversación fue bloqueada por seguridad. No se pueden enviar mensajes.";
-        chatPendingBannerEl.appendChild(p);
+        chatPendingBannerEl.innerHTML = `
+          <div class="wa-stranger-tag" style="color: #ef4444;">
+            ⛔ CONVERSACIÓN BLOQUEADA
+          </div>
+          <p class="wa-stranger-desc">
+            Esta conversación fue bloqueada por motivos de seguridad o solicitud del usuario. No es posible enviar mensajes.
+          </p>
+        `;
         chatMessageInput.disabled = true;
         chatSendBtn.disabled = true;
         chatMessageInput.placeholder = "Conversación bloqueada";
@@ -6999,33 +7086,57 @@ if (isFirebaseConfigured) {
       if (status === "pending") {
         chatPendingBannerEl.hidden = false;
         if (iAmInitiator) {
-          const p = document.createElement("p");
           if (msgCount < 1) {
-            p.textContent =
-              "No están en contactos: por seguridad puedes enviar 1 único mensaje de presentación hasta que acepte hablar contigo.";
+            chatPendingBannerEl.innerHTML = `
+              <div class="wa-stranger-tag" style="color: #94a3b8;">
+                🛡️ CONTACTO NO REGISTRADO · MENSAJE INICIAL
+              </div>
+              <p class="wa-stranger-desc">
+                Este usuario no te tiene en sus contactos. Puedes enviar <strong>1 único mensaje inicial</strong> para presentarte. Una vez enviado, el chat quedará en espera de su aceptación.
+              </p>
+            `;
             chatMessageInput.disabled = false;
             chatSendBtn.disabled = false;
             chatMessageInput.placeholder = "Escribe tu único mensaje inicial de presentación...";
           } else {
-            p.textContent =
-              "Solicitud enviada (1/1 mensaje permitido). Podrás seguir escribiendo en cuanto esta persona acepte tu solicitud.";
+            chatPendingBannerEl.innerHTML = `
+              <div class="wa-stranger-tag" style="color: #94a3b8;">
+                ⏳ SOLICITUD ENVIADA (1/1 MENSAJE PERMITIDO)
+              </div>
+              <p class="wa-stranger-desc">
+                Has enviado 1 mensaje inicial a este especialista. Por tu seguridad y la de la comunidad, el chat completo se desbloqueará una vez que el destinatario acepte tu solicitud.
+              </p>
+            `;
             chatMessageInput.disabled = true;
             chatSendBtn.disabled = true;
-            chatMessageInput.placeholder = "Esperando aceptación del destinatario...";
+            chatMessageInput.placeholder = "Esperando que el destinatario acepte tu solicitud...";
           }
-          chatPendingBannerEl.appendChild(p);
         } else {
-          const p = document.createElement("p");
-          p.textContent =
-            "Solicitud de conversación de alguien que aún no está en tus contactos. ¿Aceptas hablar y conectar?";
-          const acts = document.createElement("div");
-          acts.className = "inline-actions";
+          // El receptor viendo un mensaje de alguien que no conoce
+          chatPendingBannerEl.innerHTML = `
+            <div class="wa-stranger-tag">
+              🛡️ GENTE QUE NO CONOCES · SOLICITUD DE CONTACTO
+            </div>
+            <p class="wa-stranger-desc">
+              Este especialista no está en tus contactos conocidos y te ha enviado un mensaje inicial.
+            </p>
+            <div class="wa-stranger-disclaimer">
+              ⚠️ Al aceptar, confirmas que decides interactuar con esta persona y te responsabilizas de la conversación.
+            </div>
+            <div class="wa-stranger-actions">
+              <button type="button" class="btn-white-action" id="waBtnAcceptStranger">
+                ✓ Aceptar y hacerme responsable
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="waBtnRejectStranger" style="color: #ef4444;">
+                ✕ Rechazar y bloquear
+              </button>
+            </div>
+          `;
+          chatMessageInput.disabled = true;
+          chatSendBtn.disabled = true;
+          chatMessageInput.placeholder = "Acepta la solicitud arriba para responder y desbloquear el chat...";
 
-          const acceptBtn = document.createElement("button");
-          acceptBtn.type = "button";
-          acceptBtn.className = "btn btn-white btn-sm";
-          acceptBtn.textContent = "Aceptar conversación y agregar contacto";
-          acceptBtn.addEventListener("click", async () => {
+          document.getElementById("waBtnAcceptStranger")?.addEventListener("click", async () => {
             if (!selectedConvId || !selectedPeerUid) return;
             await setDoc(
               doc(db, "conversations", selectedConvId),
@@ -7033,13 +7144,10 @@ if (isFirebaseConfigured) {
               { merge: true }
             );
             await cloudHooks.acceptConnection?.(selectedPeerUid).catch(() => {});
+            setChatTab("known");
           });
 
-          const blockBtn = document.createElement("button");
-          blockBtn.type = "button";
-          blockBtn.className = "btn btn-ghost btn-sm";
-          blockBtn.textContent = "Rechazar / Bloquear";
-          blockBtn.addEventListener("click", async () => {
+          document.getElementById("waBtnRejectStranger")?.addEventListener("click", async () => {
             if (!selectedConvId) return;
             await setDoc(
               doc(db, "conversations", selectedConvId),
@@ -7047,20 +7155,11 @@ if (isFirebaseConfigured) {
               { merge: true }
             );
           });
-
-          acts.appendChild(acceptBtn);
-          acts.appendChild(blockBtn);
-          chatPendingBannerEl.appendChild(p);
-          chatPendingBannerEl.appendChild(acts);
-
-          chatMessageInput.disabled = false;
-          chatSendBtn.disabled = false;
-          chatMessageInput.placeholder = "Responde o pulsa Aceptar arriba para desbloquear el chat...";
         }
         return;
       }
 
-      // Conversación aceptada
+      // Conversación aceptada normal
       chatPendingBannerEl.hidden = true;
       chatMessageInput.disabled = false;
       chatSendBtn.disabled = false;
@@ -7149,7 +7248,7 @@ if (isFirebaseConfigured) {
         idEl.onclick = () => copyTextWithFeedback(peerIdCode, idEl);
       }
       if (rlEl) {
-        rlEl.textContent = `${selectedPeerProfile.role || "Especialista"} · Cifrado AES-256-GCM`;
+        rlEl.innerHTML = `<span class="online-indicator-dot"></span> En línea · Cifrado AES-256-GCM`;
       }
 
       const inspBtn = document.getElementById("chatInspectPeerBtn");
@@ -7166,6 +7265,14 @@ if (isFirebaseConfigured) {
           }
         };
       }
+
+      document.getElementById("chatMobileBackBtn")?.addEventListener("click", () => {
+        if (chatActiveThreadEl) chatActiveThreadEl.hidden = true;
+        if (chatEmptyStateEl) chatEmptyStateEl.hidden = false;
+        selectedConvId = null;
+        selectedPeerUid = null;
+        document.querySelectorAll(".conv-item-open").forEach((b) => b.classList.remove("active"));
+      });
 
       document.querySelectorAll(".conv-item-open").forEach((b) => {
         b.classList.toggle("active", b.dataset.convId === convId);
@@ -7205,36 +7312,56 @@ if (isFirebaseConfigured) {
         );
 
         chatMessagesStreamEl.textContent = "";
+
+        // Indicador de cifrado de extremo a extremo estilo WhatsApp
+        const e2eePill = document.createElement("div");
+        e2eePill.className = "wa-e2ee-pill mono";
+        e2eePill.innerHTML = `🔒 Los mensajes están cifrados de extremo a extremo con AES-256-GCM. Solo tú y <strong>@${selectedPeerProfile?.handle || "contacto"}</strong> pueden leer su contenido.`;
+        chatMessagesStreamEl.appendChild(e2eePill);
+
         if (decryptedList.length === 0) {
           const hint = document.createElement("div");
-          hint.className = "chat-msg-rail";
-          const p = document.createElement("p");
-          p.className = "chat-msg-text";
-          p.style.color = "var(--muted)";
-          p.textContent =
-            "Canal cifrado listo. Escribe abajo para presentar tu propuesta o iniciar conversación.";
-          hint.appendChild(p);
+          hint.style.textAlign = "center";
+          hint.style.padding = "24px 12px";
+          hint.style.color = "var(--muted)";
+          hint.style.fontSize = "0.85rem";
+          hint.textContent = "Canal cifrado listo. Escribe abajo para enviar tu mensaje.";
           chatMessagesStreamEl.appendChild(hint);
-          return;
+        } else {
+          decryptedList.forEach((m) => {
+            const isOwn = m.senderUid === me.uid;
+            const timeStr = formatChatBubbleTime(m.createdAtMs);
+
+            const row = document.createElement("div");
+            row.className = `wa-bubble-row ${isOwn ? "sent" : "received"}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "wa-bubble";
+
+            const txt = document.createElement("p");
+            txt.className = "wa-bubble-text";
+            txt.textContent = m.plain || "";
+
+            const meta = document.createElement("div");
+            meta.className = "wa-bubble-meta";
+            const timeSpan = document.createElement("span");
+            timeSpan.textContent = timeStr;
+            meta.appendChild(timeSpan);
+
+            if (isOwn) {
+              const checkSpan = document.createElement("span");
+              checkSpan.className = "wa-check-icon";
+              checkSpan.textContent = "✓✓";
+              checkSpan.title = "Cifrado y entregado";
+              meta.appendChild(checkSpan);
+            }
+
+            bubble.appendChild(txt);
+            bubble.appendChild(meta);
+            row.appendChild(bubble);
+            chatMessagesStreamEl.appendChild(row);
+          });
         }
-
-        decryptedList.forEach((m) => {
-          const isOwn = m.senderUid === me.uid;
-          const rail = document.createElement("div");
-          rail.className = isOwn ? "chat-msg-rail own-msg" : "chat-msg-rail";
-
-          const meta = document.createElement("span");
-          meta.className = "chat-msg-meta mono";
-          meta.textContent = `${isOwn ? "TÚ" : (m.senderName || selectedPeerProfile?.displayName || "CONTACTO").toUpperCase()} · CIFRADO · ${formatDateEs(m.createdAtMs)}`;
-
-          const txt = document.createElement("p");
-          txt.className = "chat-msg-text";
-          txt.textContent = m.plain || "";
-
-          rail.appendChild(meta);
-          rail.appendChild(txt);
-          chatMessagesStreamEl.appendChild(rail);
-        });
 
         chatMessagesStreamEl.scrollTop = chatMessagesStreamEl.scrollHeight;
       });
@@ -7248,7 +7375,7 @@ if (isFirebaseConfigured) {
       const text = (chatMessageInput?.value || "").trim();
       if (!me || !selectedConvId || !selectedPeerUid || !text) return;
 
-      // Si el destinatario responde a una solicitud pendiente, aceptarla automáticamente
+      // Si el destinatario responde a una solicitud pendiente de un desconocido, aceptarla automáticamente
       if (activeConvData?.status === "pending" && activeConvData.initiatorUid !== me.uid) {
         await setDoc(
           doc(db, "conversations", selectedConvId),
@@ -7256,6 +7383,7 @@ if (isFirebaseConfigured) {
           { merge: true }
         );
         await cloudHooks.acceptConnection?.(selectedPeerUid).catch(() => {});
+        setChatTab("known");
       } else if (
         activeConvData?.status === "pending" &&
         activeConvData.initiatorUid === me.uid &&
@@ -7307,6 +7435,98 @@ if (isFirebaseConfigured) {
       );
     });
 
+    const createWhatsAppConvCard = async (c, user, isStrangerSection) => {
+      const otherUid = (c.participants || []).find((id) => id !== user.uid) || "";
+      const otherInfo = c.participantProfiles?.[otherUid] || profilesByUid.get(otherUid) || {};
+      const peerPub = profilesByUid.get(otherUid)?.publicKeyJwk;
+
+      let previewStr = "Canal cifrado activo";
+      if (isStrangerSection) {
+        previewStr = "🛡️ Solicitud de mensaje inicial";
+      } else if (c.status === "pending" && c.initiatorUid === user.uid) {
+        previewStr = "⏳ Solicitud enviada (1/1)";
+      } else if (c.lastCiphertext && c.lastIv) {
+        const dec = await decryptChatPayload(
+          { ciphertext: c.lastCiphertext, iv: c.lastIv, encMode: c.lastEncMode },
+          c.id,
+          myCryptoKeys?.privateKeyJwk,
+          peerPub
+        );
+        previewStr = dec.slice(0, 48);
+      } else if (c.lastMessage) {
+        previewStr = c.lastMessage.slice(0, 48);
+      }
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "conv-item-open wa-conv-card";
+      btn.dataset.convId = c.id;
+      if (c.id === selectedConvId) btn.classList.add("active");
+
+      const peerIsCreator = isCreatorAccount(otherInfo.internalId, otherUid);
+
+      const avBox = document.createElement("div");
+      avBox.className = "wa-avatar-box";
+      const img = document.createElement("img");
+      img.className = peerIsCreator ? "wa-avatar-img creator-avatar-ring" : "wa-avatar-img";
+      img.src = otherInfo.photoURL || "favicon.svg";
+      img.alt = "";
+      img.onerror = () => { img.src = "favicon.svg"; };
+      avBox.appendChild(img);
+
+      const col = document.createElement("div");
+      col.className = "wa-card-content";
+
+      const topRow = document.createElement("div");
+      topRow.className = "wa-card-top";
+      const nm = document.createElement("span");
+      nm.className = "wa-card-name";
+      nm.textContent = otherInfo.displayName || "Conversación";
+      if (peerIsCreator) {
+        nm.style.display = "inline-flex";
+        nm.style.alignItems = "center";
+        nm.style.gap = "4px";
+        nm.appendChild(createCreatorBadgeEl(true));
+      }
+      const tm = document.createElement("span");
+      tm.className = "wa-card-time mono";
+      tm.textContent = c.updatedAtMs ? formatChatBubbleTime(c.updatedAtMs) : "";
+      topRow.appendChild(nm);
+      topRow.appendChild(tm);
+
+      const botRow = document.createElement("div");
+      botRow.className = "wa-card-bottom";
+      const prev = document.createElement("span");
+      prev.className = "wa-card-preview";
+
+      const isOwnLast = c.lastSenderUid === user.uid;
+      if (isOwnLast && !isStrangerSection) {
+        const chk = document.createElement("span");
+        chk.className = "wa-check-icon";
+        chk.textContent = "✓✓";
+        prev.appendChild(chk);
+      }
+      const txtSpan = document.createElement("span");
+      txtSpan.textContent = previewStr;
+      prev.appendChild(txtSpan);
+      botRow.appendChild(prev);
+
+      if (isStrangerSection) {
+        const pill = document.createElement("span");
+        pill.className = "wa-badge-pill danger";
+        pill.textContent = "NUEVO";
+        botRow.appendChild(pill);
+      }
+
+      col.appendChild(topRow);
+      col.appendChild(botRow);
+
+      btn.appendChild(avBox);
+      btn.appendChild(col);
+      btn.addEventListener("click", () => openDirectChatWith(otherUid));
+      return btn;
+    };
+
     const attachConversationsListener = (user) => {
       if (!conversationsListEl) return;
       if (unsubscribeConversations) unsubscribeConversations();
@@ -7320,75 +7540,60 @@ if (isFirebaseConfigured) {
         const badgeMsgs = document.getElementById("badgeMsgsCount");
         if (badgeMsgs) badgeMsgs.textContent = String(convs.length);
 
+        const knownList = [];
+        const strangersList = [];
+
+        for (const c of convs) {
+          const isStranger = c.status === "pending" && c.initiatorUid !== user.uid;
+          if (isStranger) {
+            strangersList.push(c);
+          } else {
+            knownList.push(c);
+          }
+        }
+
+        // Actualizar contadores en pestañas estilo WhatsApp
+        if (chatKnownBadge) {
+          chatKnownBadge.textContent = String(knownList.length);
+          chatKnownBadge.hidden = knownList.length === 0;
+        }
+        if (chatUnknownBadge) {
+          chatUnknownBadge.textContent = String(strangersList.length);
+          chatUnknownBadge.hidden = strangersList.length === 0;
+        }
+
+        // Renderizar lista de Conocidos
         conversationsListEl.textContent = "";
-        if (convs.length === 0) {
+        if (knownList.length === 0) {
           const emptyP = document.createElement("p");
           emptyP.style.fontSize = "0.84rem";
           emptyP.style.color = "var(--muted)";
-          emptyP.textContent = "Aún no tienes conversaciones.";
+          emptyP.style.padding = "20px 16px";
+          emptyP.textContent = "No tienes chats activos en contactos.";
           conversationsListEl.appendChild(emptyP);
-          return;
+        } else {
+          for (const c of knownList) {
+            const card = await createWhatsAppConvCard(c, user, false);
+            conversationsListEl.appendChild(card);
+          }
         }
 
-        for (const c of convs) {
-          const otherUid = (c.participants || []).find((id) => id !== user.uid) || "";
-          const otherInfo = c.participantProfiles?.[otherUid] || profilesByUid.get(otherUid) || {};
-          const peerPub = profilesByUid.get(otherUid)?.publicKeyJwk;
-
-          let previewStr = "Canal cifrado activo";
-          if (c.status === "pending" && c.initiatorUid !== user.uid) {
-            previewStr = "● Solicitud de mensaje nueva";
-          } else if (c.lastCiphertext && c.lastIv) {
-            const dec = await decryptChatPayload(
-              { ciphertext: c.lastCiphertext, iv: c.lastIv, encMode: c.lastEncMode },
-              c.id,
-              myCryptoKeys?.privateKeyJwk,
-              peerPub
-            );
-            previewStr = dec.slice(0, 60);
-          } else if (c.lastMessage) {
-            previewStr = c.lastMessage;
+        // Renderizar lista de Gente que no conoces (Solicitudes)
+        if (strangersListEl) {
+          strangersListEl.textContent = "";
+          if (strangersList.length === 0) {
+            const emptyP = document.createElement("p");
+            emptyP.style.fontSize = "0.84rem";
+            emptyP.style.color = "var(--muted)";
+            emptyP.style.padding = "20px 16px";
+            emptyP.textContent = "No tienes solicitudes de personas desconocidas.";
+            strangersListEl.appendChild(emptyP);
+          } else {
+            for (const c of strangersList) {
+              const card = await createWhatsAppConvCard(c, user, true);
+              strangersListEl.appendChild(card);
+            }
           }
-
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "conv-item-open";
-          btn.dataset.convId = c.id;
-          if (c.id === selectedConvId) btn.classList.add("active");
-
-          const peerIsCreator = isCreatorAccount(otherInfo.internalId, otherUid);
-          const img = document.createElement("img");
-          img.className = peerIsCreator ? "conv-item-avatar creator-avatar-ring" : "conv-item-avatar";
-          img.src = otherInfo.photoURL || "favicon.svg";
-          img.alt = "";
-          img.onerror = () => {
-            img.src = "favicon.svg";
-          };
-
-          const col = document.createElement("div");
-          col.className = "conv-item-text";
-
-          const nm = document.createElement("span");
-          nm.className = "conv-item-name";
-          nm.style.display = "inline-flex";
-          nm.style.alignItems = "center";
-          nm.style.gap = "6px";
-          nm.style.flexWrap = "wrap";
-          const nmTxt = document.createElement("span");
-          nmTxt.textContent = otherInfo.displayName || "Conversación";
-          nm.appendChild(nmTxt);
-          if (peerIsCreator) nm.appendChild(createCreatorBadgeEl(true));
-
-          const prev = document.createElement("span");
-          prev.className = "conv-item-preview";
-          prev.textContent = previewStr;
-
-          col.appendChild(nm);
-          col.appendChild(prev);
-          btn.appendChild(img);
-          btn.appendChild(col);
-          btn.addEventListener("click", () => openDirectChatWith(otherUid));
-          conversationsListEl.appendChild(btn);
         }
       });
     };

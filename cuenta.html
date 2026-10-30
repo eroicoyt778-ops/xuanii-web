@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=2.2.6" />
+  <link rel="stylesheet" href="styles.css?v=2.2.8" />
 </head>
 <body>
   <!-- Fondo de seda monocromática fluida con desvanecido suave hacia negro obsidiana -->
@@ -427,71 +427,128 @@
             </div>
           </section>
 
-          <!-- 3. MENSAJERÍA CIFRADA AES-256-GCM CON REGLA 1/1 PARA DESCONOCIDOS -->
+          <!-- 3. MENSAJERÍA CIFRADA AES-256-GCM ESTILO WHATSAPP OBSIDIANA (E2EE) -->
           <section id="wsPanel-messages" class="workspace-panel" hidden>
-            <div class="studio-top-bar">
+            <div class="studio-top-bar" style="margin-bottom: 16px;">
               <div>
-                <span class="open-eyebrow mono" style="margin-bottom: 6px;">CIFRADO EXTREMO A EXTREMO · AES-256-GCM</span>
-                <h2>Mensajes seguros y propuestas</h2>
+                <span class="open-eyebrow mono" style="margin-bottom: 6px;">MENSAJERÍA SEGURA · CIFRADO EXTREMO A EXTREMO (E2EE)</span>
+                <h2>Mensajes y Solicitudes</h2>
               </div>
               <span class="crypto-status-line mono">
-                ● Llaves WebCrypto activas en la nube
+                <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#ffffff; box-shadow:0 0 8px rgba(255, 255, 255, 0.85);"></span>
+                AES-256-GCM Activo en la Nube
               </span>
             </div>
 
-            <div class="chat-split-open">
-              <aside class="conv-list-open">
-                <span class="open-eyebrow mono" style="margin-bottom: 10px;">BANDEJA CIFRADA</span>
-                <div id="conversationsList"></div>
+            <div class="chat-split-open wa-chat-split">
+              <!-- Barra lateral estilo WhatsApp -->
+              <aside class="conv-list-open wa-chat-sidebar">
+                <div class="wa-sidebar-header">
+                  <div class="wa-header-row">
+                    <span class="open-eyebrow mono">BANDEJA DE ENTRADA</span>
+                  </div>
+
+                  <!-- Pestañas WhatsApp: Conocidos vs Gente que no conoces -->
+                  <div class="wa-nav-tabs">
+                    <button type="button" class="wa-tab-btn active" id="chatTabKnown">
+                      <span>Conocidos</span>
+                      <span id="chatKnownBadge" class="wa-badge-pill" hidden>0</span>
+                    </button>
+                    <button type="button" class="wa-tab-btn" id="chatTabUnknown">
+                      <span>Gente que no conoces</span>
+                      <span id="chatUnknownBadge" class="wa-badge-pill danger" hidden>0</span>
+                    </button>
+                  </div>
+
+                  <!-- Buscador rápido en vivo estilo WhatsApp -->
+                  <div class="wa-search-wrap">
+                    <svg class="wa-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="chatSearchInput" class="wa-search-input mono" placeholder="Buscar chat o contacto..." autocomplete="off" />
+                  </div>
+                </div>
+
+                <!-- Lista de conversaciones con amigos / conocidos -->
+                <div id="conversationsList" class="wa-conv-list"></div>
+
+                <!-- Lista de solicitudes de gente que no conoces -->
+                <div id="strangersList" class="wa-conv-list" hidden></div>
               </aside>
 
-              <div class="chat-thread-open">
-                <div id="chatEmptyState" class="arch-col" style="align-self: start;">
-                  <span class="col-index mono">PROTECCIÓN ANTI-SPAM Y CIFRADO</span>
-                  <h3>Conversaciones protegidas</h3>
+              <!-- Panel de conversación activa estilo WhatsApp -->
+              <div class="chat-thread-open wa-chat-window">
+                <!-- Estado vacío cuando no hay conversación seleccionada -->
+                <div id="chatEmptyState" class="wa-chat-empty-state">
+                  <div class="wa-shield-icon">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                  </div>
+                  <h3>EndHa Mensajes Cifrados</h3>
                   <p>
-                    Todos los mensajes viajan y se guardan cifrados en la nube con AES-256-GCM. Si alguien no está en tus contactos, solo podrá enviarte un único mensaje inicial hasta que aceptes hablar con esa persona.
+                    Comunícate directamente con especialistas digitales y clientes con total privacidad. Todos tus mensajes están protegidos mediante cifrado AES-256-GCM.
+                  </p>
+                  <p class="wa-empty-sub mono" style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px;">
+                    🛡️ Si alguien desconocido te escribe, su mensaje aparecerá en <strong>"Gente que no conoces"</strong> para que decidas si deseas aceptarlo antes de compartir tu contacto.
                   </p>
                 </div>
 
-                <div id="chatActiveThread" class="chat-active-thread" hidden>
-                  <div class="chat-thread-header">
+                <!-- Conversación activa -->
+                <div id="chatActiveThread" class="chat-active-thread wa-active-panel" hidden>
+                  <!-- Cabecera del chat estilo WhatsApp -->
+                  <div class="chat-thread-header wa-thread-header">
                     <div class="chat-peer-info">
-                      <img id="chatPeerAvatar" src="favicon.svg" alt="" class="conv-item-avatar" />
+                      <button type="button" class="wa-back-btn" id="chatMobileBackBtn" title="Volver a los chats">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="19" y1="12" x2="5" y2="12"></line>
+                          <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                      </button>
+                      <img id="chatPeerAvatar" src="favicon.svg" alt="" class="conv-item-avatar wa-avatar-lg" />
                       <div>
                         <div class="profile-name-line">
-                          <h3 id="chatPeerName" style="font-size: 1.05rem;">Especialista</h3>
+                          <h3 id="chatPeerName" style="font-size: 1.05rem; margin: 0;">Especialista</h3>
                           <span id="chatPeerCreatorSlot"></span>
                           <span id="chatPeerHandle" class="profile-handle mono"></span>
                           <span id="chatPeerIdTag" class="id-tag-mono mono"></span>
                         </div>
-                        <span id="chatPeerRole" class="open-row-sub" style="margin-top: 0;"></span>
+                        <span id="chatPeerRole" class="wa-peer-status mono">
+                          <span class="online-indicator-dot"></span>
+                          En línea · Cifrado extremo a extremo
+                        </span>
                       </div>
                     </div>
 
                     <div class="inline-actions">
-                      <button type="button" class="text-action-btn" id="chatInspectPeerBtn">Ver perfil y ★</button>
-                      <button type="button" class="text-action-btn" id="chatReportPeerBtn">Reportar ID</button>
+                      <button type="button" class="btn btn-ghost btn-sm" id="chatInspectPeerBtn">Ver perfil</button>
+                      <button type="button" class="text-action-btn" id="chatReportPeerBtn" style="color: #ef4444;">Reportar ID</button>
                     </div>
                   </div>
 
-                  <!-- Banner de solicitud cuando aún no son amigos / estado pendiente -->
-                  <div id="chatPendingBanner" class="pending-gate-banner" hidden></div>
+                  <!-- Banner de 'Gente que no conoces' con opción de Aceptar y responsabilizarse -->
+                  <div id="chatPendingBanner" class="wa-stranger-banner" hidden></div>
 
-                  <div id="chatMessagesStream" class="chat-stream-open"></div>
+                  <!-- Flujo de mensajes con burbujas WhatsApp -->
+                  <div id="chatMessagesStream" class="chat-stream-open wa-messages-container"></div>
 
-                  <form id="chatComposeForm" class="chat-compose-open" novalidate>
+                  <!-- Barra de composición WhatsApp -->
+                  <form id="chatComposeForm" class="chat-compose-open wa-compose-bar" novalidate>
                     <input
                       type="text"
                       id="chatMessageInput"
-                      class="line-input"
+                      class="wa-message-input"
                       maxlength="2000"
                       placeholder="Escribe un mensaje cifrado..."
                       autocomplete="off"
                       required
                     />
-                    <button type="submit" class="btn btn-white btn-sm" id="chatSendBtn">
-                      Enviar <span class="arrow">→</span>
+                    <button type="submit" class="wa-send-action-btn" id="chatSendBtn" title="Enviar mensaje">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                      </svg>
                     </button>
                   </form>
                 </div>
@@ -1331,7 +1388,7 @@
     </div>
   </div>
 
-  <script src="firebase-config.js?v=2.2.6"></script>
-  <script type="module" src="app.js?v=2.2.6"></script>
+  <script src="firebase-config.js?v=2.2.7"></script>
+  <script type="module" src="app.js?v=2.2.8"></script>
 </body>
 </html>
